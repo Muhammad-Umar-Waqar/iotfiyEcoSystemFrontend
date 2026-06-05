@@ -5,7 +5,7 @@ import { useEffect, useState, useRef } from "react";
 import { useStore } from "../../contexts/storecontexts";
 import { getVenuePriority, priorityWeight } from "../../utils/venuePriorities";
 
-const BASE = import.meta.env.VITE_BACKEND_API || "http://localhost:5050";
+const BASE = import.meta.env.VITE_API_URL || "http://localhost:5050";
 
 export default function VenueSelect({ organizationId, value, onChange, className = "", excludeFirstN = 0, externalLabel }) {
   const { user, getToken } = useStore();

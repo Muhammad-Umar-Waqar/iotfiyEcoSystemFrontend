@@ -15,7 +15,7 @@ const SubscriptionUsageIndicator = ({ resourceType, currentCount }) => {
         const token = localStorage.getItem('token');
         if (!token) return;
 
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_API || 'http://localhost:5050'}/subscription/my-subscription`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5050'}/subscription/my-subscription`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',

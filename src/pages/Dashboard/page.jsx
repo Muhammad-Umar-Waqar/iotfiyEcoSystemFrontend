@@ -28,7 +28,7 @@ import { useScheduler } from "../../contexts/SchedulerContext";
 
 const mockFreezerDevices = [];
 
-const BASE = import.meta.env.VITE_BACKEND_API || "http://localhost:5050";
+const BASE = import.meta.env.VITE_API_URL || "http://localhost:5050";
 
 export default function Dashboard() {
   const { user, getToken } = useStore();

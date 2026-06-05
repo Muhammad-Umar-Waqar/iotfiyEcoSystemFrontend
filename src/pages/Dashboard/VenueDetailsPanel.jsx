@@ -132,7 +132,7 @@ export default function VenueDetailsPanel({
       if (!deviceId) return;
 
       const res = await fetch(
-        `${import.meta.env.VITE_BACKEND_API}/event/get-by-deviceid/${deviceId}`,
+        `${import.meta.env.VITE_API_URL}/event/get-by-deviceid/${deviceId}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -145,7 +145,7 @@ export default function VenueDetailsPanel({
 
       // Fetch current/next status and mark events
       const statusRes = await fetch(
-        `${import.meta.env.VITE_BACKEND_API}/event/get-current-events/${deviceId}`,
+        `${import.meta.env.VITE_API_URL}/event/get-current-events/${deviceId}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,

@@ -9,7 +9,7 @@ import Tooltip from "@mui/material/Tooltip";
 import LogoutDialog from "./Modals/LogoutDialog"
 import { useMediaQuery, Skeleton } from "@mui/material"
 
-const BASE = import.meta.env.VITE_BACKEND_API || "http://localhost:5050"
+const BASE = import.meta.env.VITE_API_URL || "http://localhost:5050"
 
 const Icon = ({ src, alt, size = 24, className = "", ...props }) => (
   <img
