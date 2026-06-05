@@ -136,6 +136,7 @@ const SidebarRebuilt = () => {
   // Manager-only items
   const ManagerOnlyItems = [
     { key: "users-management", label: "Users Management", link: "/management/users", icon: "/sidebar-images/7.png", blueIcon: "/sidebar-images-blue/7.png" },
+    { key: "subscription-analytics", label: "Subscription Analytics", link: "/management/subscription", icon: "/sidebar-images/9.png", blueIcon: "/sidebar-images-blue/9.png" },
   ]
 
 

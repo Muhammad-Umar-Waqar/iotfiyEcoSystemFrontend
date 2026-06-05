@@ -2,12 +2,16 @@ import { useState } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import api from '../../services/api';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from '@mui/material';
 
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:5050";
 
 const VerifyOtp = () => {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resendModalOpen, setResendModalOpen] = useState(false);
+  const [resendEmail, setResendEmail] = useState('');
+  const [resending, setResending] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { token } = useParams(); // Token from URL (sub-user flow)
@@ -72,7 +76,7 @@ const VerifyOtp = () => {
     }
   };
 
-  const handleResendOtp = async () => {
+  const handleResendOtp = () => {
     if (isSubUserFlow) {
       // For sub-user flow, they need to contact manager
       Swal.fire({
@@ -83,9 +87,38 @@ const VerifyOtp = () => {
       return;
     }
 
-    // Regular registration flow resend
+    // Open modal for email input
+    setResendEmail(email || '');
+    setResendModalOpen(true);
+  };
+
+  const handleResendSubmit = async () => {
+    if (!resendEmail) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Email',
+        text: 'Please enter your email address.',
+      });
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(resendEmail)) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Email',
+        text: 'Please enter a valid email address.',
+      });
+      return;
+    }
+
+    setResending(true);
     try {
-      await api.post('/auth/resend-otp', { email });
+      await api.post('/auth/resend-otp', { email: resendEmail });
+
+      setResendModalOpen(false);
+
       Swal.fire({
         icon: 'success',
         title: 'OTP Resent',
@@ -99,6 +132,8 @@ const VerifyOtp = () => {
         title: 'Error',
         text: error.response?.data?.message || 'Failed to resend OTP.',
       });
+    } finally {
+      setResending(false);
     }
   };
 
@@ -203,6 +238,35 @@ const VerifyOtp = () => {
           </div>
         </div>
       </div>
+
+      {/* Resend OTP Modal */}
+      <Dialog open={resendModalOpen} onClose={() => !resending && setResendModalOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Resend OTP</DialogTitle>
+        <DialogContent>
+          <p className="text-gray-600 text-sm mb-4">
+            Enter your email address to receive a new OTP code.
+          </p>
+          <TextField
+            autoFocus
+            fullWidth
+            label="Email Address"
+            type="email"
+            value={resendEmail}
+            onChange={(e) => setResendEmail(e.target.value)}
+            placeholder="Enter your email"
+            disabled={resending}
+            sx={{ mt: 1 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setResendModalOpen(false)} disabled={resending}>
+            Cancel
+          </Button>
+          <Button onClick={handleResendSubmit} variant="contained" disabled={resending}>
+            {resending ? 'Sending...' : 'Resend OTP'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

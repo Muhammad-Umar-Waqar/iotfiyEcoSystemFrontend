@@ -206,6 +206,7 @@ const AddUser = ({ selectedUser }) => {
           disabled={!hasManagePermission}
         />
 
+<div className="flex flex-col gap-4 "> 
         {/* Organizations - Multi-select */}
         <FormControl fullWidth size="small">
           <InputLabel id="organizations-label">Organizations *</InputLabel>
@@ -300,7 +301,7 @@ const AddUser = ({ selectedUser }) => {
             ))}
           </Select>
         </FormControl>
-
+</div>
         {/* Submit Button */}
         <button
           type="submit"
