@@ -1,0 +1,3 @@
+.swal2-topmost {
+  z-index: 14000 !important; /* well above MUI's default 1300 */
+}

@@ -1,0 +1,505 @@
+/* ===== FREEZER CARDS RESPONSIVE DESIGN ===== */
+/* Comprehensive responsive design for freezer monitoring cards */
+/* Covers screen sizes from 14-inch laptops to 27-inch monitors */
+
+/* ===== BASE CARD STYLING ===== */
+.freezer-card-container {
+  position: relative;
+  width: 100%;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  border-radius: 26px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  height: calc((80px * 2) + 1rem + (1rem * 2));
+}
+
+.freezer-card-container:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.freezer-card-container.selected {
+  transform: scale(1.02);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== RESPONSIVE GRID LAYOUT ===== */
+.freezer-cards-grid {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  width: 100%;
+  transition: all 0.3s ease-in-out;
+}
+
+/* ===== CONTAINER HEIGHT FOR EXACTLY 2 ROWS ===== */
+.freezer-cards-container {
+  /* Calculate height for exactly 2 rows + padding + gap */
+  /* Formula: (card height * 2) + (gap * 1) + (padding * 2) */
+  height: calc((var(--card-height, 200px) * 2) + var(--gap, 1rem) + (var(--padding, 1rem) * 2));
+  overflow-y: auto;
+  background-color: #07518D12;
+  border-radius: 20px;
+}
+
+/* Desktop-only - Mobile/Tablet styles removed */
+
+/* ===== 14-INCH LAPTOPS (1024px to 1365px) ===== */
+@media (min-width: 1024px) and (max-width: 1365px) {
+  .freezer-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+    padding: 1.25rem;
+  }
+  
+  .freezer-card-container {
+    aspect-ratio: 1.6;
+    height: 180px; /* Reduced height for 14" laptops */
+  }
+  
+  .freezer-cards-container {
+    height: calc((180px * 2) + 1.25rem + (1.25rem * 2)); /* 2 rows + gap + padding */
+  }
+}
+
+/* ===== 15-17 INCH LAPTOPS (1366px to 1599px) ===== */
+@media (min-width: 1366px) and (max-width: 1599px) {
+  .freezer-cards-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+  
+  .freezer-card-container {
+    aspect-ratio: 1.6;
+    height: 200px; /* Reduced height for 15-17" laptops */
+  }
+  
+  .freezer-cards-container {
+    height: calc((200px * 2) + 1.5rem + (1.5rem * 2)); /* 2 rows + gap + padding */
+  }
+}
+
+/* ===== 19-21 INCH MONITORS (1600px to 1919px) ===== */
+@media (min-width: 1600px) and (max-width: 1919px) {
+  .freezer-cards-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.75rem;
+    padding: 1.75rem;
+  }
+  
+  .freezer-card-container {
+    aspect-ratio: 1.6;
+    height: 220px; /* Reduced height for 19-21" monitors */
+  }
+  
+  .freezer-cards-container {
+    height: calc((220px * 2) + 1.75rem + (1.75rem * 2)); /* 2 rows + gap + padding */
+  }
+}
+
+/* ===== 22-24 INCH MONITORS (1920px to 2559px) ===== */
+@media (min-width: 1920px) and (max-width: 2559px) {
+  .freezer-cards-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+    padding: 2rem;
+  }
+  
+  .freezer-card-container {
+    aspect-ratio: 1.6;
+    height: 240px; /* Reduced height for 22-24" monitors */
+  }
+  
+  .freezer-cards-container {
+    height: calc((240px * 2) + 2rem + (2rem * 2)); /* 2 rows + gap + padding */
+  }
+}
+
+/* ===== 25-27 INCH MONITORS (2560px and above) ===== */
+@media (min-width: 2560px) {
+  .freezer-cards-grid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2.25rem;
+    padding: 2.25rem;
+  }
+  
+  .freezer-card-container {
+    aspect-ratio: 1.6;
+    height: 260px; /* Reduced height for 25-27" monitors */
+  }
+  
+  .freezer-cards-container {
+    height: calc((260px * 2) + 2.25rem + (2.25rem * 2)); /* 2 rows + gap + padding */
+  }
+}
+
+/* ===== ULTRA-WIDE MONITORS (3440px and above) ===== */
+@media (min-width: 3440px) {
+  .freezer-cards-grid {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 2.5rem;
+    padding: 2.5rem;
+  }
+  
+  .freezer-card-container {
+    aspect-ratio: 1.6;
+    height: 280px; /* Reduced height for ultra-wide monitors */
+  }
+  
+  .freezer-cards-container {
+    height: calc((280px * 2) + 2.5rem + (2.5rem * 2)); /* 2 rows + gap + padding */
+  }
+}
+
+/* ===== CARD CONTENT RESPONSIVE SIZING ===== */
+.freezer-card-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Device ID styling */
+.device-id-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.device-id-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  opacity: 0.7;
+}
+
+.device-id-value {
+  font-size: 1.125rem;
+  font-weight: bold;
+  line-height: 1.2;
+}
+
+.ambient-pill {
+  border: solid rgba(0, 0, 0, 0.272) 0.5px;
+  border-radius: 9999px;
+  padding: 0 0.5rem 0 0.1rem;
+  font-size: 0.55rem;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+
+
+
+.freezer-icon {
+  width: 2rem;
+  height: 2rem;
+
+  flex-shrink: 0;
+}
+
+.freezer-temp-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 0.25rem;
+}
+
+.freezer-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  line-height: 1.2;
+}
+
+.freezer-temp-value {
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* Battery warning section */
+.battery-warning {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-right: 0.25rem;
+}
+
+.alert-icon {
+  width: 1rem;
+  height: 1rem;
+  margin-left: 0.25rem;
+}
+
+/* ===== RESPONSIVE TYPOGRAPHY SCALING ===== */
+/* Scale text sizes based on screen size */
+
+/* 14-inch laptops */
+@media (min-width: 1024px) and (max-width: 1365px) {
+  .device-id-value {
+    font-size: 1rem;
+  }
+  
+  .freezer-temp-value {
+    font-size: 2rem;
+    font-weight: bold;
+  }
+  
+  .freezer-icon {
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+/* 15-17 inch laptops */
+@media (min-width: 1366px) and (max-width: 1599px) {
+  .device-id-value {
+    font-size: 1.125rem;
+  }
+  
+  .freezer-temp-value {
+    font-size: 2rem;
+    font-weight: bold;
+  }
+  
+  .freezer-icon {
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+/* 19-21 inch monitors */
+@media (min-width: 1600px) and (max-width: 1919px) {
+  .device-id-value {
+    font-size: 1.25rem;
+  }
+  
+  .freezer-temp-value {
+    font-size: 2rem;
+    font-weight: bold;
+  }
+  
+  .freezer-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}
+
+/* 22-24 inch monitors */
+@media (min-width: 1920px) and (max-width: 2559px) {
+  .device-id-value {
+    font-size: 1.375rem;
+  }
+  
+  .freezer-temp-value {
+    font-size: 2rem;
+    font-weight: bold;
+  }
+  
+  .freezer-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}
+
+/* 25-27 inch monitors */
+@media (min-width: 2560px) {
+  .device-id-value {
+    font-size: 1.5rem;
+  }
+  
+  .freezer-temp-value {
+    font-size: 2rem;
+    font-weight: bold;
+  }
+  
+  .freezer-icon {
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+/* ===== CONTAINER QUERIES FOR ADVANCED RESPONSIVENESS ===== */
+/* Use container queries for more precise control when supported */
+@supports (container-type: inline-size) {
+  .freezer-cards-container {
+    container-type: inline-size;
+  }
+  
+  @container (max-width: 500px) {
+    .freezer-cards-grid {
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+    }
+  }
+  
+  @container (min-width: 501px) and (max-width: 800px) {
+    .freezer-cards-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+  }
+  
+  @container (min-width: 801px) and (max-width: 1200px) {
+    .freezer-cards-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.9rem;
+    }
+  }
+  
+  @container (min-width: 1201px) and (max-width: 1600px) {
+    .freezer-cards-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2.1rem;
+    }
+  }
+  
+  @container (min-width: 1601px) {
+    .freezer-cards-grid {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 3rem;
+    }
+  }
+}
+
+/* ===== HIGH DPI DISPLAY OPTIMIZATION ===== */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .freezer-card-container {
+    /* Slightly reduce gaps on high DPI displays for better density */
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  }
+  
+  .freezer-card-container:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  }
+}
+
+/* ===== ACCESSIBILITY IMPROVEMENTS ===== */
+.freezer-card-container:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.freezer-card-container:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  .freezer-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  
+  .freezer-card-container {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #ccc;
+  }
+}
+
+/* ===== SMOOTH TRANSITIONS ===== */
+.freezer-cards-grid {
+  transition: grid-template-columns 0.3s ease-in-out, gap 0.3s ease-in-out;
+}
+
+.freezer-card-container {
+  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+/* ===== FALLBACK FOR OLDER BROWSERS ===== */
+@supports not (aspect-ratio: 1) {
+  .freezer-card-container {
+    height: 180px; /* Reduced fallback height */
+  }
+  
+  @media (min-width: 1024px) and (max-width: 1365px) {
+    .freezer-card-container {
+      height: 180px;
+    }
+  }
+  
+  @media (min-width: 1366px) and (max-width: 1599px) {
+    .freezer-card-container {
+      height: 200px;
+    }
+  }
+  
+  @media (min-width: 1600px) and (max-width: 1919px) {
+    .freezer-card-container {
+      height: 220px;
+    }
+  }
+  
+  @media (min-width: 1920px) and (max-width: 2559px) {
+    .freezer-card-container {
+      height: 240px;
+    }
+  }
+  
+  @media (min-width: 2560px) {
+    .freezer-card-container {
+      height: 260px;
+    }
+}
+ 
+@media (min-width: 320px) and (max-width: 560px) {
+    .ambient-pill {
+      padding: 0 0.2rem 0 .1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      white-space: nowrap;
+}
+}
+}
+
+
+.responsive-value{
+  font-size: clamp(1.2rem, 4vw , 1.7rem);
+}
+
+
+.responsive-value-deviceId{
+  font-size: clamp(0.9rem, 3vw , 1rem);
+  font-weight: 600;
+}
+
+@media (min-width: 1730px){
+ .responsive-value-status{
+  font-size: clamp(0.9rem, 3.5vw , 1.4rem);
+  font-weight: 500;
+}
+
+}
+
+
+
+
+@media (min-width: 1240px){
+ .responsive-value-status{
+  /* min, preferred, max */
+  font-size: clamp(0.6rem, vw , 0.7rem);
+  font-weight: 500;
+}
+
+}
+
+
+
+
+ .responsive-value-status{
+  /* min, preferred, max */
+  font-size: clamp(0.85rem, 1.5vw , 1rem);
+  font-weight: 500;
+}

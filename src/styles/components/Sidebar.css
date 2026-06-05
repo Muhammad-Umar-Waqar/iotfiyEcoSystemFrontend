@@ -1,0 +1,149 @@
+.sidebar {
+	width: 85px;
+	height: 100vh;
+	background: #ffffff; /* client: full white sidebar */
+	border-radius: 0; /* ensure no rounding anywhere */
+	border-top-left-radius: 0 !important;
+	border-bottom-left-radius: 0 !important;
+	box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: space-between;
+	padding: 20px 0;
+	position: relative;
+	font-family: Inter, Poppins, Manrope, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+.sidebar-top { 
+	margin-top: 20px; margin-bottom: 40px; 
+}
+
+.logo-circle {
+	width: 55px;
+	height: 55px;
+	border-radius: 50%;
+	background: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.sidebar-nav {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-start;
+	margin: 0;
+	padding: 0;
+	flex: 1 1 auto;
+	margin-top: 10px;
+}
+
+/* Track background for 4 nav icons */
+.sidebar-track {
+	background: #E8EDF2;
+	border-radius: 16px;
+	padding: 10px 8px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-start;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.sidebar-icon {
+	width: 40px;
+	height: 40px;
+	border-radius: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin: 8px 0;
+	position: relative;
+	background: transparent;
+	color: #9CA3AF;
+	transition: all 0.3s ease;
+}
+
+.sidebar-icon:hover,
+.sidebar-icon.active {
+	background: #0D5CA4;
+	color: #fff;
+	box-shadow: 0 4px 10px rgba(13, 92, 164, 0.25);
+}
+
+.sidebar-bottom { margin-bottom: 0; align-self: center; }
+
+/* Ensure bottom icon hugs the bottom padding without extra gap */
+.sidebar-bottom .sidebar-icon { margin: 0; }
+
+/* Icon styles - blue icons shown directly without filters */
+  /*.icon-muted Removed filter to show blue icons properly */ 
+
+/* Tooltips */
+/* .sidebar-icon::after {
+	content: attr(data-tooltip);
+	background: #0D5CA4;
+	color: #fff;
+	padding: 5px 10px;
+	border-radius: 6px;
+	position: absolute;
+	left: 90px;
+	white-space: nowrap;
+	opacity: 0;
+	transform: translateY(0);
+	transition: opacity 0.3s ease;
+	pointer-events: none;
+	font-size: 12px;
+} */
+
+.sidebar-icon:hover::after { opacity: 1; }
+
+
+
+/* MYCODE FOR RENDERING ICONS FOR ACTIVE- UMAR */
+
+
+/* Sidebar.css */
+
+/* image inside sidebar button */
+.sidebar-icon img {
+  transition: filter 0.2s ease;
+  filter: none;
+}
+
+/* text inside sidebar button */
+.sidebar-icon p {
+  transition: color 0.2s ease;
+  color: #2563EB; /* default blue */
+}
+
+/* brighten image and turn text white when button is hovered or active */
+.sidebar-icon:hover .imageClassForActiveandHover,
+.sidebar-icon.active .imageClassForActiveandHover {
+  filter: invert(1) brightness(10);
+}
+
+.sidebar-icon:hover p,
+.sidebar-icon.active p {
+  color: white;
+}
+
+
+.sidebar-icon {
+	width: 40px;
+	height: 40px;
+	border-radius: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin: 8px 0;
+	position: relative;
+	background: transparent;
+	color: #9CA3AF;
+	transition: all 0.3s ease;
+}
+
+

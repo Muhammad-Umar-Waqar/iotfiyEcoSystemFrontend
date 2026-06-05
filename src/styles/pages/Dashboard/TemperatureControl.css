@@ -1,0 +1,14 @@
+@media only screen and (max-width: 600px) {
+
+.AutoAdjustButton{
+  display: block;
+  margin-top: -95px;
+  z-index:90
+}
+
+.OnOffToggle{
+  z-index: 90;
+  margin-top: 20px;
+}
+
+}

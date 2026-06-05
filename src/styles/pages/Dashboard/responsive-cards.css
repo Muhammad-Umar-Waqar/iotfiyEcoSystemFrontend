@@ -1,0 +1,41 @@
+
+
+/* Container query for the cards grid */
+.organization-cards-container {
+  container-type: inline-size;
+  width: 100%;
+}
+
+/* Base grid styling - grid-template-columns will be set by Tailwind in JSX */
+.responsive-cards-grid {
+  display: grid;
+  gap: 1.5rem; /* Default gap */
+  justify-items: center;
+  padding: 0.5rem;
+  transition: grid-template-columns 0.3s ease-in-out; /* Keep transition for smoothness */
+}
+
+/* 🔥 YAHAN CHANGE KI HAI - Always 1 column on very small containers, regardless of sidebar state */
+@container (max-width: 500px) {
+  .responsive-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+/* Fallback for browsers that don't support container queries */
+@supports not (container-type: inline-size) {
+  /* Use media queries as fallback for 1 column on small screens */
+  @media (max-width: 768px) {
+    .responsive-cards-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  /* For larger screens, Tailwind classes in JSX will handle 2 or 3 columns */
+}
+
+/* Ensure cards don't overflow their containers */
+.responsive-cards-grid > * {
+  max-width: 100%;
+  min-width: 0;
+}

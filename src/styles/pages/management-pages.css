@@ -1,0 +1,1959 @@
+/* Desktop-only styles - Mobile styles removed */
+
+/* ============================================================================
+   ORGANIZATION MANAGEMENT - RESPONSIVE DESIGN (14" to 27" Screens)
+   ============================================================================ */
+
+/* Base styles for Organization Management */
+.organization-management-container {
+  /* padding: 2rem; */
+  max-width: 100%;
+}
+
+ .organization-add-container {
+    padding: 1rem;
+  }
+
+
+
+
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .organization-management-container {
+    padding: 1.5rem;
+    max-width: 93%;
+    margin: 0 auto;
+  }
+}
+
+.organization-list-section {
+  width: 100%;
+}
+
+.organization-add-section {
+  width: 100%;
+}
+
+/* Desktop-only - Mobile/Tablet styles removed */
+
+/* ===== 14-INCH LAPTOPS (1024px to 1365px) ===== */
+@media (min-width: 1024px) and (max-width: 1365px) {
+  .organization-management-container {
+    padding: 1.5rem;
+    max-width: 93%;
+    margin: 0 auto;
+  }
+  
+  .organization-list-section {
+    width: 60%;
+  }
+  
+  .organization-add-section {
+    width: 40%;
+  }
+  
+  .organization-list-container {
+    padding: 1.5rem;
+  }
+  
+  .organization-add-container {
+    padding: 1.5rem;
+  }
+  
+  .organization-list-title {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .organization-list-header {
+    font-size: 0.875rem;
+  }
+  
+  .organization-table-header {
+    font-size: 0.875rem;
+    padding: 0.75rem 1rem;
+  }
+  
+  .organization-table-cell {
+    font-size: 0.875rem;
+    padding: 0.75rem 1rem;
+  }
+  
+  .organization-table-scroll {
+    max-height: 24rem;
+  }
+  
+  .organization-add-title {
+    font-size: 1.125rem;
+  }
+  
+  .organization-add-subtitle {
+    font-size: 0.8125rem;
+  }
+  
+  .organization-action-btn {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+  
+  .organization-action-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+}
+
+/* ===== 15-17 INCH LAPTOPS (1366px to 1599px) ===== */
+@media (min-width: 1366px) and (max-width: 1599px) {
+  .organization-management-container {
+    padding: 2rem;
+    max-width: 94%;
+    margin: 0 auto;
+  }
+  
+  .organization-list-section {
+    width: 60%;
+  }
+  
+  .organization-add-section {
+    width: 40%;
+  }
+  
+  .organization-list-container {
+    padding: 2rem;
+  }
+  
+  .organization-add-container {
+    padding: 2rem;
+  }
+  
+  .organization-list-title {
+    font-size: 1.125rem;
+    margin-bottom: 1.25rem;
+  }
+  
+  .organization-list-header {
+    font-size: 1rem;
+  }
+  
+  .organization-table-header {
+    font-size: 0.9375rem;
+    padding: 0.875rem 1.25rem;
+  }
+  
+  .organization-table-cell {
+    font-size: 0.9375rem;
+    padding: 0.875rem 1.25rem;
+  }
+  
+  .organization-table-scroll {
+    max-height: 28rem;
+  }
+  
+  .organization-add-title {
+    font-size: 1.25rem;
+  }
+  
+  .organization-add-subtitle {
+    font-size: 0.875rem;
+  }
+  
+  .organization-action-btn {
+    width: 2rem;
+    height: 2rem;
+  }
+  
+  .organization-action-icon {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+/* ===== 19-21 INCH MONITORS (1600px to 1919px) ===== */
+@media (min-width: 1600px) and (max-width: 1919px) {
+  .organization-management-container {
+    padding: 2.5rem;
+    max-width: 95%;
+    margin: 0 auto;
+  }
+  
+  .organization-list-section {
+    width: 58%;
+  }
+  
+  .organization-add-section {
+    width: 42%;
+  }
+  
+  .organization-list-container {
+    padding: 2rem;
+  }
+  
+  .organization-add-container {
+    padding: 2rem;
+  }
+  
+  .organization-list-title {
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .organization-list-header {
+    font-size: 1.125rem;
+  }
+  
+  .organization-table-header {
+    font-size: 1rem;
+    padding: 1rem 1.5rem;
+  }
+  
+  .organization-table-cell {
+    font-size: 1rem;
+    padding: 1rem 1.5rem;
+  }
+  
+  .organization-table-scroll {
+    max-height: 32rem;
+  }
+  
+  .organization-add-title {
+    font-size: 1.375rem;
+  }
+  
+  .organization-add-subtitle {
+    font-size: 0.9375rem;
+  }
+  
+  .organization-action-btn {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+  
+  .organization-action-icon {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+}
+
+/* ===== 22-24 INCH MONITORS (1920px to 2559px) ===== */
+@media (min-width: 1920px) and (max-width: 2559px) {
+  .organization-management-container {
+    padding: 3rem;
+    max-width: 96%;
+    margin: 0 auto;
+  }
+  
+  .organization-list-section {
+    width: 58%;
+  }
+  
+  .organization-add-section {
+    width: 42%;
+  }
+  
+  .organization-list-container {
+    padding: 2.5rem;
+  }
+  
+  .organization-add-container {
+    padding: 2.5rem;
+  }
+  
+  .organization-list-title {
+    font-size: 1.375rem;
+    margin-bottom: 1.75rem;
+  }
+  
+  .organization-list-header {
+    font-size: 1.25rem;
+  }
+  
+  .organization-table-header {
+    font-size: 1.125rem;
+    padding: 1.125rem 1.75rem;
+  }
+  
+  .organization-table-cell {
+    font-size: 1.125rem;
+    padding: 1.125rem 1.75rem;
+  }
+  
+  .organization-table-scroll {
+    max-height: 36rem;
+  }
+  
+  .organization-add-title {
+    font-size: 1.5rem;
+  }
+  
+  .organization-add-subtitle {
+    font-size: 1rem;
+  }
+  
+  .organization-action-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  
+  .organization-action-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+}
+
+/* ===== 25-27 INCH MONITORS (2560px and above) ===== */
+@media (min-width: 2560px) {
+  .organization-management-container {
+    padding: 3.5rem;
+    max-width: 97%;
+    margin: 0 auto;
+  }
+  
+  .organization-list-section {
+    width: 56%;
+  }
+  
+  .organization-add-section {
+    width: 44%;
+  }
+  
+  .organization-list-container {
+    padding: 3rem;
+  }
+  
+  .organization-add-container {
+    padding: 3rem;
+  }
+  
+  .organization-list-title {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .organization-list-header {
+    font-size: 1.375rem;
+  }
+  
+  .organization-table-header {
+    font-size: 1.25rem;
+    padding: 1.25rem 2rem;
+  }
+  
+  .organization-table-cell {
+    font-size: 1.25rem;
+    padding: 1.25rem 2rem;
+  }
+  
+  .organization-table-scroll {
+    max-height: 40rem;
+  }
+  
+  .organization-add-title {
+    font-size: 1.75rem;
+  }
+  
+  .organization-add-subtitle {
+    font-size: 1.125rem;
+  }
+  
+  .organization-action-btn {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+  
+  .organization-action-icon {
+    width: 1.375rem;
+    height: 1.375rem;
+  }
+}
+
+/* ===== ULTRA-WIDE MONITORS (3440px and above) ===== */
+@media (min-width: 3440px) {
+  .organization-management-container {
+    padding: 4rem;
+    max-width: 98%;
+    margin: 0 auto;
+  }
+  
+  .organization-list-section {
+    width: 55%;
+  }
+  
+  .organization-add-section {
+    width: 45%;
+  }
+  
+  .organization-list-container {
+    padding: 3.5rem;
+  }
+  
+  .organization-add-container {
+    padding: 3.5rem;
+  }
+  
+  .organization-list-title {
+    font-size: 1.75rem;
+    margin-bottom: 2.5rem;
+  }
+  
+  .organization-list-header {
+    font-size: 1.5rem;
+  }
+  
+  .organization-table-header {
+    font-size: 1.375rem;
+    padding: 1.5rem 2.5rem;
+  }
+  
+  .organization-table-cell {
+    font-size: 1.375rem;
+    padding: 1.5rem 2.5rem;
+  }
+  
+  .organization-table-scroll {
+    max-height: 44rem;
+  }
+  
+  .organization-add-title {
+    font-size: 2rem;
+  }
+  
+  .organization-add-subtitle {
+    font-size: 1.25rem;
+  }
+  
+  .organization-action-btn {
+    width: 3rem;
+    height: 3rem;
+  }
+  
+  .organization-action-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+}
+
+/* Custom scrollbar for organization table */
+.organization-table-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.organization-table-scroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.organization-table-scroll::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 10px;
+}
+
+.organization-table-scroll::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* ============================================================================
+   USER MANAGEMENT - RESPONSIVE DESIGN (14" to 27" Screens)
+   ============================================================================ */
+
+/* Base styles for User Management */
+.user-management-container {
+  /* padding: 2rem; */
+  max-width: 100%;
+}
+
+.user-list-section {
+  width: 100%;
+}
+
+.user-add-section {
+  width: 100%;
+}
+
+/* ===== 14-INCH LAPTOPS (1024px to 1365px) ===== */
+@media (min-width: 1024px) and (max-width: 1365px) {
+  .user-management-container {
+    padding: 1.5rem;
+    max-width: 93%;
+    margin: 0 auto;
+  }
+  
+  .user-list-section {
+    width: 60%;
+  }
+  
+  .user-add-section {
+    width: 40%;
+  }
+  
+  .user-list-container {
+    padding: 1.5rem;
+  }
+  
+  .user-add-container {
+    padding: 1.5rem;
+  }
+  
+  .user-list-title {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .user-list-header {
+    font-size: 0.875rem;
+  }
+  
+  .user-table-header {
+    font-size: 0.875rem;
+    padding: 0.75rem 1rem;
+  }
+  
+  .user-table-cell {
+    font-size: 0.875rem;
+    padding: 0.75rem 1rem;
+  }
+  
+  .user-table-scroll {
+    max-height: 24rem;
+  }
+  
+  .user-add-title {
+    font-size: 1.125rem;
+  }
+  
+  .user-add-subtitle {
+    font-size: 0.8125rem;
+  }
+  
+  .user-action-btn {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+  
+  .user-action-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+}
+
+/* ===== 15-17 INCH LAPTOPS (1366px to 1599px) ===== */
+@media (min-width: 1366px) and (max-width: 1599px) {
+  .user-management-container {
+    padding: 2rem;
+    max-width: 94%;
+    margin: 0 auto;
+  }
+  
+  .user-list-section {
+    width: 60%;
+  }
+  
+  .user-add-section {
+    width: 40%;
+  }
+  
+  .user-list-container {
+    padding: 2rem;
+  }
+  
+  .user-add-container {
+    padding: 2rem;
+  }
+  
+  .user-list-title {
+    font-size: 1.125rem;
+    margin-bottom: 1.25rem;
+  }
+  
+  .user-list-header {
+    font-size: 1rem;
+  }
+  
+  .user-table-header {
+    font-size: 0.9375rem;
+    padding: 0.875rem 1.25rem;
+  }
+  
+  .user-table-cell {
+    font-size: 0.9375rem;
+    padding: 0.875rem 1.25rem;
+  }
+  
+  .user-table-scroll {
+    max-height: 28rem;
+  }
+  
+  .user-add-title {
+    font-size: 1.25rem;
+  }
+  
+  .user-add-subtitle {
+    font-size: 0.875rem;
+  }
+  
+  .user-action-btn {
+    width: 2rem;
+    height: 2rem;
+  }
+  
+  .user-action-icon {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+/* ===== 19-21 INCH MONITORS (1600px to 1919px) ===== */
+@media (min-width: 1600px) and (max-width: 1919px) {
+  .user-management-container {
+    padding: 2.5rem;
+    max-width: 95%;
+    margin: 0 auto;
+  }
+  
+  .user-list-section {
+    width: 58%;
+  }
+  
+  .user-add-section {
+    width: 42%;
+  }
+  
+  .user-list-container {
+    padding: 2rem;
+  }
+  
+  .user-add-container {
+    padding: 2rem;
+  }
+  
+  .user-list-title {
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .user-list-header {
+    font-size: 1.125rem;
+  }
+  
+  .user-table-header {
+    font-size: 1rem;
+    padding: 1rem 1.5rem;
+  }
+  
+  .user-table-cell {
+    font-size: 1rem;
+    padding: 1rem 1.5rem;
+  }
+  
+  .user-table-scroll {
+    max-height: 32rem;
+  }
+  
+  .user-add-title {
+    font-size: 1.375rem;
+  }
+  
+  .user-add-subtitle {
+    font-size: 0.9375rem;
+  }
+  
+  .user-action-btn {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+  
+  .user-action-icon {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+}
+
+/* ===== 22-24 INCH MONITORS (1920px to 2559px) ===== */
+@media (min-width: 1920px) and (max-width: 2559px) {
+  .user-management-container {
+    padding: 3rem;
+    max-width: 96%;
+    margin: 0 auto;
+  }
+  
+  .user-list-section {
+    width: 58%;
+  }
+  
+  .user-add-section {
+    width: 42%;
+  }
+  
+  .user-list-container {
+    padding: 2.5rem;
+  }
+  
+  .user-add-container {
+    padding: 2.5rem;
+  }
+  
+  .user-list-title {
+    font-size: 1.375rem;
+    margin-bottom: 1.75rem;
+  }
+  
+  .user-list-header {
+    font-size: 1.25rem;
+  }
+  
+  .user-table-header {
+    font-size: 1.125rem;
+    padding: 1.125rem 1.75rem;
+  }
+  
+  .user-table-cell {
+    font-size: 1.125rem;
+    padding: 1.125rem 1.75rem;
+  }
+  
+  .user-table-scroll {
+    max-height: 36rem;
+  }
+  
+  .user-add-title {
+    font-size: 1.5rem;
+  }
+  
+  .user-add-subtitle {
+    font-size: 1rem;
+  }
+  
+  .user-action-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  
+  .user-action-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+}
+
+/* ===== 25-27 INCH MONITORS (2560px and above) ===== */
+@media (min-width: 2560px) {
+  .user-management-container {
+    padding: 3.5rem;
+    max-width: 97%;
+    margin: 0 auto;
+  }
+  
+  .user-list-section {
+    width: 56%;
+  }
+  
+  .user-add-section {
+    width: 44%;
+  }
+  
+  .user-list-container {
+    padding: 3rem;
+  }
+  
+  .user-add-container {
+    padding: 3rem;
+  }
+  
+  .user-list-title {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .user-list-header {
+    font-size: 1.375rem;
+  }
+  
+  .user-table-header {
+    font-size: 1.25rem;
+    padding: 1.25rem 2rem;
+  }
+  
+  .user-table-cell {
+    font-size: 1.25rem;
+    padding: 1.25rem 2rem;
+  }
+  
+  .user-table-scroll {
+    max-height: 40rem;
+  }
+  
+  .user-add-title {
+    font-size: 1.75rem;
+  }
+  
+  .user-add-subtitle {
+    font-size: 1.125rem;
+  }
+  
+  .user-action-btn {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+  
+  .user-action-icon {
+    width: 1.375rem;
+    height: 1.375rem;
+  }
+}
+
+/* ===== ULTRA-WIDE MONITORS (3440px and above) ===== */
+@media (min-width: 3440px) {
+  .user-management-container {
+    padding: 4rem;
+    max-width: 98%;
+    margin: 0 auto;
+  }
+  
+  .user-list-section {
+    width: 55%;
+  }
+  
+  .user-add-section {
+    width: 45%;
+  }
+  
+  .user-list-container {
+    padding: 3.5rem;
+  }
+  
+  .user-add-container {
+    padding: 3.5rem;
+  }
+  
+  .user-list-title {
+    font-size: 1.75rem;
+    margin-bottom: 2.5rem;
+  }
+  
+  .user-list-header {
+    font-size: 1.5rem;
+  }
+  
+  .user-table-header {
+    font-size: 1.375rem;
+    padding: 1.5rem 2.5rem;
+  }
+  
+  .user-table-cell {
+    font-size: 1.375rem;
+    padding: 1.5rem 2.5rem;
+  }
+  
+  .user-table-scroll {
+    max-height: 44rem;
+  }
+  
+  .user-add-title {
+    font-size: 2rem;
+  }
+  
+  .user-add-subtitle {
+    font-size: 1.25rem;
+  }
+  
+  .user-action-btn {
+    width: 3rem;
+    height: 3rem;
+  }
+  
+  .user-action-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+}
+
+/* Custom scrollbar for user table */
+.user-table-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.user-table-scroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.user-table-scroll::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 10px;
+}
+
+.user-table-scroll::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* ============================================================================
+   DEVICE MANAGEMENT - RESPONSIVE DESIGN (14" to 27" Screens)
+   ============================================================================ */
+
+/* Base styles for Device Management */
+.device-list-container,
+.device-add-container {
+  padding: 2rem;
+}
+
+/* ===== 14-INCH LAPTOPS (1024px to 1365px) ===== */
+@media (max-width: 425px) {
+  .device-list-container {
+    padding: 1rem;
+  }
+}
+
+/* ===== 14-INCH LAPTOPS (1024px to 1365px) ===== */
+@media (min-width: 425px) and (max-width: 1024px) {
+  .device-list-container {
+    padding: 1.5rem;
+  }
+}
+
+/* ===== 14-INCH LAPTOPS (1024px to 1365px) ===== */
+@media (min-width: 1024px) and (max-width: 1365px) {
+  .device-list-container {
+    padding: 1.5rem;
+  }
+  
+  .device-add-container {
+    padding: 1.5rem;
+  }
+  
+  .device-list-title {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .device-list-header {
+    font-size: 0.875rem;
+  }
+  
+  .device-table-header {
+    font-size: 0.875rem;
+    padding: 0.75rem 1rem;
+  }
+  
+  .device-table-cell {
+    font-size: 0.875rem;
+    padding: 0.75rem 1rem;
+  }
+  
+  .device-table-scroll {
+    max-height: 24rem;
+  }
+  
+  .device-add-title {
+    font-size: 1.125rem;
+  }
+  
+  .device-add-subtitle {
+    font-size: 0.8125rem;
+  }
+  
+  .device-action-btn {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+  
+  .device-action-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+}
+
+/* ===== 15-17 INCH LAPTOPS (1366px to 1599px) ===== */
+@media (min-width: 1366px) and (max-width: 1599px) {
+  .device-list-container {
+    padding: 2rem;
+  }
+  
+  .device-add-container {
+    padding: 2rem;
+  }
+  
+  .device-list-title {
+    font-size: 1.125rem;
+    margin-bottom: 1.25rem;
+  }
+  
+  .device-list-header {
+    font-size: 1rem;
+  }
+  
+  .device-table-header {
+    font-size: 0.9375rem;
+    padding: 0.875rem 1.25rem;
+  }
+  
+  .device-table-cell {
+    font-size: 0.9375rem;
+    padding: 0.875rem 1.25rem;
+  }
+  
+  .device-table-scroll {
+    max-height: 28rem;
+  }
+  
+  .device-add-title {
+    font-size: 1.25rem;
+  }
+  
+  .device-add-subtitle {
+    font-size: 0.875rem;
+  }
+  
+  .device-action-btn {
+    width: 2rem;
+    height: 2rem;
+  }
+  
+  .device-action-icon {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+/* ===== 19-21 INCH MONITORS (1600px to 1919px) ===== */
+@media (min-width: 1600px) and (max-width: 1919px) {
+  .device-list-container {
+    padding: 2rem;
+  }
+  
+  .device-add-container {
+    padding: 2rem;
+  }
+  
+  .device-list-title {
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .device-list-header {
+    font-size: 1.125rem;
+  }
+  
+  .device-table-header {
+    font-size: 1rem;
+    padding: 1rem 1.5rem;
+  }
+  
+  .device-table-cell {
+    font-size: 1rem;
+    padding: 1rem 1.5rem;
+  }
+  
+  .device-table-scroll {
+    max-height: 32rem;
+  }
+  
+  .device-add-title {
+    font-size: 1.375rem;
+  }
+  
+  .device-add-subtitle {
+    font-size: 0.9375rem;
+  }
+  
+  .device-action-btn {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+  
+  .device-action-icon {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+}
+
+/* ===== 22-24 INCH MONITORS (1920px to 2559px) ===== */
+@media (min-width: 1920px) and (max-width: 2559px) {
+  .device-list-container {
+    padding: 2.5rem;
+  }
+  
+  .device-add-container {
+    padding: 2.5rem;
+  }
+  
+  .device-list-title {
+    font-size: 1.375rem;
+    margin-bottom: 1.75rem;
+  }
+  
+  .device-list-header {
+    font-size: 1.25rem;
+  }
+  
+  .device-table-header {
+    font-size: 1.125rem;
+    padding: 1.125rem 1.75rem;
+  }
+  
+  .device-table-cell {
+    font-size: 1.125rem;
+    padding: 1.125rem 1.75rem;
+  }
+  
+  .device-table-scroll {
+    max-height: 36rem;
+  }
+  
+  .device-add-title {
+    font-size: 1.5rem;
+  }
+  
+  .device-add-subtitle {
+    font-size: 1rem;
+  }
+  
+  .device-action-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  
+  .device-action-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+}
+
+/* ===== 25-27 INCH MONITORS (2560px and above) ===== */
+@media (min-width: 2560px) {
+  .device-list-container {
+    padding: 3rem;
+  }
+  
+  .device-add-container {
+    padding: 3rem;
+  }
+  
+  .device-list-title {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .device-list-header {
+    font-size: 1.375rem;
+  }
+  
+  .device-table-header {
+    font-size: 1.25rem;
+    padding: 1.25rem 2rem;
+  }
+  
+  .device-table-cell {
+    font-size: 1.25rem;
+    padding: 1.25rem 2rem;
+  }
+  
+  .device-table-scroll {
+    max-height: 40rem;
+  }
+  
+  .device-add-title {
+    font-size: 1.75rem;
+  }
+  
+  .device-add-subtitle {
+    font-size: 1.125rem;
+  }
+  
+  .device-action-btn {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+  
+  .device-action-icon {
+    width: 1.375rem;
+    height: 1.375rem;
+  }
+}
+
+/* ===== ULTRA-WIDE MONITORS (3440px and above) ===== */
+@media (min-width: 3440px) {
+  .device-list-container {
+    padding: 3.5rem;
+  }
+  
+  .device-add-container {
+    padding: 3.5rem;
+  }
+  
+  .device-list-title {
+    font-size: 1.75rem;
+    margin-bottom: 2.5rem;
+  }
+  
+  .device-list-header {
+    font-size: 1.5rem;
+  }
+  
+  .device-table-header {
+    font-size: 1.375rem;
+    padding: 1.5rem 2.5rem;
+  }
+  
+  .device-table-cell {
+    font-size: 1.375rem;
+    padding: 1.5rem 2.5rem;
+  }
+  
+  .device-table-scroll {
+    max-height: 44rem;
+  }
+  
+  .device-add-title {
+    font-size: 2rem;
+  }
+  
+  .device-add-subtitle {
+    font-size: 1.25rem;
+  }
+  
+  .device-action-btn {
+    width: 3rem;
+    height: 3rem;
+  }
+  
+  .device-action-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+}
+
+/* Custom scrollbar for device table */
+.device-table-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.device-table-scroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.device-table-scroll::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 10px;
+}
+
+.device-table-scroll::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* ============================================================================
+   MANAGER MANAGEMENT - RESPONSIVE DESIGN (14" to 27" Screens)
+   ============================================================================ */
+
+/* Base styles for Manager Management - Same as User Management */
+.manager-list-container,
+.manager-add-container {
+  padding: 2rem;
+}
+
+/* Manager Management uses same responsive styles as User Management */
+@media (min-width: 1024px) and (max-width: 1365px) {
+  .manager-list-container { padding: 1.5rem; }
+  .manager-add-container { padding: 1.5rem; }
+  .manager-list-title { font-size: 1rem; margin-bottom: 1rem; }
+  .manager-list-header { font-size: 0.875rem; }
+  .manager-table-header { font-size: 0.875rem; padding: 0.75rem 1rem; }
+  .manager-table-cell { font-size: 0.875rem; padding: 0.75rem 1rem; }
+  .manager-table-scroll { max-height: 24rem; }
+  .manager-add-title { font-size: 1.125rem; }
+  .manager-add-subtitle { font-size: 0.8125rem; }
+  .manager-action-btn { width: 1.75rem; height: 1.75rem; }
+  .manager-action-icon { width: 0.875rem; height: 0.875rem; }
+}
+
+@media (min-width: 1366px) and (max-width: 1599px) {
+  .manager-list-container { padding: 2rem; }
+  .manager-add-container { padding: 2rem; }
+  .manager-list-title { font-size: 1.125rem; margin-bottom: 1.25rem; }
+  .manager-list-header { font-size: 1rem; }
+  .manager-table-header { font-size: 0.9375rem; padding: 0.875rem 1.25rem; }
+  .manager-table-cell { font-size: 0.9375rem; padding: 0.875rem 1.25rem; }
+  .manager-table-scroll { max-height: 28rem; }
+  .manager-add-title { font-size: 1.25rem; }
+  .manager-add-subtitle { font-size: 0.875rem; }
+  .manager-action-btn { width: 2rem; height: 2rem; }
+  .manager-action-icon { width: 1rem; height: 1rem; }
+}
+
+@media (min-width: 1600px) and (max-width: 1919px) {
+  .manager-list-container { padding: 2rem; }
+  .manager-add-container { padding: 2rem; }
+  .manager-list-title { font-size: 1.25rem; margin-bottom: 1.5rem; }
+  .manager-list-header { font-size: 1.125rem; }
+  .manager-table-header { font-size: 1rem; padding: 1rem 1.5rem; }
+  .manager-table-cell { font-size: 1rem; padding: 1rem 1.5rem; }
+  .manager-table-scroll { max-height: 32rem; }
+  .manager-add-title { font-size: 1.375rem; }
+  .manager-add-subtitle { font-size: 0.9375rem; }
+  .manager-action-btn { width: 2.25rem; height: 2.25rem; }
+  .manager-action-icon { width: 1.125rem; height: 1.125rem; }
+}
+
+@media (min-width: 1920px) and (max-width: 2559px) {
+  .manager-list-container { padding: 2.5rem; }
+  .manager-add-container { padding: 2.5rem; }
+  .manager-list-title { font-size: 1.375rem; margin-bottom: 1.75rem; }
+  .manager-list-header { font-size: 1.25rem; }
+  .manager-table-header { font-size: 1.125rem; padding: 1.125rem 1.75rem; }
+  .manager-table-cell { font-size: 1.125rem; padding: 1.125rem 1.75rem; }
+  .manager-table-scroll { max-height: 36rem; }
+  .manager-add-title { font-size: 1.5rem; }
+  .manager-add-subtitle { font-size: 1rem; }
+  .manager-action-btn { width: 2.5rem; height: 2.5rem; }
+  .manager-action-icon { width: 1.25rem; height: 1.25rem; }
+}
+
+@media (min-width: 2560px) {
+  .manager-list-container { padding: 3rem; }
+  .manager-add-container { padding: 3rem; }
+  .manager-list-title { font-size: 1.5rem; margin-bottom: 2rem; }
+  .manager-list-header { font-size: 1.375rem; }
+  .manager-table-header { font-size: 1.25rem; padding: 1.25rem 2rem; }
+  .manager-table-cell { font-size: 1.25rem; padding: 1.25rem 2rem; }
+  .manager-table-scroll { max-height: 40rem; }
+  .manager-add-title { font-size: 1.75rem; }
+  .manager-add-subtitle { font-size: 1.125rem; }
+  .manager-action-btn { width: 2.75rem; height: 2.75rem; }
+  .manager-action-icon { width: 1.375rem; height: 1.375rem; }
+}
+
+@media (min-width: 3440px) {
+  .manager-list-container { padding: 3.5rem; }
+  .manager-add-container { padding: 3.5rem; }
+  .manager-list-title { font-size: 1.75rem; margin-bottom: 2.5rem; }
+  .manager-list-header { font-size: 1.5rem; }
+  .manager-table-header { font-size: 1.375rem; padding: 1.5rem 2.5rem; }
+  .manager-table-cell { font-size: 1.375rem; padding: 1.5rem 2.5rem; }
+  .manager-table-scroll { max-height: 44rem; }
+  .manager-add-title { font-size: 2rem; }
+  .manager-add-subtitle { font-size: 1.25rem; }
+  .manager-action-btn { width: 3rem; height: 3rem; }
+  .manager-action-icon { width: 1.5rem; height: 1.5rem; }
+}
+
+.manager-table-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.manager-table-scroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.manager-table-scroll::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 10px;
+}
+
+.manager-table-scroll::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* ============================================================================
+   VENUE MANAGEMENT - RESPONSIVE DESIGN (14" to 27" Screens)
+   ============================================================================ */
+
+/* Base styles for Venue Management */
+.venue-list-container,
+.venue-add-container {
+  padding: 2rem;
+}
+
+@media (max-width: 768px) {
+  .venue-list-container { padding: 0.5rem; }
+}
+@media (min-width: 768px) and (max-width: 1024px) {
+  .venue-list-container { padding: 0.5rem; }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .venue-list-container { padding: 1rem; }
+}
+
+/* Venue Management uses same responsive styles */
+@media (min-width: 1024px) and (max-width: 1365px) {
+  .venue-list-container { padding: 1.5rem; }
+  .venue-add-container { padding: 1.5rem; }
+  .venue-list-title { font-size: 1rem; margin-bottom: 1rem; }
+  .venue-list-header { font-size: 0.875rem; }
+  .venue-table-header { font-size: 0.875rem; padding: 0.75rem 1rem; }
+  .venue-table-cell { font-size: 0.875rem; padding: 0.75rem 1rem; }
+  .venue-table-scroll { max-height: 24rem; }
+  .venue-add-title { font-size: 1.125rem; }
+  .venue-add-subtitle { font-size: 0.8125rem; }
+  .venue-action-btn { width: 1.75rem; height: 1.75rem; }
+  .venue-action-icon { width: 0.875rem; height: 0.875rem; }
+}
+
+@media (min-width: 1366px) and (max-width: 1599px) {
+  .venue-list-container { padding: 2rem; }
+  .venue-add-container { padding: 2rem; }
+  .venue-list-title { font-size: 1.125rem; margin-bottom: 1.25rem; }
+  .venue-list-header { font-size: 1rem; }
+  .venue-table-header { font-size: 0.9375rem; padding: 0.875rem 1.25rem; }
+  .venue-table-cell { font-size: 0.9375rem; padding: 0.875rem 1.25rem; }
+  .venue-table-scroll { max-height: 28rem; }
+  .venue-add-title { font-size: 1.25rem; }
+  .venue-add-subtitle { font-size: 0.875rem; }
+  .venue-action-btn { width: 2rem; height: 2rem; }
+  .venue-action-icon { width: 1rem; height: 1rem; }
+}
+
+@media (min-width: 1600px) and (max-width: 1919px) {
+  .venue-list-container { padding: 2rem; }
+  .venue-add-container { padding: 2rem; }
+  .venue-list-title { font-size: 1.25rem; margin-bottom: 1.5rem; }
+  .venue-list-header { font-size: 1.125rem; }
+  .venue-table-header { font-size: 1rem; padding: 1rem 1.5rem; }
+  .venue-table-cell { font-size: 1rem; padding: 1rem 1.5rem; }
+  .venue-table-scroll { max-height: 32rem; }
+  .venue-add-title { font-size: 1.375rem; }
+  .venue-add-subtitle { font-size: 0.9375rem; }
+  .venue-action-btn { width: 2.25rem; height: 2.25rem; }
+  .venue-action-icon { width: 1.125rem; height: 1.125rem; }
+}
+
+@media (min-width: 1920px) and (max-width: 2559px) {
+  .venue-list-container { padding: 2.5rem; }
+  .venue-add-container { padding: 2.5rem; }
+  .venue-list-title { font-size: 1.375rem; margin-bottom: 1.75rem; }
+  .venue-list-header { font-size: 1.25rem; }
+  .venue-table-header { font-size: 1.125rem; padding: 1.125rem 1.75rem; }
+  .venue-table-cell { font-size: 1.125rem; padding: 1.125rem 1.75rem; }
+  .venue-table-scroll { max-height: 36rem; }
+  .venue-add-title { font-size: 1.5rem; }
+  .venue-add-subtitle { font-size: 1rem; }
+  .venue-action-btn { width: 2.5rem; height: 2.5rem; }
+  .venue-action-icon { width: 1.25rem; height: 1.25rem; }
+}
+
+@media (min-width: 2560px) {
+  .venue-list-container { padding: 3rem; }
+  .venue-add-container { padding: 3rem; }
+  .venue-list-title { font-size: 1.5rem; margin-bottom: 2rem; }
+  .venue-list-header { font-size: 1.375rem; }
+  .venue-table-header { font-size: 1.25rem; padding: 1.25rem 2rem; }
+  .venue-table-cell { font-size: 1.25rem; padding: 1.25rem 2rem; }
+  .venue-table-scroll { max-height: 40rem; }
+  .venue-add-title { font-size: 1.75rem; }
+  .venue-add-subtitle { font-size: 1.125rem; }
+  .venue-action-btn { width: 2.75rem; height: 2.75rem; }
+  .venue-action-icon { width: 1.375rem; height: 1.375rem; }
+}
+
+@media (min-width: 3440px) {
+  .venue-list-container { padding: 3.5rem; }
+  .venue-add-container { padding: 3.5rem; }
+  .venue-list-title { font-size: 1.75rem; margin-bottom: 2.5rem; }
+  .venue-list-header { font-size: 1.5rem; }
+  .venue-table-header { font-size: 1.375rem; padding: 1.5rem 2.5rem; }
+  .venue-table-cell { font-size: 1.375rem; padding: 1.5rem 2.5rem; }
+  .venue-table-scroll { max-height: 44rem; }
+  .venue-add-title { font-size: 2rem; }
+  .venue-add-subtitle { font-size: 1.25rem; }
+  .venue-action-btn { width: 3rem; height: 3rem; }
+  .venue-action-icon { width: 1.5rem; height: 1.5rem; }
+}
+
+.venue-table-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.venue-table-scroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.venue-table-scroll::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 10px;
+}
+
+.venue-table-scroll::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* ============================================================================
+   BRAND MANAGEMENT - RESPONSIVE DESIGN (14" to 27" Screens)
+   ============================================================================ */
+
+/* Base styles for Brand Management */
+.brand-list-container,
+.brand-add-container {
+  padding: 2rem;
+  overflow: hidden;
+}
+
+/* OTA Management specific - override padding and ensure proper overflow */
+.brand-list-container.ota-device-list {
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  height: 100% !important;
+}
+
+.brand-list-container.ota-device-list .brand-table-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Brand Management uses same responsive styles */
+@media (min-width: 1024px) and (max-width: 1365px) {
+  .brand-list-container { padding: 1.5rem; }
+  .brand-add-container { padding: 1.5rem; }
+  .brand-list-title { font-size: 1rem; margin-bottom: 1rem; }
+  .brand-list-header { font-size: 0.875rem; }
+  .brand-table-header { font-size: 0.875rem; padding: 0.75rem 1rem; }
+  .brand-table-cell { font-size: 0.875rem; padding: 0.75rem 1rem; }
+  .brand-table-scroll { max-height: 24rem; }
+  .brand-add-title { font-size: 1.125rem; }
+  .brand-add-subtitle { font-size: 0.8125rem; }
+  .brand-action-btn { width: 1.75rem; height: 1.75rem; }
+  .brand-action-icon { width: 0.875rem; height: 0.875rem; }
+}
+
+@media (min-width: 1366px) and (max-width: 1599px) {
+  .brand-list-container { padding: 2rem; }
+  .brand-add-container { padding: 2rem; }
+  .brand-list-title { font-size: 1.125rem; margin-bottom: 1.25rem; }
+  .brand-list-header { font-size: 1rem; }
+  .brand-table-header { font-size: 0.9375rem; padding: 0.875rem 1.25rem; }
+  .brand-table-cell { font-size: 0.9375rem; padding: 0.875rem 1.25rem; }
+  .brand-table-scroll { max-height: 28rem; }
+  .brand-add-title { font-size: 1.25rem; }
+  .brand-add-subtitle { font-size: 0.875rem; }
+  .brand-action-btn { width: 2rem; height: 2rem; }
+  .brand-action-icon { width: 1rem; height: 1rem; }
+}
+
+@media (min-width: 1600px) and (max-width: 1919px) {
+  .brand-list-container { padding: 2rem; }
+  .brand-add-container { padding: 2rem; }
+  .brand-list-title { font-size: 1.25rem; margin-bottom: 1.5rem; }
+  .brand-list-header { font-size: 1.125rem; }
+  .brand-table-header { font-size: 1rem; padding: 1rem 1.5rem; }
+  .brand-table-cell { font-size: 1rem; padding: 1rem 1.5rem; }
+  .brand-table-scroll { max-height: 32rem; }
+  .brand-add-title { font-size: 1.375rem; }
+  .brand-add-subtitle { font-size: 0.9375rem; }
+  .brand-action-btn { width: 2.25rem; height: 2.25rem; }
+  .brand-action-icon { width: 1.125rem; height: 1.125rem; }
+}
+
+@media (min-width: 1920px) and (max-width: 2559px) {
+  .brand-list-container { padding: 2.5rem; }
+  .brand-add-container { padding: 2.5rem; }
+  .brand-list-title { font-size: 1.375rem; margin-bottom: 1.75rem; }
+  .brand-list-header { font-size: 1.25rem; }
+  .brand-table-header { font-size: 1.125rem; padding: 1.125rem 1.75rem; }
+  .brand-table-cell { font-size: 1.125rem; padding: 1.125rem 1.75rem; }
+  .brand-table-scroll { max-height: 36rem; }
+  .brand-add-title { font-size: 1.5rem; }
+  .brand-add-subtitle { font-size: 1rem; }
+  .brand-action-btn { width: 2.5rem; height: 2.5rem; }
+  .brand-action-icon { width: 1.25rem; height: 1.25rem; }
+}
+
+@media (min-width: 2560px) {
+  .brand-list-container { padding: 3rem; }
+  .brand-add-container { padding: 3rem; }
+  .brand-list-title { font-size: 1.5rem; margin-bottom: 2rem; }
+  .brand-list-header { font-size: 1.375rem; }
+  .brand-table-header { font-size: 1.25rem; padding: 1.25rem 2rem; }
+  .brand-table-cell { font-size: 1.25rem; padding: 1.25rem 2rem; }
+  .brand-table-scroll { max-height: 40rem; }
+  .brand-add-title { font-size: 1.75rem; }
+  .brand-add-subtitle { font-size: 1.125rem; }
+  .brand-action-btn { width: 2.75rem; height: 2.75rem; }
+  .brand-action-icon { width: 1.375rem; height: 1.375rem; }
+}
+
+@media (min-width: 3440px) {
+  .brand-list-container { padding: 3.5rem; }
+  .brand-add-container { padding: 3.5rem; }
+  .brand-list-title { font-size: 1.75rem; margin-bottom: 2.5rem; }
+  .brand-list-header { font-size: 1.5rem; }
+  .brand-table-header { font-size: 1.375rem; padding: 1.5rem 2.5rem; }
+  .brand-table-cell { font-size: 1.375rem; padding: 1.5rem 2.5rem; }
+  .brand-table-scroll { max-height: 44rem; }
+  .brand-add-title { font-size: 2rem; }
+  .brand-add-subtitle { font-size: 1.25rem; }
+  .brand-action-btn { width: 3rem; height: 3rem; }
+  .brand-action-icon { width: 1.5rem; height: 1.5rem; }
+}
+
+.brand-table-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.brand-table-scroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.brand-table-scroll::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 10px;
+}
+
+.brand-table-scroll::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* ============================================================================
+   LOG MANAGEMENT - RESPONSIVE DESIGN (14" to 27" Screens)
+   ============================================================================ */
+
+/* Base styles for Log Management */
+.log-list-container,
+.log-add-container {
+  padding: 2rem;
+}
+
+/* Log Management uses same responsive styles */
+@media (min-width: 1024px) and (max-width: 1365px) {
+  .log-list-container { padding: 1.5rem; }
+  .log-add-container { padding: 1.5rem; }
+  .log-list-title { font-size: 1rem; margin-bottom: 1rem; }
+  .log-list-header { font-size: 0.875rem; }
+  .log-add-title { font-size: 1.125rem; }
+}
+
+@media (min-width: 1366px) and (max-width: 1599px) {
+  .log-list-container { padding: 2rem; }
+  .log-add-container { padding: 2rem; }
+  .log-list-title { font-size: 1.125rem; margin-bottom: 1.25rem; }
+  .log-list-header { font-size: 1rem; }
+  .log-add-title { font-size: 1.25rem; }
+}
+
+@media (min-width: 1600px) and (max-width: 1919px) {
+  .log-list-container { padding: 2rem; }
+  .log-add-container { padding: 2rem; }
+  .log-list-title { font-size: 1.25rem; margin-bottom: 1.5rem; }
+  .log-list-header { font-size: 1.125rem; }
+  .log-add-title { font-size: 1.375rem; }
+}
+
+@media (min-width: 1920px) and (max-width: 2559px) {
+  .log-list-container { padding: 2.5rem; }
+  .log-add-container { padding: 2.5rem; }
+  .log-list-title { font-size: 1.375rem; margin-bottom: 1.75rem; }
+  .log-list-header { font-size: 1.25rem; }
+  .log-add-title { font-size: 1.5rem; }
+}
+
+@media (min-width: 2560px) {
+  .log-list-container { padding: 3rem; }
+  .log-add-container { padding: 3rem; }
+  .log-list-title { font-size: 1.5rem; margin-bottom: 2rem; }
+  .log-list-header { font-size: 1.375rem; }
+  .log-add-title { font-size: 1.75rem; }
+}
+
+@media (min-width: 3440px) {
+  .log-list-container { padding: 3.5rem; }
+  .log-add-container { padding: 3.5rem; }
+  .log-list-title { font-size: 1.75rem; margin-bottom: 2.5rem; }
+  .log-list-header { font-size: 1.5rem; }
+  .log-add-title { font-size: 2rem; }
+}
+
+/* ============================================================================
+   ALL MANAGEMENT PAGES - RESPONSIVE DESIGN (14" to 27" Screens)
+   Shared responsive styles for Device, User, Manager, Venue, Brand, Log Management
+   ============================================================================ */
+
+/* Base styles for all management containers */
+.device-management-container,
+.user-management-container,
+.manager-management-container,
+.venue-management-container,
+.brand-management-container,
+.log-management-container {
+  max-width: 100%;
+}
+
+.device-list-section,
+.user-list-section,
+.manager-list-section,
+.venue-list-section,
+.brand-list-section,
+.log-list-section,
+.device-add-section,
+.user-add-section,
+.manager-add-section,
+.venue-add-section,
+.brand-add-section,
+.log-add-section {
+  width: 100%;
+}
+
+/* Desktop-only - Mobile/Tablet styles removed */
+
+/* ===== 14-INCH LAPTOPS (1024px to 1365px) ===== */
+@media (min-width: 1024px) and (max-width: 1365px) {
+  .device-management-container,
+  .user-management-container,
+  .manager-management-container,
+  .venue-management-container,
+  .brand-management-container,
+  .log-management-container {
+    padding: 1.5rem;
+    max-width: 93%;
+    margin: 0 auto;
+  }
+  
+  .device-list-section,
+  .user-list-section,
+  .manager-list-section,
+  .venue-list-section,
+  .brand-list-section,
+  .log-list-section {
+    width: 60%;
+  }
+  
+  .device-add-section,
+  .user-add-section,
+  .manager-add-section,
+  .venue-add-section,
+  .brand-add-section,
+  .log-add-section {
+    width: 40%;
+  }
+}
+
+/* ===== 15-17 INCH LAPTOPS (1366px to 1599px) ===== */
+@media (min-width: 1366px) and (max-width: 1599px) {
+  .device-management-container,
+  .user-management-container,
+  .manager-management-container,
+  .venue-management-container,
+  .brand-management-container,
+  .log-management-container {
+    padding: 2rem;
+    max-width: 94%;
+    margin: 0 auto;
+  }
+  
+  .device-list-section,
+  .user-list-section,
+  .manager-list-section,
+  .venue-list-section,
+  .brand-list-section,
+  .log-list-section {
+    width: 60%;
+  }
+  
+  .device-add-section,
+  .user-add-section,
+  .manager-add-section,
+  .venue-add-section,
+  .brand-add-section,
+  .log-add-section {
+    width: 40%;
+  }
+}
+
+/* ===== 19-21 INCH MONITORS (1600px to 1919px) ===== */
+@media (min-width: 1600px) and (max-width: 1919px) {
+  .device-management-container,
+  .user-management-container,
+  .manager-management-container,
+  .venue-management-container,
+  .brand-management-container,
+  .log-management-container {
+    padding: 2.5rem;
+    max-width: 95%;
+    margin: 0 auto;
+  }
+  
+  .device-list-section,
+  .user-list-section,
+  .manager-list-section,
+  .venue-list-section,
+  .brand-list-section,
+  .log-list-section {
+    width: 58%;
+  }
+  
+  .device-add-section,
+  .user-add-section,
+  .manager-add-section,
+  .venue-add-section,
+  .brand-add-section,
+  .log-add-section {
+    width: 42%;
+  }
+}
+
+/* ===== 22-24 INCH MONITORS (1920px to 2559px) ===== */
+@media (min-width: 1920px) and (max-width: 2559px) {
+  .device-management-container,
+  .user-management-container,
+  .manager-management-container,
+  .venue-management-container,
+  .brand-management-container,
+  .log-management-container {
+    padding: 3rem;
+    max-width: 96%;
+    margin: 0 auto;
+  }
+  
+  .device-list-section,
+  .user-list-section,
+  .manager-list-section,
+  .venue-list-section,
+  .brand-list-section,
+  .log-list-section {
+    width: 58%;
+  }
+  
+  .device-add-section,
+  .user-add-section,
+  .manager-add-section,
+  .venue-add-section,
+  .brand-add-section,
+  .log-add-section {
+    width: 42%;
+  }
+}
+
+/* ===== 25-27 INCH MONITORS (2560px and above) ===== */
+@media (min-width: 2560px) {
+  .device-management-container,
+  .user-management-container,
+  .manager-management-container,
+  .venue-management-container,
+  .brand-management-container,
+  .log-management-container {
+    padding: 3.5rem;
+    max-width: 97%;
+    margin: 0 auto;
+  }
+  
+  .device-list-section,
+  .user-list-section,
+  .manager-list-section,
+  .venue-list-section,
+  .brand-list-section,
+  .log-list-section {
+    width: 56%;
+  }
+  
+  .device-add-section,
+  .user-add-section,
+  .manager-add-section,
+  .venue-add-section,
+  .brand-add-section,
+  .log-add-section {
+    width: 44%;
+  }
+}
+
+/* ===== ULTRA-WIDE MONITORS (3440px and above) ===== */
+@media (min-width: 3440px) {
+  .device-management-container,
+  .user-management-container,
+  .manager-management-container,
+  .venue-management-container,
+  .brand-management-container,
+  .log-management-container {
+    padding: 4rem;
+    max-width: 98%;
+    margin: 0 auto;
+  }
+  
+  .device-list-section,
+  .user-list-section,
+  .manager-list-section,
+  .venue-list-section,
+  .brand-list-section,
+  .log-list-section {
+    width: 55%;
+  }
+  
+  .device-add-section,
+  .user-add-section,
+  .manager-add-section,
+  .venue-add-section,
+  .brand-add-section,
+  .log-add-section {
+    width: 45%;
+  }
+}
+
+/* ============================================================================
+   PROFILE PAGE - RESPONSIVE DESIGN (14" to 27" Screens)
+   ============================================================================ */
+
+.profile-page-container {
+  padding: 2rem;
+  max-width: 100%;
+}
+
+/* ===== 14-INCH LAPTOPS (1024px to 1365px) ===== */
+@media (min-width: 1024px) and (max-width: 1365px) {
+  .profile-page-container {
+    padding: 1.5rem;
+    max-width: 93%;
+    margin: 0 auto;
+  }
+}
+
+/* ===== 15-17 INCH LAPTOPS (1366px to 1599px) ===== */
+@media (min-width: 1366px) and (max-width: 1599px) {
+  .profile-page-container {
+    padding: 2rem;
+    max-width: 94%;
+    margin: 0 auto;
+  }
+}
+
+/* ===== 19-21 INCH MONITORS (1600px to 1919px) ===== */
+@media (min-width: 1600px) and (max-width: 1919px) {
+  .profile-page-container {
+    padding: 2.5rem;
+    max-width: 95%;
+    margin: 0 auto;
+  }
+}
+
+/* ===== 22-24 INCH MONITORS (1920px to 2559px) ===== */
+@media (min-width: 1920px) and (max-width: 2559px) {
+  .profile-page-container {
+    padding: 3rem;
+    max-width: 96%;
+    margin: 0 auto;
+  }
+}
+
+/* ===== 25-27 INCH MONITORS (2560px and above) ===== */
+@media (min-width: 2560px) {
+  .profile-page-container {
+    padding: 3.5rem;
+    max-width: 97%;
+    margin: 0 auto;
+  }
+}
+
+/* ===== ULTRA-WIDE MONITORS (3440px and above) ===== */
+@media (min-width: 3440px) {
+  .profile-page-container {
+    padding: 4rem;
+    max-width: 98%;
+    margin: 0 auto;
+  }
+}
+
+
+ .small-toast {
+    padding: 3px 5px !important;
+    font-size: 12px !important;
+    min-width: 60px !important;
+  }

@@ -1,0 +1,423 @@
+/* ===== RESPONSIVE UTILITIES ===== */
+/* Additional utility classes for responsive design */
+
+/* ===== RESPONSIVE SPACING UTILITIES ===== */
+.responsive-padding {
+  padding: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .responsive-padding {
+    padding: 1rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-padding {
+    padding: 1.25rem;
+  }
+}
+
+@media (min-width: 1366px) {
+  .responsive-padding {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1600px) {
+  .responsive-padding {
+    padding: 1.75rem;
+  }
+}
+
+@media (min-width: 1920px) {
+  .responsive-padding {
+    padding: 2rem;
+  }
+}
+
+@media (min-width: 2560px) {
+  .responsive-padding {
+    padding: 2.25rem;
+  }
+}
+
+/* ===== RESPONSIVE GAP UTILITIES ===== */
+.responsive-gap {
+  gap: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .responsive-gap {
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-gap {
+    gap: 1.25rem;
+  }
+}
+
+@media (min-width: 1366px) {
+  .responsive-gap {
+    gap: 1.5rem;
+  }
+}
+
+@media (min-width: 1600px) {
+  .responsive-gap {
+    gap: 1.75rem;
+  }
+}
+
+@media (min-width: 1920px) {
+  .responsive-gap {
+    gap: 2rem;
+  }
+}
+
+@media (min-width: 2560px) {
+  .responsive-gap {
+    gap: 2.25rem;
+  }
+}
+
+/* ===== RESPONSIVE TEXT UTILITIES ===== */
+.responsive-text-xs {
+  font-size: 0.75rem;
+}
+
+.responsive-text-sm {
+  font-size: 0.875rem;
+}
+
+.responsive-text-base {
+  font-size: 1rem;
+}
+
+.responsive-text-lg {
+  font-size: 1.125rem;
+}
+
+.responsive-text-xl {
+  font-size: 1.25rem;
+}
+
+.responsive-text-2xl {
+  font-size: 1.5rem;
+}
+
+.responsive-text-3xl {
+  font-size: 1.875rem;
+}
+
+.responsive-text-4xl {
+  font-size: 2.25rem;
+}
+
+/* Scale text for larger screens */
+@media (min-width: 1366px) {
+  .responsive-text-xs { font-size: 0.8rem; }
+  .responsive-text-sm { font-size: 0.9rem; }
+  .responsive-text-base { font-size: 1.1rem; }
+  .responsive-text-lg { font-size: 1.2rem; }
+  .responsive-text-xl { font-size: 1.35rem; }
+  .responsive-text-2xl { font-size: 1.6rem; }
+  .responsive-text-3xl { font-size: 2rem; }
+  .responsive-text-4xl { font-size: 2.5rem; }
+}
+
+@media (min-width: 1600px) {
+  .responsive-text-xs { font-size: 0.85rem; }
+  .responsive-text-sm { font-size: 0.95rem; }
+  .responsive-text-base { font-size: 1.15rem; }
+  .responsive-text-lg { font-size: 1.25rem; }
+  .responsive-text-xl { font-size: 1.4rem; }
+  .responsive-text-2xl { font-size: 1.7rem; }
+  .responsive-text-3xl { font-size: 2.1rem; }
+  .responsive-text-4xl { font-size: 2.75rem; }
+}
+
+@media (min-width: 1920px) {
+  .responsive-text-xs { font-size: 0.9rem; }
+  .responsive-text-sm { font-size: 1rem; }
+  .responsive-text-base { font-size: 1.2rem; }
+  .responsive-text-lg { font-size: 1.3rem; }
+  .responsive-text-xl { font-size: 1.45rem; }
+  .responsive-text-2xl { font-size: 1.8rem; }
+  .responsive-text-3xl { font-size: 2.25rem; }
+  .responsive-text-4xl { font-size: 3rem; }
+}
+
+@media (min-width: 2560px) {
+  .responsive-text-xs { font-size: 0.95rem; }
+  .responsive-text-sm { font-size: 1.05rem; }
+  .responsive-text-base { font-size: 1.25rem; }
+  .responsive-text-lg { font-size: 1.35rem; }
+  .responsive-text-xl { font-size: 1.5rem; }
+  .responsive-text-2xl { font-size: 1.9rem; }
+  .responsive-text-3xl { font-size: 2.4rem; }
+  .responsive-text-4xl { font-size: 3.25rem; }
+}
+
+/* ===== RESPONSIVE ICON UTILITIES ===== */
+.responsive-icon-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+.responsive-icon-md {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.responsive-icon-lg {
+  width: 2rem;
+  height: 2rem;
+}
+
+.responsive-icon-xl {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.responsive-icon-2xl {
+  width: 3rem;
+  height: 3rem;
+}
+
+.responsive-icon-3xl {
+  width: 3.5rem;
+  height: 3.5rem;
+}
+
+.responsive-icon-4xl {
+  width: 4rem;
+  height: 4rem;
+}
+
+.responsive-icon-5xl {
+  width: 5rem;
+  height: 5rem;
+}
+
+/* Scale icons for larger screens */
+@media (min-width: 1366px) {
+  .responsive-icon-sm { width: 1.1rem; height: 1.1rem; }
+  .responsive-icon-md { width: 1.6rem; height: 1.6rem; }
+  .responsive-icon-lg { width: 2.1rem; height: 2.1rem; }
+  .responsive-icon-xl { width: 2.6rem; height: 2.6rem; }
+  .responsive-icon-2xl { width: 3.1rem; height: 3.1rem; }
+  .responsive-icon-3xl { width: 3.6rem; height: 3.6rem; }
+  .responsive-icon-4xl { width: 4.1rem; height: 4.1rem; }
+  .responsive-icon-5xl { width: 5.1rem; height: 5.1rem; }
+}
+
+@media (min-width: 1600px) {
+  .responsive-icon-sm { width: 1.2rem; height: 1.2rem; }
+  .responsive-icon-md { width: 1.7rem; height: 1.7rem; }
+  .responsive-icon-lg { width: 2.2rem; height: 2.2rem; }
+  .responsive-icon-xl { width: 2.7rem; height: 2.7rem; }
+  .responsive-icon-2xl { width: 3.2rem; height: 3.2rem; }
+  .responsive-icon-3xl { width: 3.7rem; height: 3.7rem; }
+  .responsive-icon-4xl { width: 4.2rem; height: 4.2rem; }
+  .responsive-icon-5xl { width: 5.2rem; height: 5.2rem; }
+}
+
+@media (min-width: 1920px) {
+  .responsive-icon-sm { width: 1.3rem; height: 1.3rem; }
+  .responsive-icon-md { width: 1.8rem; height: 1.8rem; }
+  .responsive-icon-lg { width: 2.3rem; height: 2.3rem; }
+  .responsive-icon-xl { width: 2.8rem; height: 2.8rem; }
+  .responsive-icon-2xl { width: 3.3rem; height: 3.3rem; }
+  .responsive-icon-3xl { width: 3.8rem; height: 3.8rem; }
+  .responsive-icon-4xl { width: 4.3rem; height: 4.3rem; }
+  .responsive-icon-5xl { width: 5.3rem; height: 5.3rem; }
+}
+
+@media (min-width: 2560px) {
+  .responsive-icon-sm { width: 1.4rem; height: 1.4rem; }
+  .responsive-icon-md { width: 1.9rem; height: 1.9rem; }
+  .responsive-icon-lg { width: 2.4rem; height: 2.4rem; }
+  .responsive-icon-xl { width: 2.9rem; height: 2.9rem; }
+  .responsive-icon-2xl { width: 3.4rem; height: 3.4rem; }
+  .responsive-icon-3xl { width: 3.9rem; height: 3.9rem; }
+  .responsive-icon-4xl { width: 4.4rem; height: 4.4rem; }
+  .responsive-icon-5xl { width: 5.4rem; height: 5.4rem; }
+}
+
+/* ===== RESPONSIVE CONTAINER UTILITIES ===== */
+.responsive-container {
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@media (min-width: 640px) {
+  .responsive-container {
+    max-width: 640px;
+    padding: 0 1.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .responsive-container {
+    max-width: 768px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-container {
+    max-width: 1024px;
+    padding: 0 2rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .responsive-container {
+    max-width: 1280px;
+  }
+}
+
+@media (min-width: 1536px) {
+  .responsive-container {
+    max-width: 1536px;
+  }
+}
+
+@media (min-width: 1920px) {
+  .responsive-container {
+    max-width: 1920px;
+  }
+}
+
+@media (min-width: 2560px) {
+  .responsive-container {
+    max-width: 2560px;
+  }
+}
+
+/* ===== RESPONSIVE FLEX UTILITIES ===== */
+.responsive-flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 768px) {
+  .responsive-flex-col {
+    flex-direction: row;
+  }
+}
+
+.responsive-flex-wrap {
+  flex-wrap: wrap;
+}
+
+@media (min-width: 1024px) {
+  .responsive-flex-wrap {
+    flex-wrap: nowrap;
+  }
+}
+
+/* ===== RESPONSIVE GRID UTILITIES ===== */
+.responsive-grid-1 {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .responsive-grid-1 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-grid-1 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .responsive-grid-1 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 1536px) {
+  .responsive-grid-1 {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+/* ===== RESPONSIVE VISIBILITY UTILITIES ===== */
+.responsive-hidden-mobile {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .responsive-hidden-mobile {
+    display: block;
+  }
+}
+
+.responsive-hidden-desktop {
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .responsive-hidden-desktop {
+    display: none;
+  }
+}
+
+/* ===== RESPONSIVE BORDER UTILITIES ===== */
+.responsive-border {
+  border-width: 1px;
+}
+
+@media (min-width: 1024px) {
+  .responsive-border {
+    border-width: 2px;
+  }
+}
+
+@media (min-width: 1920px) {
+  .responsive-border {
+    border-width: 3px;
+  }
+}
+
+/* ===== RESPONSIVE SHADOW UTILITIES ===== */
+.responsive-shadow {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+@media (min-width: 1024px) {
+  .responsive-shadow {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+}
+
+@media (min-width: 1920px) {
+  .responsive-shadow {
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* ===== RESPONSIVE ROUNDED UTILITIES ===== */
+.responsive-rounded {
+  border-radius: 0.375rem;
+}
+
+@media (min-width: 1024px) {
+  .responsive-rounded {
+    border-radius: 0.5rem;
+  }
+}
+
+@media (min-width: 1920px) {
+  .responsive-rounded {
+    border-radius: 0.75rem;
+  }
+}

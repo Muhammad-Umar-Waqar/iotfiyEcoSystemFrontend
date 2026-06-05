@@ -1,0 +1,132 @@
+// src/pages/management/OrganizationManagement/AddOrganization.jsx
+import { Box } from "lucide-react";
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import InputField from "../../../components/Inputs/InputField";
+import Swal from "sweetalert2";
+import { createOrganization, fetchOrganizationsByOwner, fetchOrganizationsByUser } from "../../../slices/OrganizationSlice";
+import { canManage } from "../../../utils/permissions";
+import "../../../styles/pages/management-pages.css";
+
+
+const AddOrganization = () => {
+
+  const [formData, setFormData] = useState({
+    organization_name: ""
+  });
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
+  const hasManagePermission = canManage(user);
+
+  const [loadingformSubmit, setLoadingformSubmit] = useState(false);
+
+  const onchange = (e) => {
+    if (!hasManagePermission) return;
+    const { name, value } = e.target;
+    setFormData((p) => ({ ...p, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!hasManagePermission) {
+      Swal.fire({
+        icon: "warning",
+        title: "Permission Denied",
+        text: "You don't have permission to create organizations."
+      });
+      return;
+    }
+
+    const name = (formData.organization_name || "").trim();
+    if (!name) {
+      Swal.fire({ icon: "warning", title: "Missing field", text: "Organization name is required." });
+      return;
+    }
+    
+    // ✅ NEW VALIDATION (min length = 4)
+  if (name.length <= 3) {
+    Swal.fire({
+      icon: "warning",
+      title: "Invalid Name",
+      text: "Organization name must be more than 3 characters."
+    });
+    return;
+  }
+
+
+    setLoadingformSubmit(true);
+
+    try {
+      // create organization via thunk (thunk reads token from localStorage)
+      const created = await dispatch(createOrganization(name)).unwrap();
+
+      Swal.fire({
+        icon: "success",
+        title: "Organization created",
+        text: `Organization "${created?.name || name}" added successfully.`,
+      });
+
+      // Clear form
+      setFormData({ organization_name: ""});
+
+      // Refresh organization list based on role
+      if (user?.id) {
+        if (user.role === "manager") {
+          dispatch(fetchOrganizationsByOwner(user.id));
+        } else if (user.role === "user") {
+          dispatch(fetchOrganizationsByUser());
+        }
+      }
+
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Create failed",
+        text: err || "Unable to create organization.",
+      });
+      console.error("create organization error:", err);
+    } finally{
+      setLoadingformSubmit(false);
+    }
+  };
+
+  return (
+    <div className="AddingPage organization-add-container rounded-xl shadow-sm w-full flex flex-col justify-center bg-[#EEF3F9] border border-[#E5E7EB]">
+      <h2 className="organization-add-title font-semibold mb-1 text-center">Add Organization</h2>
+      <p className="organization-add-subtitle text-gray-500 mb-6 text-center">
+        {hasManagePermission
+          ? "Welcome back! Select method to add organization"
+          : "View Only Mode - Forms are disabled"
+        }
+      </p>
+
+      <div className={`organization-add-form space-y-4 max-w-sm mx-auto w-full ${!hasManagePermission ? 'opacity-60 pointer-events-none' : ''}`}>
+        <InputField
+          id="organization_name"
+          name="organization_name"
+          label="Organization Name"
+          type="text"
+          value={formData.organization_name}
+          onchange={onchange}
+          placeholder="Organization Name"
+          icon={<Box size={20} />}
+          disabled={!hasManagePermission}
+        />
+
+        <button
+          type="submit"
+          onClick={handleSubmit}
+          disabled={loadingformSubmit || !hasManagePermission}
+          className={`w-full bg-[#1E64D9] hover:bg-[#1557C7] text-white font-semibold py-2.5 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+            (loadingformSubmit || !hasManagePermission) ? "opacity-70 cursor-not-allowed" : "cursor-pointer"
+          }`}
+        >
+          {loadingformSubmit ? "Saving..." : "Save"}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default AddOrganization;
