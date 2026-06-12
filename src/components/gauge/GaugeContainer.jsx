@@ -206,15 +206,3 @@ export default function AQIGauge({ value = 0, width = 90, height = 65 }) {
   );
 }
 
-/*
-Usage:
-import AQIGauge from './AQIGauge';
-
-<AQIGauge value={160} />
-
-Props:
-- value: AQI value (0-500)
-- width/height: control overall size
-
-You can tweak colors, thickness (innerRadius/outerRadius), fonts and labels as you like.
-*/

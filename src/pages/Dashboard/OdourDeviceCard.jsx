@@ -1,7 +1,12 @@
 // // src/pages/Dashboard/OdourDeviceCard.jsx
+import React, { useMemo, useState, useEffect } from "react";
 import "../../styles/global/fonts.css";
 import "../../styles/pages/Dashboard/freezer-cards-responsive.css";
 import PropTypes from "prop-types";
+import { CalendarDays, TimerIcon } from "lucide-react";
+import PowerToggle from "../../components/PowerToggle";
+import Swal from "sweetalert2";
+import { useScheduler } from "../../contexts/SchedulerContext";
 
 export default function OdourDeviceCard({
   deviceId,
@@ -15,16 +20,108 @@ export default function OdourDeviceCard({
   odourAlert = false,
   isOnline = false,
   lastUpdateISO = null,
+  category = "monitoring",
+  events = [],
+  onRefreshScheduler,
+  interval = null, // For trigger category
 }) {
+  const { triggerDevice, triggerDeviceManual, skipEvent, fetchToggleStatus, toggleMap, eventsMap } = useScheduler();
+  const toggleState = toggleMap?.[deviceId] ?? "off";
+  const [loading, setLoading] = useState(false);
+
+  const contextEvents = eventsMap?.[deviceId] ?? [];
+  const displayEvents = contextEvents.length > 0 ? contextEvents : events;
+
+  const isSchedulingOrTrigger = category === "scheduling" || category === "trigger";
+
+  // Get current running event
+  const runningEvent = useMemo(() => {
+    if (!isSchedulingOrTrigger || !displayEvents.length) return null;
+    return displayEvents.find(e => e.type === "CURRENT") || null;
+  }, [displayEvents, isSchedulingOrTrigger]);
+
+  // Get next event
+  const nextEvent = useMemo(() => {
+    if (!isSchedulingOrTrigger || !displayEvents.length) return null;
+    return displayEvents.find(e => e.type === "NEXT") || null;
+  }, [displayEvents, isSchedulingOrTrigger]);
+
+  const displayState = toggleState;
+  const isDisabled = !!runningEvent || !isOnline;
+
+  useEffect(() => {
+    if (deviceId && isSchedulingOrTrigger) fetchToggleStatus(deviceId);
+  }, [deviceId, fetchToggleStatus, isSchedulingOrTrigger]);
+
+  const handleToggleClick = async (e) => {
+    e.stopPropagation();
+
+    if (runningEvent) {
+      const result = await Swal.fire({
+        title: "Event Currently Running",
+        html: `The <b>${runningEvent.command || "Scheduled"}</b> event is active.<br/>
+               <span style="color:#64748b;font-size:13px">${runningEvent.startTime} → ${runningEvent.endTime}</span><br/><br/>
+               Do you want to disable this event?`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Disable Event",
+        cancelButtonText: "Close",
+        confirmButtonColor: "#EF4444",
+      });
+
+      if (result.isConfirmed) {
+        try {
+          setLoading(true);
+          await skipEvent(deviceId);
+          await onRefreshScheduler?.();
+        } catch (err) {
+          Swal.fire({ icon: "error", title: "Failed", text: err.message || "Could not skip event" });
+        } finally {
+          setLoading(false);
+        }
+      }
+      return;
+    }
+
+    // Use different API based on category
+    try {
+      setLoading(true);
+
+      if (category === "trigger") {
+        // Trigger category: Use PUT /event/manual-trigger/:deviceId
+        await triggerDeviceManual(deviceId);
+      } else {
+        // Scheduling category: Use POST /event/manual-toggle
+        const nextAction = toggleState === "on" ? "OFF" : "ON";
+        await triggerDevice(deviceId, nextAction);
+      }
+    } catch (err) {
+      Swal.fire({ icon: "error", title: "Failed", text: err.message || "Command failed" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatTime = (time) => {
+    if (!time) return "--:--";
+    const [h, m] = time.split(":").map(Number);
+    const date = new Date();
+    date.setUTCHours(h, m, 0);
+    const localHours = date.getHours();
+    const localMinutes = date.getMinutes();
+    const hour12 = localHours % 12 || 12;
+    const ampm = localHours >= 12 ? "PM" : "AM";
+    return `${String(hour12).padStart(2, "0")}:${String(localMinutes).padStart(2, "0")} ${ampm}`;
+  };
+
+  const displayEvent = runningEvent || nextEvent;
+  const displayStart = displayEvent?.startTime ? formatTime(displayEvent.startTime) : "--";
+  const displayDuration = displayEvent?.duration || "--";
+  const eventType = runningEvent ? "CURRENT" : (nextEvent ? "NEXT" : "--");
   const toInt = (v) => {
     const n = Number(v);
     return Number.isFinite(n) ? Math.trunc(n) : null;
   };
-
-
-  console.log("OdourCard props:", { deviceId, isOnline, lastUpdateISO });
-
-
 
   const displayTemp = toInt(espTemprature);
   const displayHumidity = toInt(espHumidity);
@@ -34,7 +131,6 @@ export default function OdourDeviceCard({
     if (onCardSelect) onCardSelect();
   };
 
-  console.log("humidityAlert>>", humidityAlert)
   // Alert priority: Odour > Temp/Humidity > none
   const hasTempOrHum = Boolean(temperatureAlert || humidityAlert);
   let alertStatus = "none";
@@ -70,44 +166,35 @@ export default function OdourDeviceCard({
     >
       <div className="relative w-full h-full">
         <div className="freezer-card-content">
-          {/* Device ID & Pill */}
+          {/* Device ID & Pill/Toggle */}
           <div className="device-id-section flex justify-between items-start">
-            {/* <div className="flex flex-col items-start">
-              <span className={`device-id-label`}>Device ID</span>
-               <h3 className={`responsive-value-deviceId `}>{deviceId}</h3> 
-              <div className="text-lg font-bold">{deviceId}</div>
-            </div> */}
-{/* 
-                    <div className="text-lg font-bold " title={lastUpdateTitle}>
-                <span
-                  aria-hidden
-                  className={`inline-block h-3 w-3 rounded-full mr-2 shadow-sm ${isOnline ? "bg-green-500" : "bg-gray-300"}`}
-                  style={{ boxShadow: isOnline ? "0 0 6px rgba(34,197,94,0.45)" : "none" }}
-                />
-                      <span className={`device-id-label`}>Device ID</span>
-                <span className="truncate">{deviceId}</span>
-              </div> */}
-
-               <div title={lastUpdateTitle}>
-            <div className="flex items-center">
+            <div title={lastUpdateTitle}>
+              <div className="flex items-center">
                 <span
                   aria-hidden
                   className={`inline-block h-1.5 w-1.5 rounded-full mr-2 shadow-sm ${isOnline ? "bg-green-300" : "bg-gray-300"}`}
                   style={{ boxShadow: isOnline ? "0 0 6px rgba(34,197,94,0.45)" : "none" }}
                 />
-            <div className="text-xs text-gray-500">Device ID</div>
-            </div>
-            <div className="text-lg font-bold">{deviceId}</div>
-          </div>
-        
-
-            
-            <div className={`ambient-pill ${odourAlert? "bg-rose-700/20": "bg-white/20"} border border-white/30 flex items-center`}>
-              <img src={devicePill.img} alt={devicePill.alt} className="h-[2rem] w-[2rem] py-1" />
-              <div>
-                <p className="responsive-value-status">{devicePill.label}</p>
+                <div className="text-xs text-gray-500">Device ID</div>
               </div>
+              <div className="text-lg font-bold">{deviceId}</div>
             </div>
+
+            {isSchedulingOrTrigger ? (
+              <PowerToggle
+                displayState={displayState}
+                isLocked={isDisabled}
+                loading={loading}
+                onClick={handleToggleClick}
+              />
+            ) : (
+              <div className={`ambient-pill ${odourAlert ? "bg-rose-700/20" : "bg-white/20"} border border-white/30 flex items-center`}>
+                <img src={devicePill.img} alt={devicePill.alt} className="h-[2rem] w-[2rem] py-1" />
+                <div>
+                  <p className="responsive-value-status">{devicePill.label}</p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Temp & Humidity */}
@@ -119,7 +206,7 @@ export default function OdourDeviceCard({
                 <span className={`responsive-value font-bold`}>
                   {displayHumidity !== null ? `${displayHumidity}%` : "--"}
                 </span>
-                 <p className={`h-2 w-[2.7rem] rounded-full ${humidityAlert ? "bg-rose-300" :  "bg-[#BAEACC]"}`}/>
+                <p className={`h-2 w-[2.7rem] rounded-full ${humidityAlert ? "bg-rose-300" : "bg-[#BAEACC]"}`} />
               </div>
             </div>
 
@@ -130,14 +217,53 @@ export default function OdourDeviceCard({
                 <span className={`responsive-value font-bold`}>
                   {displayTemp !== null ? `${displayTemp}°C` : "0°C"}
                 </span>
-                <p className={`h-2 w-[2.7rem] rounded-full ${temperatureAlert ? "bg-rose-300" :  "bg-[#BAEACC]"}`}/>
-               
+                <p className={`h-2 w-[2.7rem] rounded-full ${temperatureAlert ? "bg-rose-300" : "bg-[#BAEACC]"}`} />
               </div>
             </div>
           </div>
 
-          {/* Bottom Alerts */}
-          {/* <AlertBottom /> */}
+          {/* Scheduling/Trigger Footer */}
+          {isSchedulingOrTrigger && (
+            <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+              {category === "trigger" ? (
+                // Trigger category: Show interval only
+                <div className="flex items-center justify-center gap-2 w-full">
+                  <TimerIcon className="w-5 h-5 text-gray-600" />
+                  <div className="flex flex-col">
+                    <p className="text-xs text-gray-500 font-semibold">Interval</p>
+                    <div className="text-xs font-bold text-[#178D8F]">
+                      {interval !== null && interval !== undefined ? `${interval}s` : "--"}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                // Scheduling category: Show starting/duration/event type
+                <>
+                  <div className="flex items-center justify-center gap-2">
+                    <CalendarDays className="w-5 h-5 text-gray-600" />
+                    <div className="flex flex-col">
+                      <p className="text-xs text-gray-500 font-semibold">Starting</p>
+                      <div className="text-xs font-bold text-[#178D8F]">{displayStart}</div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center gap-1 text-xs text-gray-500 font-semibold">
+                      <TimerIcon className="w-3 h-3" /> Duration
+                    </div>
+                    <div className="text-xs font-bold text-[#178D8F]">{displayDuration}</div>
+                  </div>
+
+                  <div>
+                    <div className="text-xs text-gray-500 font-semibold">Event Type</div>
+                    <div className={`text-xs font-bold ${runningEvent ? "text-emerald-600" : "text-gray-500"}`}>
+                      {eventType}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -156,4 +282,7 @@ OdourDeviceCard.propTypes = {
   odourAlert: PropTypes.bool,
   isOnline: PropTypes.bool,
   lastUpdateISO: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  category: PropTypes.string,
+  events: PropTypes.array,
+  onRefreshScheduler: PropTypes.func,
 };

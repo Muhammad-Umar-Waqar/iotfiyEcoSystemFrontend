@@ -1,17 +1,15 @@
-
-// Code for peresistency in Dashboard for Url and page not change on reload for selected org and venue assuring all cases for Admin, Manager, User 
-// src/pages/VenueSelect.jsx (or wherever file is)
+// VenueSelect - Manager and User role support
+// Manager: Fetch venues from API
+// User: Filter venues from Redux auth state
 import { useEffect, useState, useRef } from "react";
-import { useStore } from "../../contexts/storecontexts";
-import { getVenuePriority, priorityWeight } from "../../utils/venuePriorities";
+import { useSelector } from "react-redux";
 
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:5050";
 
-export default function VenueSelect({ organizationId, value, onChange, className = "", excludeFirstN = 0, externalLabel }) {
-  const { user, getToken } = useStore();
+export default function VenueSelect({ organizationId, value, onChange, className = "", externalLabel }) {
+  const { user, token } = useSelector((state) => state.auth);
 
   const [venues, setVenues] = useState([]);
-  const [visibleVenues, setVisibleVenues] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selected, setSelected] = useState(value ?? "");
@@ -32,21 +30,68 @@ export default function VenueSelect({ organizationId, value, onChange, className
   useEffect(() => {
     if (!organizationId) {
       setVenues([]);
-      setVisibleVenues([]);
       setSelected("");
       setError(null);
       return;
     }
 
+    // For user role: filter venues from auth state (no API call)
+    if (user?.role === "user" && user?.venues) {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Filter venues by selected organization
+        const userVenues = user.venues.filter(
+          (v) => v.organization?.id === organizationId || v.organization?._id === organizationId
+        );
+
+        // Transform to consistent format
+        const arr = userVenues.map((v) => ({
+          _id: v.venueId,
+          id: v.venueId,
+          venueId: v.venueId,
+          name: v.venueName,
+          venueName: v.venueName,
+          venue_name: v.venueName,
+          organization: v.organization?.id || v.organization?._id,
+          organizationName: v.organization?.name,
+        }));
+
+        setVenues(arr);
+
+        // If parent already provided a non-empty value (URL-driven), keep it
+        if (value && String(value).trim() !== "") {
+          setSelected(value);
+          setLoading(false);
+          return;
+        }
+
+        // Auto-select first venue if no value
+        if (!value && arr.length > 0) {
+          const firstId = String(arr[0]._id ?? arr[0].id ?? arr[0].venueId);
+          setSelected(firstId);
+          if (typeof onChange === "function") onChange(firstId, arr[0].name);
+        }
+      } catch (err) {
+        console.error("Venue filter error:", err);
+        setError(err.message || "Failed to filter venues");
+        setVenues([]);
+        setSelected("");
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // For manager role: fetch from API
     const abortCtrl = new AbortController();
     const fetchVenues = async () => {
       try {
         setLoading(true);
         setError(null);
-        const token = getToken();
 
-        const isUserCreatedByUser = user?.createdBy && String(user.createdBy) === "user";
-        const url = isUserCreatedByUser ? `${BASE}/venue/${user._id}` : `${BASE}/venue/venue-by-org/${organizationId}`;
+        const url = `${BASE}/venue/get-by-org/${organizationId}`;
 
         const res = await fetch(url, {
           method: "GET",
@@ -62,7 +107,6 @@ export default function VenueSelect({ organizationId, value, onChange, className
         if (!res.ok) {
           const message = data?.message || "Failed to fetch venues";
           setVenues([]);
-          setVisibleVenues([]);
           setSelected("");
           setError(message);
           setLoading(false);
@@ -73,60 +117,24 @@ export default function VenueSelect({ organizationId, value, onChange, className
 
         setVenues(arr);
 
-        const filtered = excludeFirstN > 0 ? arr.slice(excludeFirstN) : arr;
-
-        const withPriority = filtered.map((v) => {
-          const id = String(v._id ?? v.id ?? v.venueId ?? v);
-          const p = getVenuePriority(id);
-          return {
-            __id: id,
-            __priority: p,
-            __weight: priorityWeight(p),
-            ...v,
-          };
-        });
-
-        withPriority.sort((a, b) => {
-          if (b.__weight !== a.__weight) return b.__weight - a.__weight;
-          const an = (a.name ?? a.venue_name ?? a.venueName ?? a.__id).toString().toLowerCase();
-          const bn = (b.name ?? b.venue_name ?? b.venueName ?? b.__id).toString().toLowerCase();
-          return an.localeCompare(bn);
-        });
-
-        const finalVisible = withPriority.map(({ __priority, __weight, __id, ...rest }) => {
-          const raw = rest || {};
-          const id = String(__id);
-          const name = raw.name ?? raw.venueName ?? raw.venue_name ?? raw.title ?? id;
-          return {
-            _id: id,
-            name,
-            raw,
-            ...raw,
-          };
-        });
-
-        setVisibleVenues(finalVisible);
-
-      // If parent already provided a non-empty value (URL-driven), keep it
+        // If parent already provided a non-empty value (URL-driven), keep it
         if (value && String(value).trim() !== "") {
           setSelected(value);
-          setVisibleVenues(finalVisible);
+          setLoading(false);
           return;
         }
 
-        if (!value && finalVisible.length > 0) {
-          const firstId = String(finalVisible[0]._id ?? finalVisible[0].id ?? finalVisible[0].venueId ?? finalVisible[0]);
+        // Auto-select first venue if no value
+        if (!value && arr.length > 0) {
+          const firstId = String(arr[0]._id ?? arr[0].id ?? arr[0].venueId);
           setSelected(firstId);
-          if (typeof onChange === "function") onChange(firstId, finalVisible[0].name);
-        } else if (value) {
-          setSelected(value);
+          if (typeof onChange === "function") onChange(firstId, arr[0].name ?? arr[0].venueName);
         }
       } catch (err) {
         if (err.name === "AbortError") return;
         console.error("Venue fetch error:", err);
         setError(err.message || "Network error");
         setVenues([]);
-        setVisibleVenues([]);
         setSelected("");
       } finally {
         if (!abortCtrl.signal.aborted) setLoading(false);
@@ -136,7 +144,7 @@ export default function VenueSelect({ organizationId, value, onChange, className
     fetchVenues();
     return () => abortCtrl.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [organizationId, excludeFirstN, user, reloadKey]);
+  }, [organizationId, user, reloadKey]);
 
   useEffect(() => {
     function handleOutside(e) {
@@ -157,9 +165,7 @@ export default function VenueSelect({ organizationId, value, onChange, className
     if (e.key === "Escape") setDropdownOpen(false);
   };
 
-  if (user?.role === "user" && venues?.length <= 3) return null;
-
-  const selectedVenue = visibleVenues.find((v) => String(v._id ?? v.id ?? v) === String(selected));
+  const selectedVenue = venues.find((v) => String(v._id ?? v.id ?? v) === String(selected));
 
   // show readable name when available; otherwise use externalLabel or id
   const label = loading
@@ -192,9 +198,9 @@ export default function VenueSelect({ organizationId, value, onChange, className
           {dropdownOpen && (
             <div className=" absolute z-20 mt-2 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-56 overflow-y-auto">
               {loading ? (
-                <div className="px-4 py-3 text-sm text-gray-500">venue</div>
-              ) : visibleVenues && visibleVenues.length > 0 ? (
-                visibleVenues.map((v) => {
+                <div className="px-4 py-3 text-sm text-gray-500">Loading venues...</div>
+              ) : venues && venues.length > 0 ? (
+                venues.map((v) => {
                   const id = String(v._id ?? v.id ?? v);
                   const name = v.name ?? v.venue_name ?? v.venueName ?? id;
                   return (

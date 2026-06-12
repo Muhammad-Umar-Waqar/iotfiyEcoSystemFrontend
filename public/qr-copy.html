@@ -1,0 +1,75 @@
+<!-- public/qr-copy.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Copy API key</title>
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; padding: 20px; }
+    .box { max-width: 520px; margin: 60px auto; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; }
+    button { padding: 8px 12px; border-radius:6px; border: 1px solid #d1d5db; background: #f8fafc; cursor:pointer }
+    pre { background:#f3f4f6; padding:12px; border-radius:6px; overflow-x:auto; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2 id="title">Copying API key...</h2>
+    <div id="msg">Please wait — the page will try to copy the API key to your clipboard.</div>
+    <div style="margin-top:12px;">
+      <pre id="thekey"></pre>
+      <div style="margin-top:12px;">
+        <button id="fallback">Copy manually</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function getKey() {
+      const params = new URLSearchParams(location.search);
+      return params.get("key") || "";
+    }
+
+    async function tryCopy(text) {
+      try {
+        if (!text) throw new Error("No key provided");
+        // writeText requires secure context (HTTPS) on many browsers
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    (async function () {
+      const key = getKey();
+      document.getElementById("thekey").textContent = key || "(no key found)";
+      const ok = await tryCopy(key);
+      const title = document.getElementById("title");
+      const msg = document.getElementById("msg");
+      if (ok) {
+        title.textContent = "Copied ✓";
+        msg.textContent = "Your API key was copied to the clipboard. You can now paste it into the app.";
+      } else {
+        title.textContent = "Tap to copy";
+        msg.textContent = "Automatic copy failed (probably due to browser security). Use the button below to copy manually.";
+      }
+
+      document.getElementById("fallback").addEventListener("click", function () {
+        // fallback: select and show prompt (works if clipboard API blocked)
+        if (!key) return;
+        try {
+          navigator.clipboard.writeText(key).then(function() {
+            alert("Copied to clipboard.");
+          }, function() {
+            // final fallback
+            window.prompt("Copy this API key:", key);
+          });
+        } catch (e) {
+          window.prompt("Copy this API key:", key);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

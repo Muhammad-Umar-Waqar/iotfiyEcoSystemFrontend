@@ -1,7 +1,7 @@
 // // src/slices/ManagerSlice.js
 // import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
-// const BASE = import.meta.env.VITE_BACKEND_API || "http://localhost:5050";
+// const BASE = import.meta.env.VITE_API_URL || "http://localhost:5050";
 // const getToken = () => localStorage.getItem("token");
 
 // // fetch all managers/users

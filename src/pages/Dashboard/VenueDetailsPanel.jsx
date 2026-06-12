@@ -2,7 +2,6 @@
 // src/pages/Dashboard/VenueDetailsPanel.jsx
 import AlertsChart from "./AlertsChart";
 import { useDispatch, useSelector } from "react-redux";
-import { useStore } from "../../contexts/storecontexts";
 import { useMemo, useEffect, useState } from "react";
 import QRCode from "./QrCode";
 import { useLocation } from "react-router-dom";
@@ -12,7 +11,7 @@ import { fetchVenuesByOrganization } from "../../slices/VenueSlice";
 import { Download, Cloud, Zap, SquareActivity, Plug, Power } from "lucide-react";
 import Swal from "sweetalert2";
 import DownloadModal from "./DownloadModal";
-import EventsSection from "../../components/components/events/EventsSection";
+import EventsSection from "../../components/events/EventsSection";
 import { useScheduler } from "../../contexts/SchedulerContext";
 
 // Convert UTC time string (HH:MM) to local time string in 12-hour format with AM/PM
@@ -46,6 +45,7 @@ export default function VenueDetailsPanel({
   organizationId = null,
   venueName = "Karim Korangi Branch",
   deviceType = null,
+  category = "monitoring",
   espTemprature = 0,
   ambientTemperature = 0,
   espHumidity = 0,
@@ -71,7 +71,7 @@ export default function VenueDetailsPanel({
 }) {
 
   const dispatch = useDispatch();
-  const { user } = useStore();
+  const user  = useSelector((state) => state.auth.user);
   const orgId = organizationId || user?.organization || null;
 
   const { eventsMap, toggleMap, setEvents, triggerDevice, skipEvent, fetchToggleStatus } = useScheduler();
@@ -91,7 +91,7 @@ export default function VenueDetailsPanel({
   const orgVenues = useSelector((state) => (orgId ? state.Venue.venuesByOrg[orgId] || [] : []));
   const globalVenues = useSelector((state) => state.Venue.Venues || []);
   const venuesFromSlice = orgVenues.length ? orgVenues : globalVenues;
-  const isSchedulerDevice = String(deviceType) === "TSD";
+  const isSchedulerDevice = String(deviceType) === "TSD" || category === "scheduling";
 
   useEffect(() => {
     if (orgId && !orgVenues.length) {
@@ -132,7 +132,7 @@ export default function VenueDetailsPanel({
       if (!deviceId) return;
 
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/event/get-by-deviceid/${deviceId}`,
+        `${import.meta.env.VITE_API_URL}/event/get/${deviceId}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -145,7 +145,7 @@ export default function VenueDetailsPanel({
 
       // Fetch current/next status and mark events
       const statusRes = await fetch(
-        `${import.meta.env.VITE_API_URL}/event/get-current-events/${deviceId}`,
+        `${import.meta.env.VITE_API_URL}/event/get/${deviceId}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -372,6 +372,8 @@ export default function VenueDetailsPanel({
   };
 
   return (
+    <div className={`dashboard-right-panel shadow-sm flex flex-col h-full overflow-y-auto custom-scrollbar p-4 lg:p-6 border-l border-[#E5E7EB]/40 bg-white max-w-[95vw] min-w-0 `}>
+  
     <div className="w-full rounded-lg p-6 shadow-sm space-y-6" style={{ backgroundColor: "#07518D12" }}>
       {closeIcon && (
         <div className="flex justify-between items-center">
@@ -538,10 +540,10 @@ export default function VenueDetailsPanel({
         deviceType={deviceType}
       />
 
-      {String(deviceType) === "TSD" && (
+      {isSchedulerDevice && (
         <div className="pt-6">
           <EventsSection
-            selectedDevice={{ deviceId, venueId, venueName: displayVenueName, deviceType }}
+            selectedDevice={{ deviceId, venueId, venueName: displayVenueName, deviceType, category }}
             onEventsChange={(updated) => { }}
             externalOpen={powerModalOpen}
             onExternalClose={() => setPowerModalOpen(false)}
@@ -549,6 +551,8 @@ export default function VenueDetailsPanel({
           />
         </div>
       )}
+    </div>
+
     </div>
   );
 }

@@ -10,24 +10,27 @@ import SelectPlan from './pages/auth/SelectPlan';
 import SetupPassword from './pages/auth/SetupPassword';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
+import Dashboard from './pages/Dashboard/page';
 import OrganizationManagement from './pages/management/OrganizationManagement/page';
 import VenueManagement from './pages/management/VenueManagement/page';
 import DeviceManagement from './pages/management/DeviceManagement/page';
 import UserManagement from './pages/management/UserManagement/page';
 import SubscriptionAnalytics from './pages/management/SubscriptionAnalytics/page';
 import './styles/global/fonts.css';
+import { OrgVenueProvider } from './contexts/OrgVenueContext';
+import { SchedulerProvider } from "./contexts/SchedulerContext";
 
 // Session restoration component
 function SessionRestoration({ children }) {
   const dispatch = useDispatch();
   const { token, isAuthenticated } = useSelector((state) => state.auth);
 
-  useEffect(() => {
-    // If we have a token but no user, fetch the current user
-    if (token && !isAuthenticated) {
+    useEffect(() => {
+    if (token) {
       dispatch(fetchCurrentUser());
     }
-  }, [token, isAuthenticated, dispatch]);
+  }, [token, dispatch]);
+
 
   return children;
 }
@@ -35,6 +38,8 @@ function SessionRestoration({ children }) {
 function App() {
   return (
     <SessionRestoration>
+       <OrgVenueProvider>
+        <SchedulerProvider>
       <Router>
         <Routes>
           {/* Public Routes */}
@@ -56,7 +61,7 @@ function App() {
                 </ProtectedRoute>
               }
             >
-              <Route index element={<div className="p-8"><h1 className="text-2xl font-bold">Dashboard</h1></div>} />
+              <Route index element={<Dashboard />} />
               <Route path="organization" element={<OrganizationManagement />} />
               <Route path="venue" element={<VenueManagement />} />
               <Route path="device" element={<DeviceManagement />} />
@@ -93,6 +98,8 @@ function App() {
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </Router>
+          </SchedulerProvider>
+      </OrgVenueProvider>
       </SessionRestoration>
   );
 }

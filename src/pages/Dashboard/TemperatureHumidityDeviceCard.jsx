@@ -1,5 +1,4 @@
-
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import { Sun, Sunrise, Sunset, Moon } from "lucide-react";
 import TemperatureRangeMeter from "./TemperatureRangeMeter";
@@ -13,7 +12,6 @@ export default function TemperatureHumidityDeviceCard({
   isSelected = false,
   onCardSelect,
   lastUpdateTime = null,
-  pollHitTime = { pollHitTime },
   isOnline = false,         // NEW
   lastUpdateISO = null,
 
@@ -25,6 +23,7 @@ export default function TemperatureHumidityDeviceCard({
 
   // format last update for title/tooltip
   const lastUpdateStr = lastUpdateISO ? new Date(lastUpdateISO).toLocaleString() : "";
+  const [now, setNow] = useState(Date.now());
 
 
   const temp = toNumberOrNull(espTemprature);
@@ -33,10 +32,15 @@ export default function TemperatureHumidityDeviceCard({
   const hasAnyAlert = temperatureAlert || humidityAlert;
 
 
-  const hour = useMemo(() => {
-    return new Date(pollHitTime).getHours();
-  }, [pollHitTime]);
+useEffect(() => {
+  const interval = setInterval(() => {
+    setNow(Date.now());
+  }, 10 * 60 * 1000);
 
+  return () => clearInterval(interval);
+}, []);
+
+const hour = new Date(now).getHours();
 
   // const timeOfDay = "sunset"
   const timeOfDay =
