@@ -43,6 +43,24 @@ const OTADeviceList = ({ selectedVersion, onVersionSelect }) => {
   const navigate = useNavigate();
   const otaSocketRef = useRef(null); // Separate socket for OTA progress
 
+  // ✅ Refs to store latest values for socket event handlers (avoid stale closures)
+  const otaInProgressRef = useRef(false);
+  const selectedDevicesRef = useRef(new Set());
+  const deviceStatusMapRef = useRef(new Map());
+
+  // ✅ Keep refs in sync with state
+  useEffect(() => {
+    otaInProgressRef.current = otaInProgress;
+  }, [otaInProgress]);
+
+  useEffect(() => {
+    selectedDevicesRef.current = selectedDevices;
+  }, [selectedDevices]);
+
+  useEffect(() => {
+    deviceStatusMapRef.current = deviceStatusMap;
+  }, [deviceStatusMap]);
+
   // ✅ Use WebSocket hook for real-time device data
   const { deviceDataMap, deviceOnlineMap, isConnected } = useDeviceWebSocket(allDevices);
 
@@ -152,11 +170,56 @@ const OTADeviceList = ({ selectedVersion, onVersionSelect }) => {
       handleOTAProgressUpdate(data);
     });
 
+    // ✅ Listen for device status updates (online/offline) from backend
+    socket.on('deviceStatusUpdate', (data) => {
+      console.log('📶 Device Status Update during OTA:', data);
+      handleDeviceStatusUpdate(data);
+    });
+
     return () => {
       console.log('🔌 Disconnecting OTA socket');
       socket.disconnect();
     };
   }, []);
+
+  // ✅ Handle device status updates (mark as failed if offline during OTA)
+  const handleDeviceStatusUpdate = (data) => {
+    const { deviceId, status } = data;
+
+    console.log(`🔍 Checking device ${deviceId} status:`, {
+      status,
+      otaInProgress: otaInProgressRef.current,
+      isSelected: selectedDevicesRef.current.has(deviceId),
+      currentStatus: deviceStatusMapRef.current.get(deviceId)
+    });
+
+    // ✅ Use refs for current values (avoid stale closure)
+    if (!otaInProgressRef.current || !selectedDevicesRef.current.has(deviceId)) {
+      console.log(`⏭️ Skipping - OTA not in progress or device not selected`);
+      return;
+    }
+
+    // If device goes offline during OTA, mark it as failed
+    if (status === 'offline') {
+      const currentStatus = deviceStatusMapRef.current.get(deviceId);
+
+      // Only mark as failed if not already completed
+      if (currentStatus !== 'completed') {
+        console.log(`⚠️ Device ${deviceId} went offline during OTA - marking as failed`);
+
+        setDeviceStatusMap(prev => {
+          const newMap = new Map(prev);
+          newMap.set(deviceId, 'failed');
+          return newMap;
+        });
+
+        // Keep the last known progress
+        // Don't reset progress - keep it at last known value (e.g., 40%)
+      } else {
+        console.log(`✅ Device ${deviceId} already completed - not marking as failed`);
+      }
+    }
+  };
 
   // ✅ Listen for session-specific progress
   useEffect(() => {
