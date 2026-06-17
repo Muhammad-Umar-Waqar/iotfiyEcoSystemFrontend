@@ -5,6 +5,7 @@ import TemperatureRangeMeter from "./TemperatureRangeMeter";
 
 export default function TemperatureHumidityDeviceCard({
   deviceId,
+  deviceName,
   espTemprature = null,
   espHumidity = null,
   temperatureAlert = false,
@@ -110,7 +111,7 @@ const hour = new Date(now).getHours();
               />
               <div className="text-xs text-gray-500">Device ID</div>
             </div>
-            <div className="text-lg font-bold">{deviceId}</div>
+            <div className="text-lg font-bold">{deviceName}</div>
           </div>
 
 

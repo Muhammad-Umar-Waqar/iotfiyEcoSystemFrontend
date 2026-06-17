@@ -151,11 +151,56 @@ const SchedulerDeviceCard = React.memo(function SchedulerDeviceCard({
   pollHitTime,
   events = [],
   onRefreshScheduler,
+  scheduleData = null, // NEW: WebSocket schedule data { type, event: { ...eventData, duration } }
+  deviceState = "OFF", // NEW: WebSocket state (ON/OFF)
+  category = "scheduling", // NEW: Device category for API selection
+  deviceName,
 }) {
 
-  const { triggerDevice, skipEvent, fetchToggleStatus, toggleMap, eventsMap } = useScheduler();
-  const toggleState = toggleMap?.[deviceId] ?? "off";
+  const { triggerDevice, skipEvent, toggleMap, eventsMap } = useScheduler();
   const [loading, setLoading] = useState(false);
+  const [apiScheduleData, setApiScheduleData] = useState(null); // ✅ NEW: API fallback data
+
+  // ✅ Use WebSocket state if available, fallback to context toggleMap
+  const toggleState = deviceState?.toLowerCase() || toggleMap?.[deviceId] || "off";
+
+  console.log(`🔘 [SchedulerDeviceCard ${deviceId}] WebSocket state: ${deviceState}, Final toggleState: ${toggleState}`);
+
+  // ✅ Fetch schedule data from API as fallback when WebSocket data is not available
+  useEffect(() => {
+    const fetchScheduleDataFromAPI = async () => {
+      // Only fetch if WebSocket data is not available
+      if (scheduleData) {
+        console.log(`✅ [SchedulerDeviceCard ${deviceId}] WebSocket schedule data available, skipping API fetch`);
+        return;
+      }
+
+      try {
+        console.log(`🔄 [SchedulerDeviceCard ${deviceId}] Fetching schedule data from API fallback...`);
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/event/current-next/${deviceId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch schedule data");
+        }
+
+        const data = await response.json();
+        console.log(`✅ [SchedulerDeviceCard ${deviceId}] API fallback data:`, data);
+        setApiScheduleData(data);
+      } catch (err) {
+        console.error(`❌ [SchedulerDeviceCard ${deviceId}] API fallback error:`, err);
+        setApiScheduleData(null);
+      }
+    };
+
+    fetchScheduleDataFromAPI();
+  }, [deviceId, scheduleData]); // Re-fetch when deviceId changes or when scheduleData changes
 
   // ✅ Read events from global context instead of props
   const contextEvents = eventsMap?.[deviceId] ?? [];
@@ -190,9 +235,8 @@ const SchedulerDeviceCard = React.memo(function SchedulerDeviceCard({
         console.log(`⏰ [SchedulerDeviceCard ${deviceId}] Setting timer for ${Math.round(delayMs / 1000)}s from now`);
 
         timerRef.current = setTimeout(() => {
-          console.log(`🔔 [SchedulerDeviceCard ${deviceId}] Timer fired! Fetching toggle status...`);
-          fetchToggleStatus(deviceId);
-          onRefreshScheduler?.(); // Also refresh events
+          console.log(`🔔 [SchedulerDeviceCard ${deviceId}] Timer fired! Refreshing scheduler...`);
+          onRefreshScheduler?.(); // Refresh events
           console.log(`✅ [SchedulerDeviceCard ${deviceId}] Timer completed refresh`);
         }, delayMs);
       } else {
@@ -210,45 +254,65 @@ const SchedulerDeviceCard = React.memo(function SchedulerDeviceCard({
         console.log(`🧹 [SchedulerDeviceCard ${deviceId}] Cleanup: cleared timer`);
       }
     };
-  }, [displayEvents, deviceId, isOnline, fetchToggleStatus, onRefreshScheduler]);
+  }, [displayEvents, deviceId, isOnline, onRefreshScheduler]);
 
+  // ✅ Only check WebSocket data for running event (scheduling category only)
+  const wsRunningEvent = useMemo(() => {
+    if (category !== "scheduling") return null;
+    if (scheduleData?.type === "CURRENT" && scheduleData?.event) {
+      return scheduleData.event;
+    }
+    return null;
+  }, [scheduleData, category]);
+
+  // ✅ For display purposes: Get events from context (fallback when WebSocket not available)
   const runningEvent = useMemo(() => {
     const result = getCurrentRunningEvent(displayEvents);
-    console.log(`🎯 [SchedulerDeviceCard ${deviceId}] Running event:`, result);
     return result;
-  }, [displayEvents, deviceId]);
+  }, [displayEvents]);
 
   const nextEvent = useMemo(() => {
     const result = getNextEvent(displayEvents);
-    console.log(`⏭️ [SchedulerDeviceCard ${deviceId}] Next event:`, result);
     return result;
-  }, [displayEvents, deviceId]);
-
-  // const displayState = runningEvent ? "gray" : toggleState;
+  }, [displayEvents]);
 
   const displayState = toggleState;
-  const isDisabled = !!runningEvent || !isOnline;  // Disable if event running OR device offline
+  const isDisabled = !!wsRunningEvent || !isOnline;  // Disable if event running OR device offline
 
-  console.log(`[TSD ${deviceId}] Final displayState:`, displayState, "| Is Running:", !!runningEvent, "| Is Online:", isOnline);
-
-  useEffect(() => {
-    if (deviceId) fetchToggleStatus(deviceId);
-  }, [deviceId, fetchToggleStatus]);
+  console.log(`[TSD ${deviceId}] WebSocket running event:`, wsRunningEvent);
+  console.log(`[TSD ${deviceId}] Final displayState:`, displayState, "| Is Running:", !!wsRunningEvent, "| Is Online:", isOnline);
 
 
   const handleToggleClick = async (e) => {
   e.stopPropagation();
 
-  // ✅ Check if event is running FIRST (higher priority)
-  if (runningEvent) {
+    // ✅ Check if device is online BEFORE making API calls
+  if (!isOnline) {
+    await Swal.fire({
+      title: "Device Offline",
+      html: `
+        <b>${deviceName}</b> is currently offline.<br/>
+        <span style="color:#64748b;font-size:13px">
+          Please ensure the device is connected and try again.
+        </span>
+      `,
+      icon: "error",
+      confirmButtonText: "OK",
+      confirmButtonColor: "#EF4444",
+    });
+    return;
+  }
+
+  // ✅ For SCHEDULING category: Check if WebSocket shows event is running
+  if (category === "scheduling" && wsRunningEvent) {
     // Convert UTC times to local 24-hour format
-    const localStartTime = convertUTCToLocal(runningEvent.startTime);
-    const localEndTime = convertUTCToLocal(runningEvent.endTime);
+    const localStartTime = convertUTCToLocal(wsRunningEvent.startTime);
+    const localEndTime = convertUTCToLocal(wsRunningEvent.endTime);
 
     const result = await Swal.fire({
       title: "Event Currently Running",
       html: `
-        The <b>${runningEvent.command || "Scheduled"}</b> event is active.<br/>
+        The <b>${wsRunningEvent.command || "Scheduled"}</b> event is active.<br/>
         <span style="color:#64748b;font-size:13px">
           ${localStartTime} → ${localEndTime}
         </span><br/><br/>
@@ -264,13 +328,44 @@ const SchedulerDeviceCard = React.memo(function SchedulerDeviceCard({
     if (result.isConfirmed) {
       try {
         setLoading(true);
-        await skipEvent(deviceId);
+
+        // ✅ Use PATCH /event/:id/status API to disable the running event
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/event/${wsRunningEvent._id}/status`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: JSON.stringify({
+              status: "INACTIVE" // Backend uses ACTIVE/INACTIVE, frontend shows Enable/Disable
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || "Failed to disable event");
+        }
+
+        const data = await response.json();
+
+        // ✅ Refresh to sync with EventsSection (will update both card and EventsSection toggle)
         await onRefreshScheduler?.();
+
+        Swal.fire({
+          icon: "success",
+          title: "Event Disabled",
+          text: data.message || "The event has been successfully disabled.",
+          timer: 2000,
+          showConfirmButton: false,
+        });
       } catch (err) {
         Swal.fire({
           icon: "error",
           title: "Failed",
-          text: err.message || "Could not skip event",
+          text: err.message || "Could not disable event",
         });
       } finally {
         setLoading(false);
@@ -280,12 +375,64 @@ const SchedulerDeviceCard = React.memo(function SchedulerDeviceCard({
     return;
   }
 
-  // ✅ For TSD: No isOnline check - let API decide via /event/toggle-switch response
+
   const nextAction = toggleState === "on" ? "OFF" : "ON";
 
   try {
     setLoading(true);
-    await triggerDevice(deviceId, nextAction);
+
+    // ✅ Call different API based on category
+    if (category === "trigger") {
+      // Trigger device API
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/device/manual-trigger/${deviceId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({ state: nextAction }),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to trigger device");
+      }
+
+      await response.json();
+    } else {
+      // Scheduling device API (requires eventId)
+      const eventId = scheduleData?.event?._id;
+
+      // if (!eventId) {
+      //   throw new Error("No active event found. Cannot toggle without an event.");
+      // }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/event/manual-toggle`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({ deviceId, eventId }),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to toggle device");
+      }
+
+      await response.json();
+    }
+
+    // Refresh scheduler after successful API call
+    await onRefreshScheduler?.();
+
   } catch (err) {
     Swal.fire({
       icon: "error",
@@ -330,12 +477,40 @@ const SchedulerDeviceCard = React.memo(function SchedulerDeviceCard({
   // Show CURRENT event if running, otherwise show NEXT event
   const displayEvent = runningEvent || nextEvent;
 
-  const displayStart = displayEvent?.startTime ? formatTime(displayEvent.startTime) : "--";
-
-  // ✅ Use duration from API response instead of calculating
-  const displayDuration = displayEvent?.duration || "--";
-
+  // Calculate event type from context events (fallback)
   const eventType = runningEvent ? "CURRENT" : (nextEvent ? "NEXT" : "--");
+
+  // ✅ Priority: WebSocket > API Fallback > Context Events
+  // 1. WebSocket schedule data (real-time)
+  const wsEvent = scheduleData?.event;
+  const wsEventType = scheduleData?.type;
+  const wsDuration = scheduleData?.totalDurationText;
+
+  // 2. API fallback data (when WebSocket not available)
+  const apiEvent = apiScheduleData?.event;
+  const apiEventType = apiScheduleData?.type;
+  const apiDuration = apiScheduleData?.totalDurationText;
+
+  // 3. Determine what to display (priority order)
+  const finalEvent = wsEvent || apiEvent || displayEvent;
+  const finalEventType =
+    (wsEventType && wsEventType !== "NO_EVENT") ? wsEventType :
+    (apiEventType && apiEventType !== "NO_EVENT") ? apiEventType :
+    eventType;
+
+  const displayStart = finalEvent?.startTime ? formatTime(finalEvent.startTime) : "--";
+
+  // ✅ Use duration from WebSocket or API fallback (already formatted as "3h 50m")
+  const displayDuration =
+    wsDuration ||
+    apiDuration ||
+    (finalEvent?.duration ? formatDuration(finalEvent.duration) : "--");
+
+  const displayEventType = finalEventType !== "NO_EVENT" ? finalEventType : "--";
+
+  console.log(`📅 [SchedulerDeviceCard ${deviceId}] WebSocket schedule:`, scheduleData);
+  console.log(`📅 [SchedulerDeviceCard ${deviceId}] API fallback schedule:`, apiScheduleData);
+  console.log(`📅 [SchedulerDeviceCard ${deviceId}] Final display - Start: ${displayStart}, Duration: ${displayDuration}, Type: ${displayEventType}`);
 
   return (
     <div
@@ -349,7 +524,7 @@ const SchedulerDeviceCard = React.memo(function SchedulerDeviceCard({
               <span className={`inline-block h-2 w-2 rounded-full mr-2 ${isOnline ? "bg-green-300" : "bg-gray-300"}`} />
               <div className="text-xs text-gray-500">Device ID</div>
             </div>
-            <div className="text-lg font-bold text-gray-900">{deviceId}</div>
+            <div className="text-lg font-bold text-gray-900">{deviceName}</div>
           </div>
 
           <div className="flex flex-col mt-2 border-b-2 border-[#C3C1C1]">
@@ -402,8 +577,8 @@ const SchedulerDeviceCard = React.memo(function SchedulerDeviceCard({
 
         <div>
           <div className="text-xs text-gray-500 font-semibold">Event Type</div>
-          <div className={`text-xs font-bold ${runningEvent ? "text-emerald-600" : "text-gray-500"}`}>
-            {eventType}
+          <div className={`text-xs font-bold ${displayEventType === "CURRENT" ? "text-emerald-600" : "text-gray-500"}`}>
+            {displayEventType}
           </div>
         </div>
       </div>

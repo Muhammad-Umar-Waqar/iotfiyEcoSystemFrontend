@@ -21,41 +21,41 @@ export function SchedulerProvider({ children }) {
       [deviceId]: val ?? "off",   // ← FORCE DEFAULT OFF
     })), []);
 
-  const fetchToggleStatus = useCallback(async (deviceId, retries = 5) => {
-    try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/event/get-toggle-status/${deviceId}`,
-        {
-          method: "GET",
-          credentials: "include",
-          headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${TOKEN}`,
-        },
-        }
-      );
+  // const fetchToggleStatus = useCallback(async (deviceId, retries = 5) => {
+  //   try {
+  //     const res = await fetch(
+  //       `${import.meta.env.VITE_API_URL}/event/get-toggle-status/${deviceId}`,
+  //       {
+  //         method: "GET",
+  //         credentials: "include",
+  //         headers: {
+  //         "Content-Type": "application/json",
+  //         Authorization: `Bearer ${TOKEN}`,
+  //       },
+  //       }
+  //     );
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
+  //     const data = await res.json();
+  //     if (!res.ok) throw new Error(data.message);
 
-      const newState = data.status === "ON" ? "on" : "off";
+  //     const newState = data.status === "ON" ? "on" : "off";
 
-      setToggleMap(prev => {
-        // 🔥 IMPORTANT: force re-render only if changed
-        if (prev[deviceId] === newState) return prev;
+  //     setToggleMap(prev => {
+  //       // 🔥 IMPORTANT: force re-render only if changed
+  //       if (prev[deviceId] === newState) return prev;
 
-        return {
-          ...prev,
-          [deviceId]: newState,
-        };
-      });
+  //       return {
+  //         ...prev,
+  //         [deviceId]: newState,
+  //       };
+  //     });
 
-      return newState;
+  //     return newState;
 
-    } catch (err) {
-      console.error("❌ Fetch toggle error:", err);
-    }
-  }, []);
+  //   } catch (err) {
+  //     console.error("❌ Fetch toggle error:", err);
+  //   }
+  // }, []);
 
   const delay = (ms) => new Promise(res => setTimeout(res, ms));
 

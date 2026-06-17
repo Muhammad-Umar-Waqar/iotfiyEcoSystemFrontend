@@ -7,6 +7,7 @@ import PropTypes from "prop-types";
 
 export default function GasLeakageDeviceCard({
   deviceId,
+  deviceName,
   isSelected = false,
   onCardSelect,
   espGL = null,
@@ -85,7 +86,7 @@ export default function GasLeakageDeviceCard({
                 />
             <div className="text-xs text-gray-500">Device ID</div>
             </div>
-            <div className="text-lg font-bold">{deviceId}</div>
+            <div className="text-lg font-bold">{deviceName}</div>
           </div>
           
 

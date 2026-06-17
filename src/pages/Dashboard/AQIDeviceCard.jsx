@@ -24,6 +24,7 @@ function getAQIStatus(aqi) {
 
 export default function AQIDeviceCard({
   deviceId,
+  deviceName,
   espAQI = null,
   espTemprature = null,
   espHumidity = null,
@@ -37,20 +38,65 @@ export default function AQIDeviceCard({
   events = [],
   onRefreshScheduler,
   interval = null, // For trigger category
+  deviceState = "OFF", // NEW: WebSocket state (ON/OFF)
+  scheduleData = null, // NEW: WebSocket schedule data
 }) {
   const aqi = espAQI ?? null;
   const aqiStatus = getAQIStatus(aqi);
 
-  const { triggerDevice, triggerDeviceManual, skipEvent, fetchToggleStatus, toggleMap, eventsMap } = useScheduler();
-  const toggleState = toggleMap?.[deviceId] ?? "off";
+  const { triggerDevice, triggerDeviceManual, skipEvent, toggleMap, eventsMap } = useScheduler();
+
+  // ✅ Use WebSocket state if available, fallback to context toggleMap
+  const toggleState = deviceState?.toLowerCase() || toggleMap?.[deviceId] || "off";
   const [loading, setLoading] = useState(false);
+  const [apiScheduleData, setApiScheduleData] = useState(null); // ✅ NEW: API fallback data
+
+  console.log(`🔘 [AQIDeviceCard ${deviceId}] WebSocket state: ${deviceState}, Final toggleState: ${toggleState}`);
+
+  // ✅ Fetch schedule data from API as fallback when WebSocket data is not available
+  useEffect(() => {
+    const fetchScheduleDataFromAPI = async () => {
+      if (category !== "scheduling" || scheduleData) {
+        return; // Only fetch for scheduling category and when WebSocket data is not available
+      }
+
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/event/current-next/${deviceId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+
+        if (!response.ok) throw new Error("Failed to fetch schedule data");
+        const data = await response.json();
+        setApiScheduleData(data);
+      } catch (err) {
+        console.error(`❌ [AQIDeviceCard ${deviceId}] API fallback error:`, err);
+        setApiScheduleData(null);
+      }
+    };
+
+    fetchScheduleDataFromAPI();
+  }, [deviceId, scheduleData, category]);
 
   const contextEvents = eventsMap?.[deviceId] ?? [];
   const displayEvents = contextEvents.length > 0 ? contextEvents : events;
 
   const isSchedulingOrTrigger = category === "scheduling" || category === "trigger";
 
-  // Get current running event
+  // ✅ For SCHEDULING: Only check WebSocket data for running event
+  const wsRunningEvent = useMemo(() => {
+    if (category !== "scheduling") return null;
+    if (scheduleData?.type === "CURRENT" && scheduleData?.event) {
+      return scheduleData.event;
+    }
+    return null;
+  }, [scheduleData, category]);
+
+  // For TRIGGER: Use context events (existing logic)
   const runningEvent = useMemo(() => {
     if (!isSchedulingOrTrigger || !displayEvents.length) return null;
     return displayEvents.find(e => e.type === "CURRENT") || null;
@@ -63,16 +109,89 @@ export default function AQIDeviceCard({
   }, [displayEvents, isSchedulingOrTrigger]);
 
   const displayState = toggleState;
-  const isDisabled = !!runningEvent || !isOnline;
-
-  useEffect(() => {
-    if (deviceId && isSchedulingOrTrigger) fetchToggleStatus(deviceId);
-  }, [deviceId, fetchToggleStatus, isSchedulingOrTrigger]);
+  // Use wsRunningEvent for scheduling, runningEvent for trigger
+  const isDisabled = (category === "scheduling" ? !!wsRunningEvent : !!runningEvent) || !isOnline;
 
   const handleToggleClick = async (e) => {
     e.stopPropagation();
 
-    if (runningEvent) {
+       // ✅ Check if device is online BEFORE making API calls
+    if (!isOnline) {
+      await Swal.fire({
+        title: "Device Offline",
+        html: `
+          <b>${deviceId}</b> is currently offline.<br/>
+          <span style="color:#64748b;font-size:13px">
+            Please ensure the device is connected and try again.
+          </span>
+        `,
+        icon: "error",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#EF4444",
+      });
+      return;
+    }
+
+    // ✅ For SCHEDULING category: Check WebSocket data ONLY
+    if (category === "scheduling" && wsRunningEvent) {
+      const result = await Swal.fire({
+        title: "Event Currently Running",
+        html: `The <b>${wsRunningEvent.command || "Scheduled"}</b> event is active.<br/>
+               <span style="color:#64748b;font-size:13px">${wsRunningEvent.startTime} → ${wsRunningEvent.endTime}</span><br/><br/>
+               Do you want to disable this event?`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Disable Event",
+        cancelButtonText: "Close",
+        confirmButtonColor: "#EF4444",
+      });
+
+      if (result.isConfirmed) {
+        try {
+          setLoading(true);
+
+          // ✅ Use PATCH /event/:id/status API to disable the running event
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/event/${wsRunningEvent._id}/status`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: JSON.stringify({
+              status: "INACTIVE" // Backend uses ACTIVE/INACTIVE, frontend shows Enable/Disable
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || "Failed to disable event");
+        }
+
+          await response.json();
+          await onRefreshScheduler?.();
+
+          Swal.fire({
+            icon: "success",
+            title: "Event Disabled",
+            text: "The event has been successfully disabled.",
+            timer: 2000,
+            showConfirmButton: false,
+          });
+        } catch (err) {
+          Swal.fire({ icon: "error", title: "Failed", text: err.message || "Could not disable event" });
+        } finally {
+          setLoading(false);
+        }
+      }
+      
+      return;
+    }
+
+    // ✅ For TRIGGER category: Use existing context logic
+    if (category === "trigger" && runningEvent) {
       const result = await Swal.fire({
         title: "Event Currently Running",
         html: `The <b>${runningEvent.command || "Scheduled"}</b> event is active.<br/>
@@ -100,15 +219,16 @@ export default function AQIDeviceCard({
     }
 
     // Use different API based on category
+    const nextAction = toggleState === "on" ? "OFF" : "ON";
+
     try {
       setLoading(true);
 
       if (category === "trigger") {
-        // Trigger category: Use PUT /event/manual-trigger/:deviceId
-        await triggerDeviceManual(deviceId);
+        // Trigger category: Use PUT /device/manual-trigger/:deviceId with state
+        await triggerDeviceManual(deviceId, nextAction);
       } else {
         // Scheduling category: Use POST /event/manual-toggle
-        const nextAction = toggleState === "on" ? "OFF" : "ON";
         await triggerDevice(deviceId, nextAction);
       }
     } catch (err) {
@@ -130,10 +250,33 @@ export default function AQIDeviceCard({
     return `${String(hour12).padStart(2, "0")}:${String(localMinutes).padStart(2, "0")} ${ampm}`;
   };
 
+  // ✅ Priority: WebSocket > API Fallback > Context Events
   const displayEvent = runningEvent || nextEvent;
-  const displayStart = displayEvent?.startTime ? formatTime(displayEvent.startTime) : "--";
-  const displayDuration = displayEvent?.duration || "--";
-  const eventType = runningEvent ? "CURRENT" : (nextEvent ? "NEXT" : "--");
+  const contextEventType = runningEvent ? "CURRENT" : (nextEvent ? "NEXT" : "--");
+
+  // WebSocket data
+  const wsEvent = scheduleData?.event;
+  const wsEventType = scheduleData?.type;
+  const wsDuration = scheduleData?.totalDurationText;
+
+  // API fallback data
+  const apiEvent = apiScheduleData?.event;
+  const apiEventType = apiScheduleData?.type;
+  const apiDuration = apiScheduleData?.totalDurationText;
+
+  // Final values with priority
+  const finalEvent = wsEvent || apiEvent || displayEvent;
+  const finalEventType =
+    (wsEventType && wsEventType !== "NO_EVENT") ? wsEventType :
+    (apiEventType && apiEventType !== "NO_EVENT") ? apiEventType :
+    contextEventType;
+
+  const displayStart = finalEvent?.startTime ? formatTime(finalEvent.startTime) : "--";
+  const displayDuration =
+    wsDuration ||
+    apiDuration ||
+    (finalEvent?.duration || "--");
+  const eventType = finalEventType !== "NO_EVENT" ? finalEventType : "--";
 
   // format last update for title/tooltip
   const lastUpdateStr = lastUpdateISO ? new Date(lastUpdateISO).toLocaleString() : "";
@@ -152,7 +295,7 @@ export default function AQIDeviceCard({
                 />
                 <div className="text-xs text-gray-500">Device ID</div>
               </div>
-              <div className="text-lg font-bold">{deviceId}</div>
+              <div className="text-lg font-bold">{deviceName}</div>
             </div>
 
             {isSchedulingOrTrigger && (

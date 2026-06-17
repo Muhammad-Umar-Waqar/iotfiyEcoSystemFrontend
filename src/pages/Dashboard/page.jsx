@@ -62,11 +62,12 @@ export default function Dashboard() {
   const autoSelectedRef  = React.useRef({});       // tracks auto-selection per venue
 
   // ── WebSocket Integration for Real-time Data ──────────────────────────────
-  const { deviceDataMap, deviceOnlineMap, isConnected } = useDeviceWebSocket(freezerDevices);
+  const { deviceDataMap, deviceOnlineMap, deviceScheduleMap, isConnected } = useDeviceWebSocket(freezerDevices);
 
   console.log('🔌 WebSocket Status:', isConnected ? 'Connected' : 'Disconnected');
   console.log('📊 Device Data Map:', deviceDataMap);
   console.log('📶 Device Online Map:', deviceOnlineMap);
+  console.log('📅 Device Schedule Map:', deviceScheduleMap);
 
   // ── MOUNT: hydrate local state from context ───────────────────────────────
   useEffect(() => {
@@ -167,6 +168,7 @@ export default function Dashboard() {
         if (!mounted) return;
 
         const data = await res.json();
+        console.log('data.>>', data)
 
         if (res.ok) {
           const devices = Array.isArray(data.devices)
@@ -399,18 +401,20 @@ export default function Dashboard() {
                   const idKey = String(device._id ?? device.id ?? device.deviceId);
                   const category = device.category || "monitoring"; // default to monitoring
 
+                  // console.log('Device data:', device.state);
                   // Get real-time data from WebSocket
                   const deviceKey = device.deviceId || device.deviceName;
                   const liveData = deviceDataMap[deviceKey] || {};
                   const isOnline = deviceOnlineMap[deviceKey] || false;
 
-                  console.log(`Rendering device ${deviceKey} with live data:`, liveData, `Online: ${isOnline}`);
+                  // console.log(`Rendering device ${deviceKey} with live data:`, liveData, `Online: ${isOnline}`);
+                  // console.log(`Rendering`, device);
 
-                  // console.log("device<><>", device);
                   // Common props shared by every card type.
                   // Use WebSocket data if available, fallback to device data
                   const commonProps = {
-                    deviceId:         device.deviceName,
+                    deviceId:         device.deviceId,
+                    deviceName:       device.deviceName,
                     onCardSelect:     () => handleFreezerDeviceSelect(idKey),
                     isSelected:       idKey === String(selectedFreezerDeviceId),
                     ambientTemperature: device?.AmbientData?.temperature ?? device.ambientTemperature,
@@ -429,6 +433,9 @@ export default function Dashboard() {
                     glAlert:          liveData.alerts?.some(a => a.type === 'gass') ?? device?.glAlert,
                     isOnline:         isOnline,
                     lastUpdateISO:    liveData.lastUpdateISO ?? device?.lastUpdateTime,
+                    deviceState:      liveData.state ?? device.state, // NEW: WebSocket state for toggle button
+                    category:         category, // NEW: Pass category for API selection
+  
                   };
 
                   // ── Category-based rendering ──
@@ -441,6 +448,7 @@ export default function Dashboard() {
                         {...commonProps}
                         events={eventsMap[String(device.deviceId)] ?? []}
                         onRefreshScheduler={fetchSchedulerData}
+                        scheduleData={deviceScheduleMap[deviceKey]} // NEW: Pass WebSocket schedule data
                       />
                     );
                   }
@@ -629,7 +637,9 @@ export default function Dashboard() {
           organizationId: selectedOrgId,
           deviceId: selectedDevice?.deviceId,
           lastUpdateTime: liveData.lastUpdateISO ?? selectedDevice?.lastUpdateTime,
-          isOnline,
+          isOnline: isOnline,
+          deviceState: liveData.state ?? "OFF", // NEW: WebSocket state for toggle
+          scheduleData: deviceScheduleMap[deviceKey], // NEW: WebSocket schedule data
         };
 
         const panelContent = isDesktop ? (

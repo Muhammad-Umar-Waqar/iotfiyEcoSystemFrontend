@@ -68,18 +68,24 @@ export default function VenueDetailsPanel({
   espCurrent = null,
   espPower = null,
   isOnline = true,
+  deviceState = "OFF", // NEW: WebSocket state
+  scheduleData = null, // NEW: WebSocket schedule data for eventId
 }) {
 
   const dispatch = useDispatch();
   const user  = useSelector((state) => state.auth.user);
   const orgId = organizationId || user?.organization || null;
 
-  const { eventsMap, toggleMap, setEvents, triggerDevice, skipEvent, fetchToggleStatus } = useScheduler();
+  const { eventsMap, toggleMap, setEvents, triggerDevice, skipEvent } = useScheduler();
 
   const schedulerEvents = deviceId ? eventsMap[deviceId] ?? [] : [];
+
+  // ✅ Use WebSocket state if available, fallback to context toggleMap
   const resolvedToggle = useMemo(() => {
-    return deviceId ? (toggleMap?.[deviceId] ?? "off") : "off";
-  }, [deviceId, toggleMap]);
+    return deviceState?.toLowerCase() || (deviceId ? (toggleMap?.[deviceId] ?? "off") : "off");
+  }, [deviceId, toggleMap, deviceState]);
+
+  console.log(`🔘 [VenueDetailsPanel ${deviceId}] WebSocket state: ${deviceState}, Final toggle: ${resolvedToggle}`);
 
   const location = useLocation();
   const params = new URLSearchParams(location.search);
@@ -98,12 +104,6 @@ export default function VenueDetailsPanel({
       dispatch(fetchVenuesByOrganization(orgId));
     }
   }, [orgId, orgVenues.length, dispatch]);
-
-  useEffect(() => {
-    if (deviceId) {
-      fetchToggleStatus(deviceId);
-    }
-  }, [deviceId, fetchToggleStatus]);
 
   // ── Trust Backend Type (Same logic as Card) ──
   const runningSchedulerEvent = useMemo(() => {
@@ -169,9 +169,6 @@ export default function VenueDetailsPanel({
       // Sync to context
       setEvents(deviceId, markedEvents);
 
-      // Also fetch toggle status
-      await fetchToggleStatus(deviceId);
-
     } catch (err) {
       console.error("Failed to refresh events:", err);
     }
@@ -220,10 +217,79 @@ export default function VenueDetailsPanel({
     }
 
     // No running event → normal toggle
+    // ✅ Check if device is online BEFORE making API calls
+    if (!isOnline) {
+      await Swal.fire({
+        title: "Device Offline",
+        html: `
+          <b>${deviceId}</b> is currently offline.<br/>
+          <span style="color:#64748b;font-size:13px">
+            Please ensure the device is connected and try again.
+          </span>
+        `,
+        icon: "error",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#EF4444",
+      });
+      return;
+    }
+
     try {
       setLoading(true);
       const nextAction = resolvedToggle === "on" ? "OFF" : "ON";
-      await triggerDevice(deviceId, nextAction);
+
+      // ✅ Call different API based on category
+      if (category === "trigger") {
+        // Trigger device API
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/device/manual-trigger/${deviceId}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: JSON.stringify({ state: nextAction }),
+          }
+        );
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || "Failed to trigger device");
+        }
+
+        await response.json();
+      } else {
+        // Scheduling device API (requires eventId from WebSocket)
+        const eventId = scheduleData?.event?._id;
+
+        if (!eventId) {
+          throw new Error("No active event found. Cannot toggle without an event.");
+        }
+
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/event/manual-toggle`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: JSON.stringify({ deviceId, eventId }),
+          }
+        );
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || "Failed to toggle device");
+        }
+
+        await response.json();
+      }
+
+      // Refresh events after successful API call
+      await refreshEvents();
+
     } catch (err) {
       Swal.fire({
         icon: "error",

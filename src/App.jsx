@@ -16,9 +16,11 @@ import VenueManagement from './pages/management/VenueManagement/page';
 import DeviceManagement from './pages/management/DeviceManagement/page';
 import UserManagement from './pages/management/UserManagement/page';
 import SubscriptionAnalytics from './pages/management/SubscriptionAnalytics/page';
+import Plans from './pages/admin/Plans';
 import './styles/global/fonts.css';
 import { OrgVenueProvider } from './contexts/OrgVenueContext';
 import { SchedulerProvider } from "./contexts/SchedulerContext";
+import OTAManagement from './pages/management/OTAManagement/page';
 
 // Session restoration component
 function SessionRestoration({ children }) {
@@ -71,15 +73,18 @@ function App() {
 
             {/* Protected Routes - Admin */}
             <Route
-              path="/admin/*"
+              path="/admin/management"
               element={
                 <ProtectedRoute allowedRoles={['admin']}>
-                  <div className="p-8">
-                    <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-                  </div>
+                  <ManagementLayout />
                 </ProtectedRoute>
               }
-            />
+            >
+              {/* <Route index element={<Dashboard />} /> */}
+              <Route index element={<UserManagement />} />
+              <Route path="plans" element={<Plans />} />
+              <Route path="ota" element={<OTAManagement />} />
+            </Route>
 
             {/* Unauthorized */}
             <Route

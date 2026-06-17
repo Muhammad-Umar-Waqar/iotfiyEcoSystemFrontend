@@ -119,10 +119,9 @@ const SidebarRebuilt = () => {
   // Admin navigation items
   const Adminitems = [
     { key: "home", label: "Home", link: "/admin/management", icon: "/sidebar-images/1.png", blueIcon: "/sidebar-images-blue/1.svg" },
-    { key: "organization-management", label: "Organization Management", link: "/admin/management/organization", icon: "/sidebar-images/2.png", blueIcon: "/sidebar-images-blue/2.png" },
-    { key: "venue-management", label: "Venue Management", link: "/admin/management/venue", icon: "/sidebar-images/4.png", blueIcon: "/sidebar-images-blue/4.png" },
-    { key: "users-management", label: "Users Management", link: "/admin/management/users", icon: "/sidebar-images/7.png", blueIcon: "/sidebar-images-blue/7.png" },
-    { key: "device-management", label: "Device Management", link: "/admin/management/device", icon: "/sidebar-images/3.png", blueIcon: "/sidebar-images-blue/3.png" },
+    // { key: "users-management", label: "Users Management", link: "/admin/management/users", icon: "/sidebar-images/7.png", blueIcon: "/sidebar-images-blue/7.png" },
+    { key: "plan-management", label: "Plan Management", link: "/admin/management/plans", icon: "/sidebar-images/9.png", blueIcon: "/sidebar-images-blue/9.png" },
+    { key: "ota-management", label: "OTA Management", link: "/admin/management/ota", icon: "/sidebar-images/9.png", blueIcon: "/sidebar-images-blue/9.png" },
   ]
 
   // Manager and User navigation items (same for both)

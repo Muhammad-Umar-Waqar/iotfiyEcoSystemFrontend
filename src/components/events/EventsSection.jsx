@@ -25,7 +25,7 @@ const EventsSection = ({
   const [openModal, setOpenModal] = useState(false);
   const scrollContainerRef = useRef(null);
   const [events, setEvents] = useState([]);
-  const { setEvents: setContextEvents, fetchToggleStatus } = useScheduler();
+  const { setEvents: setContextEvents } = useScheduler();
 
   const isModalOpen = openModal || externalOpen;
 
@@ -108,9 +108,6 @@ const EventsSection = ({
       // ✅ Sync marked events to global context so SchedulerDeviceCard sees the changes
       console.log(`🔄 [EventsSection] Syncing ${markedEvents.length} marked events to context`);
       setContextEvents(deviceId, markedEvents);
-
-      // ✅ Also fetch toggle status to update ON/OFF state
-      await fetchToggleStatus(deviceId);
 
       console.log(`✅ [EventsSection] fetchEvents completed for ${deviceId}`);
     } catch (err) {

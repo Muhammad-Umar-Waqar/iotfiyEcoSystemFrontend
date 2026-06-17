@@ -81,11 +81,17 @@ export const useDeviceWebSocket = (devices = []) => {
     devices.forEach(device => {
       const deviceId = device.deviceId || device.deviceName;
       const channel = `device/${deviceId}`;
+      const scheduleChannel = `device/${deviceId}/schedule`; // NEW: Schedule event channel
 
-      // Remove existing listener
+      console.log(`🔍 [DEBUG] Setting up listeners for device: ${deviceId}`);
+      console.log(`🔍 [DEBUG] Data channel: ${channel}`);
+      console.log(`🔍 [DEBUG] Schedule channel: ${scheduleChannel}`);
+
+      // Remove existing listeners
       socket.off(channel);
+      socket.off(scheduleChannel);
 
-      // Add new listener
+      // Add new listener for device data
       socket.on(channel, (data) => {
         console.log(`📡 [${deviceId}] Received data:`, data);
 
@@ -111,7 +117,20 @@ export const useDeviceWebSocket = (devices = []) => {
         }));
       });
 
-      console.log(`🔔 Subscribed to: ${channel}`);
+      // NEW: Add listener for schedule events
+      socket.on(scheduleChannel, (scheduleData) => {
+        // console.log(`📅📅📅 [WEBSOCKET SCHEDULE] Device: ${deviceId}`);
+        console.log(`📅📅📅 [WEBSOCKET SCHEDULE] Raw data:`, scheduleData);
+        // console.log(`📅📅📅 [WEBSOCKET SCHEDULE] Type:`, scheduleData?.type);
+        // console.log(`📅📅📅 [WEBSOCKET SCHEDULE] Event:`, scheduleData?.event);
+
+        setDeviceScheduleMap(prev => ({
+          ...prev,
+          [deviceId]: scheduleData // { type: "CURRENT" | "NEXT" | "NO_EVENT", event: {...} }
+        }));
+      });
+
+      console.log(`🔔 Subscribed to: ${channel}, ${scheduleChannel}`);
     });
 
     // Cleanup listeners when devices change
@@ -119,6 +138,7 @@ export const useDeviceWebSocket = (devices = []) => {
       devices.forEach(device => {
         const deviceId = device.deviceId || device.deviceName;
         socket.off(`device/${deviceId}`);
+        socket.off(`device/${deviceId}/schedule`); // NEW: Clean up schedule listener
       });
     };
   }, [devices, isConnected]);
@@ -157,6 +177,7 @@ export const useDeviceWebSocket = (devices = []) => {
   return {
     deviceDataMap,
     deviceOnlineMap,
+    deviceScheduleMap, // NEW: Export schedule data
     isConnected,
     getDeviceData,
     isDeviceOnline,

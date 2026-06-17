@@ -76,7 +76,7 @@ const Login = () => {
 
       // Role-based routing
       if (result.user.role === 'admin') {
-        navigate('/admin/dashboard');
+        navigate('/admin/management');
       } else if (result.user.role === 'manager') {
         navigate('/management');
       } else {
