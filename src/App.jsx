@@ -21,6 +21,7 @@ import './styles/global/fonts.css';
 import { OrgVenueProvider } from './contexts/OrgVenueContext';
 import { SchedulerProvider } from "./contexts/SchedulerContext";
 import OTAManagement from './pages/management/OTAManagement/page';
+import AdminDashboard from './pages/AdminDashboard/page';
 
 // Session restoration component
 function SessionRestoration({ children }) {
@@ -80,8 +81,9 @@ function App() {
                 </ProtectedRoute>
               }
             >
+
               {/* <Route index element={<Dashboard />} /> */}
-              <Route index element={<UserManagement />} />
+              <Route index element={<AdminDashboard />} />
               <Route path="plans" element={<Plans />} />
               <Route path="ota" element={<OTAManagement />} />
             </Route>
