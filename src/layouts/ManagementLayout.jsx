@@ -24,7 +24,8 @@ const ManagementLayout = () => {
       )}
 
       {/* Main area */}
-      <main className="z-10 flex-1 overflow-auto md:pr-6 bg-white">
+      {/* <main className={`z-10 flex-1 overflow-auto ${!isAdmin && "md:pr-6" } bg-white`}> */}
+      <main className={`z-10 flex-1 overflow-auto bg-white`}>
         <div className="MainContentArea h-full">
           <Outlet context={{ adminActiveTab, setAdminActiveTab }} />
         </div>

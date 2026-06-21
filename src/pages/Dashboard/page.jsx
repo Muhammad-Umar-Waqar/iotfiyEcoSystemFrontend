@@ -24,6 +24,7 @@ import SchedulerDeviceCard from "./SchedulerDeviceCard";
 import { useOrgVenue } from "../../contexts/OrgVenueContext";
 import { useScheduler } from "../../contexts/SchedulerContext";
 import { useDeviceWebSocket } from "../../hooks/useDeviceWebSocket";
+import { useIsMobileforDashboardAndRightPanel } from "../../hooks/responsiveQuery";
 
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:5050";
 
@@ -31,6 +32,8 @@ export default function Dashboard() {
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
+  const isMobile = useIsMobileforDashboardAndRightPanel();
+  const isDesktop = !isMobile;
 
   // ── Auth from Redux (no useStore) ─────────────────────────────────────────
   const user  = useSelector((state) => state.auth.user);
@@ -57,7 +60,7 @@ export default function Dashboard() {
   const [isContextChanging,        setIsContextChanging]        = useState(false);
   const [drawerOpen,               setDrawerOpen]               = useState(false);
 
-  const isDesktop        = useMediaQuery("(min-width:768px)");
+  // const isDesktop        = useMediaQuery("(min-width:768px)");
   const isDesktopForIcon = useMediaQuery("(min-width:760px)");
   const autoSelectedRef  = React.useRef({});       // tracks auto-selection per venue
 

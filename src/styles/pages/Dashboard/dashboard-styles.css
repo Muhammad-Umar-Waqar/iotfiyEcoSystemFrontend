@@ -1,80 +1,8 @@
-/* 7)))) */
-
-
-/* 🔥 ENHANCED RESPONSIVE DESIGN: Comprehensive coverage for 14-inch to 27-inch screens */
-
-/*
-  This CSS file provides comprehensive responsive design for dashboard layouts
-  covering screen sizes from 14-inch laptops (1366x768) to 27-inch monitors (2560x1440+).
-  The design adapts grid layouts, spacing, and component sizes based on screen dimensions.
-*/
-
-/* Desktop-only - Mobile styles removed */
-
-/* Desktop-only - Tablet styles removed */
-
-/* ===== LAPTOP RANGE (14-inch to 17-inch) ===== */
-/* 14-inch laptops (1024px to 1365px) - Most common laptop size */
-
-
-
-
-
-@media (min-width: 420px) and (max-width: 768px) {
-  .dashboard-right-panel {
-    width: 100% !important;
-    /* min-width: 450px !important;
-    max-width: 768px !important; */
-    display: flex !important;
-    height: 100% !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    position: relative !important;
-    visibility: visible !important;
-  }
-}
-
-
-
-/* @media (min-width: 320px) and (max-width: 420px) { */
-@media  (max-width: 420px) {
-  .dashboard-right-panel {
-    /* width: 320px !important;
-    min-width: 320px !important;
-    max-width: 768px !important; */
-    width: 100%;
-    min-width: 0;
-    display: flex !important;
-    height: 100% !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    position: relative !important;
-    visibility: visible !important;
-  }
-}
-
-
 @media (min-width: 1024px) and (max-width: 1365px) {
-  .organization-cards-grid-container {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1.5rem;
-  }
-  
   .dashboard-main-content {
     padding: 1.5rem;
   }
   
-  .dashboard-right-panel {
-    width: 350px !important;
-    min-width: 350px !important;
-    max-width: 320px !important;
-    padding: 1.5rem !important;
-    height: 100% !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    display: flex !important;
-    flex-shrink: 0 !important;
-  }
   
   /* Adjust font sizes for better readability on smaller screens */
   .dashboard-main-content h1 {
@@ -90,102 +18,25 @@
   }
 }
 
-/* 15-17 inch laptops (1366px to 1599px) */
-@media (min-width: 1366px) and (max-width: 1599px) {
-  .organization-cards-grid-container {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1.5rem;
-  }
-  
-  .dashboard-main-content {
-    padding: 2rem;
-  }
-  
-  .dashboard-right-panel {
-    width: 400px !important;
-    min-width: 400px !important;
-    max-width: 400px !important;
-    padding: 2rem !important;
-    height: 100% !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    display: flex !important;
-    flex-shrink: 0 !important;
-  }
-}
+ 
 
-/* ===== DESKTOP MONITOR RANGE ===== */
-/* 19-21 inch monitors (1600px to 1919px) */
-@media (min-width: 1600px) and (max-width: 1919px) {
-  .organization-cards-grid-container {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1.75rem;
-  }
-  
-  .dashboard-main-content {
-    padding: 2rem;
-  }
-  
-  .dashboard-right-panel {
-    width: 400px !important;
-    min-width: 400px !important;
-    max-width: 400px !important;
-    padding: 2rem !important;
-    height: 100% !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    display: flex !important;
-    flex-shrink: 0 !important;
-  }
-}
-
-/* 22-24 inch monitors (1920px to 2559px) */
 @media (min-width: 1920px) and (max-width: 2559px) {
-  .organization-cards-grid-container {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 2rem;
-  }
-  
+
   .dashboard-main-content {
     padding: 2.5rem;
   }
-  
-  .dashboard-right-panel {
-    width: 500px !important;
-    min-width: 420px !important;
-    max-width: 500px !important;
-    padding: 2.5rem !important;
-    height: 100% !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    display: flex !important;
-    flex-shrink: 0 !important;
-  }
-}
+
+} 
 
 /* 25-27 inch monitors (2560px and above) */
 @media (min-width: 2560px) {
-  .organization-cards-grid-container {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 2.25rem;
-  }
+
   
   .dashboard-main-content {
     padding: 3rem;
   }
   
-  .dashboard-right-panel {
-    width: 500px !important;
-    min-width: 480px !important;
-    max-width: 500px !important;
-    padding: 3rem !important;
-    height: 100% !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    display: flex !important;
-    flex-shrink: 0 !important;
-  }
-  
+ 
   /* Larger typography for big screens */
   .dashboard-main-content h1 {
     font-size: 2.5rem;
@@ -209,65 +60,14 @@
   transition: padding 0.3s ease-in-out;
 }
 
-.dashboard-right-panel {
-  transition: width 0.3s ease-in-out, padding 0.3s ease-in-out;
-  flex-shrink: 0;
-  position: relative;
-}
-
-/* Base right panel styling - ensures it's visible on all screen sizes */
-.dashboard-right-panel {
-  display: flex !important;
-  flex-shrink: 0 !important;
-  box-sizing: border-box !important;
-}
-
-@media (min-width: 2224px) {
-  .dashboard-right-panel {
-    width: 500px !important;
-    min-width: 500px !important;
-    max-width: 560px !important;
-    display: flex !important;
-    height: 100% !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    position: relative !important;
-    visibility: visible !important;
-  }
-}
-
-/* ===== HIGH DPI DISPLAY SUPPORT ===== */
-/* Optimize for high-resolution displays (Retina, 4K, etc.) */
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .organization-cards-grid-container {
-    /* Slightly reduce gaps on high DPI displays for better density */
-    gap: calc(var(--gap, 1.5rem) * 0.9);
-  }
-}
 
 /* ===== ULTRA-WIDE MONITOR SUPPORT ===== */
 /* Support for ultra-wide monitors (21:9 aspect ratio) */
-@media (min-width: 3440px) {
-  .organization-cards-grid-container {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-    gap: 2.5rem;
-  }
-  
+@media (min-width: 3440px) { 
   .dashboard-main-content {
     padding: 3.5rem;
   }
-  
-  .dashboard-right-panel {
-    width: 520px !important;
-    min-width: 520px !important;
-    max-width: 520px !important;
-    padding: 3.5rem !important;
-    height: 100% !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    display: flex !important;
-    flex-shrink: 0 !important;
-  }
+
 }
 
 /* ===== RESPONSIVE TYPOGRAPHY ===== */
@@ -456,43 +256,6 @@
   }
 }
 
-/* ===== CARD RESPONSIVE SIZING ===== */
-/* Organization cards that adapt to screen size */
-.organization-card {
-  min-height: 200px;
-  transition: all 0.3s ease-in-out;
-}
-
-@media (min-width: 1024px) and (max-width: 1365px) {
-  .organization-card {
-    min-height: 180px;
-  }
-}
-
-@media (min-width: 1366px) and (max-width: 1599px) {
-  .organization-card {
-    min-height: 200px;
-  }
-}
-
-@media (min-width: 1600px) and (max-width: 1919px) {
-  .organization-card {
-    min-height: 220px;
-  }
-}
-
-@media (min-width: 1920px) and (max-width: 2559px) {
-  .organization-card {
-    min-height: 240px;
-  }
-}
-
-@media (min-width: 2560px) {
-  .organization-card {
-    min-height: 260px;
-  }
-}
-
 /* 🔥 END: Custom CSS */
 
 /* Smooth scrolling for dashboard */
@@ -568,6 +331,66 @@
 
 /*  */
 
+
+.freezer-card-skeleton {
+  background-color: #f1f5f9; /* light slate, matches dashboard */
+}
+
+
+
+/* Fixing */
+
+
+  .dashboard-main-content {
+    padding: 1rem;
+  }
+
+
+.dashboard-right-panel {
+  transition: width 0.3s ease-in-out, padding 0.3s ease-in-out;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.dashboard-right-panel {
+  display: flex !important;
+  flex-shrink: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* @media (min-width: 320px) and (max-width: 420px) { */
+@media  (max-width: 420px) {
+  .dashboard-right-panel {
+    width: 100%;
+    min-width: 0;
+    display: flex !important;
+    height: 100% !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    position: relative !important;
+    visibility: visible !important;
+  }
+}
+
+
+@media (min-width: 420px) and (max-width: 768px) {
+  .dashboard-right-panel {
+    width: 350px !important;
+    min-width: 350px !important;
+    max-width: 320px !important;
+    padding: 1.5rem !important;
+    display: flex !important;
+    height: 100% !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    position: relative !important;
+    visibility: visible !important;
+  }
+}
+
+
+
+
 @media (min-width: 768px) and (max-width: 1024px) {
   .dashboard-right-panel {
     width: 320px !important;
@@ -582,6 +405,31 @@
   }
 }
 
-.freezer-card-skeleton {
-  background-color: #f1f5f9; /* light slate, matches dashboard */
+@media (min-width: 1024px) and (max-width: 1770px) {
+  .dashboard-right-panel {
+    width: 370px !important;
+    min-width: 370px !important;
+    max-width: 360px !important;
+    display: flex !important;
+    height: 100% !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    position: relative !important;
+    visibility: visible !important;
+  }
+}
+
+
+@media (min-width: 1770px) {
+  .dashboard-right-panel {
+    width:520px !important;
+    min-width: 520px !important;
+    max-width: 560px !important;
+    display: flex !important;
+    height: 100% !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    position: relative !important;
+    visibility: visible !important;
+  }
 }

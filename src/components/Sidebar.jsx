@@ -8,6 +8,7 @@ import { persistor } from "../store/store"
 import Tooltip from "@mui/material/Tooltip";
 import LogoutDialog from "./Modals/LogoutDialog"
 import { useMediaQuery, Skeleton } from "@mui/material"
+import { useIsMobileforDashboardAndRightPanel } from "../hooks/responsiveQuery"
 
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:5050"
 
@@ -114,7 +115,7 @@ const SidebarRebuilt = () => {
   const [loading, setLoading] = useState(false)
   const openLogout = () => setLogoutOpen(true)
   const closeLogout = () => setLogoutOpen(false)
-  const isMobile = useMediaQuery("(max-width:759px)")
+  const isMobile = useIsMobileforDashboardAndRightPanel();
 
   // Admin navigation items
   const Adminitems = [
