@@ -156,6 +156,8 @@ const SchedulerDeviceCard = React.memo(function SchedulerDeviceCard({
   deviceState = "OFF", // NEW: WebSocket state (ON/OFF)
   category = "scheduling", // NEW: Device category for API selection
   deviceName,
+  interval = null, // NEW: For trigger category
+  triggeredAlerts = [], // NEW: WebSocket triggered alerts for trigger devices
 }) {
 
   const { triggerDevice, skipEvent, toggleMap, eventsMap } = useScheduler();
@@ -534,7 +536,8 @@ const SchedulerDeviceCard = React.memo(function SchedulerDeviceCard({
             />
           </div>
 
-          <div className="flex flex-col mt-2 border-b-2 border-[#C3C1C1]">
+          {/* <div className="flex flex-col mt-2 border-b-2 border-[#C3C1C1]"> */}
+          <div className="flex flex-col mt-2">
             <div className="flex items-center gap-3">
               <div className={`p-2 rounded-full ${timeOfDay === "sunrise" ? "border border-gray-600" : ""}`}><Sunrise size={18} /></div>
               <div className={`p-2 rounded-full ${timeOfDay === "day" ? "border border-gray-600" : ""}`}><Sun size={18} /></div>
@@ -565,29 +568,56 @@ const SchedulerDeviceCard = React.memo(function SchedulerDeviceCard({
           </div>
         </div>
       </div>
+      <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+        {category === "trigger" ? (
+          // Trigger category: Show interval and triggered alerts from WebSocket
+          <div className="flex items-center justify-between gap-2 w-full">
+            <div className="flex items-center gap-2">
+              <TimerIcon className="w-5 h-5 text-gray-600" />
+              <div className="flex flex-col">
+                <p className="text-xs text-gray-500 font-semibold">Interval</p>
+                <div className="text-xs font-bold text-[#178D8F]">
+                  {interval !== null && interval !== undefined ? `${interval}s` : "--"}
+                </div>
+              </div>
+            </div>
 
-      <div className="flex justify-between items-center">
-        <div className="flex items-center justify-center gap-2">
-          <CalendarDays className="w-6 h-6 text-gray-600" />
-          <div className="flex flex-col">
-            <p className="text-xs text-gray-500 font-semibold">Starting</p>
-            <div className="text-xs font-bold text-[#178D8F]">{displayStart}</div>
+            <div className="flex flex-col items-end">
+              <p className="text-xs text-gray-500 font-semibold">Triggered Alerts</p>
+              <div className="text-xs font-bold text-rose-600">
+                {triggeredAlerts && triggeredAlerts.length > 0
+                  ? triggeredAlerts.join(", ").replace(/Alert/g, "")
+                  : "--"
+                }
+              </div>
+            </div>
           </div>
-        </div>
+        ) : (
+          // Scheduling category: Show starting/duration/event type
+          <>
+            <div className="flex items-center justify-center gap-2">
+              <CalendarDays className="w-6 h-6 text-gray-600" />
+              <div className="flex flex-col">
+                <p className="text-xs text-gray-500 font-semibold">Starting</p>
+                <div className="text-xs font-bold text-[#178D8F]">{displayStart}</div>
+              </div>
+            </div>
 
-        <div>
-          <div className="flex items-center gap-1 text-xs text-gray-500 font-semibold">
-            <TimerIcon className="w-3 h-3" /> Duration
-          </div>
-          <div className="text-xs font-bold text-[#178D8F]">{displayDuration}</div>
-        </div>
+            <div>
+              <div className="flex items-center gap-1 text-xs text-gray-500 font-semibold">
+                <TimerIcon className="w-3 h-3" /> Duration
+              </div>
+              <div className="text-xs font-bold text-[#178D8F]">{displayDuration}</div>
+            </div>
 
-        <div>
-          <div className="text-xs text-gray-500 font-semibold">Event Type</div>
-          <div className={`text-xs font-bold ${displayEventType === "CURRENT" ? "text-emerald-600" : "text-gray-500"}`}>
-            {displayEventType}
-          </div>
-        </div>
+            <div>
+              <div className="text-xs text-gray-500 font-semibold">Event Type</div>
+              <div className={`text-xs font-bold ${displayEventType === "CURRENT" ? "text-emerald-600" : "text-gray-500"}`}>
+                {displayEventType}
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

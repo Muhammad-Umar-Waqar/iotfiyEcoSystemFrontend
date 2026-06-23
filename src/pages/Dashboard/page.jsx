@@ -438,20 +438,24 @@ export default function Dashboard() {
                     lastUpdateISO:    liveData.lastUpdateISO ?? device?.lastUpdateTime,
                     deviceState:      liveData.state ?? device.state, // NEW: WebSocket state for toggle button
                     category:         category, // NEW: Pass category for API selection
-  
+                    interval:         liveData.interval ?? device?.interval, // NEW: Interval for trigger devices
+                    triggeredAlerts:  liveData.triggeredAlerts ?? [], // NEW: Triggered alerts for trigger devices
+
                   };
 
                   // ── Category-based rendering ──
 
-                  // THD with scheduling → use SchedulerDeviceCard
-                  if (device.deviceType === "THD" && category === "scheduling") {
+                  // THD with scheduling or trigger → use SchedulerDeviceCard
+                  if (device.deviceType === "THD" && (category === "scheduling" || category === "trigger")) {
                     return (
                       <SchedulerDeviceCard
                         key={idKey}
                         {...commonProps}
                         events={eventsMap[String(device.deviceId)] ?? []}
                         onRefreshScheduler={fetchSchedulerData}
-                        scheduleData={deviceScheduleMap[deviceKey]} // NEW: Pass WebSocket schedule data
+                        scheduleData={deviceScheduleMap[deviceKey]}
+                        interval={device?.interval}
+                        triggeredAlerts={liveData.triggeredAlerts ?? []}
                       />
                     );
                   }
@@ -488,6 +492,20 @@ export default function Dashboard() {
                   if (device.deviceType === "OD" && (category === "scheduling" || category === "trigger")) {
                     return (
                       <OdourDeviceCard
+                        key={idKey}
+                        {...commonProps}
+                        category={category}
+                        events={eventsMap[String(device.deviceId)] ?? []}
+                        onRefreshScheduler={fetchSchedulerData}
+                        interval={device?.interval}
+                      />
+                    );
+                  }
+
+                  // GLD with scheduling/trigger → modified GLD card
+                  if (device.deviceType === "GLD" && (category === "scheduling" || category === "trigger")) {
+                    return (
+                      <GasLeakageDeviceCard
                         key={idKey}
                         {...commonProps}
                         category={category}

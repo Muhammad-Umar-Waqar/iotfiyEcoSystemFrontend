@@ -103,6 +103,8 @@ export const useDeviceWebSocket = (devices = []) => {
             ...data.data, // Sensor values: temperature, humidity, odour, AQI, voltage, current
             state: data.state, // ON/OFF for scheduling devices
             alerts: data.alerts || [],
+            triggeredAlerts: data.triggeredAlerts || [], // NEW: Triggered alerts for trigger category
+            interval: data.interval, // NEW: Interval for trigger devices
             category: data.category,
             deviceType: data.deviceType,
             lastUpdateISO: data.timestamp,
