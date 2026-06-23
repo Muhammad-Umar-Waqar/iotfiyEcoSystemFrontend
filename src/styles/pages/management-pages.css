@@ -937,10 +937,6 @@
     padding: 0.75rem 1rem;
   }
   
-  .device-table-scroll {
-    max-height: 24rem;
-  }
-  
   .device-add-title {
     font-size: 1.125rem;
   }
@@ -989,9 +985,7 @@
     padding: 0.875rem 1.25rem;
   }
   
-  .device-table-scroll {
-    max-height: 28rem;
-  }
+ 
   
   .device-add-title {
     font-size: 1.25rem;
@@ -1041,9 +1035,7 @@
     padding: 1rem 1.5rem;
   }
   
-  .device-table-scroll {
-    max-height: 32rem;
-  }
+ 
   
   .device-add-title {
     font-size: 1.375rem;
@@ -1093,9 +1085,7 @@
     padding: 1.125rem 1.75rem;
   }
   
-  .device-table-scroll {
-    max-height: 36rem;
-  }
+
   
   .device-add-title {
     font-size: 1.5rem;
@@ -1144,10 +1134,7 @@
     font-size: 1.25rem;
     padding: 1.25rem 2rem;
   }
-  
-  .device-table-scroll {
-    max-height: 40rem;
-  }
+ 
   
   .device-add-title {
     font-size: 1.75rem;
@@ -1197,9 +1184,6 @@
     padding: 1.5rem 2.5rem;
   }
   
-  .device-table-scroll {
-    max-height: 44rem;
-  }
   
   .device-add-title {
     font-size: 2rem;

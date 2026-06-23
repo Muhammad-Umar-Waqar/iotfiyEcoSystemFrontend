@@ -11,7 +11,7 @@ import { Drawer, IconButton, useMediaQuery, Chip } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 import TableSkeleton from "../../../components/skeletons/TableSkeleton";
 
-const UserList = ({ onUserSelect, selectedUser }) => {
+const UserList = ({ onUserSelect, selectedUser, className }) => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const { subUsers = [], isLoading, error } = useSelector((state) => state.User || {});
@@ -109,7 +109,7 @@ const UserList = ({ onUserSelect, selectedUser }) => {
   }
 
   const renderListMarkup = () => (
-    <div className="ListPage user-list-container bg-white rounded-xl shadow-sm w-full h-full border border-[#E5E7EB] p-5">
+    <div className={`ListPage user-list-container bg-white rounded-xl shadow-sm w-full h-full border border-[#E5E7EB] p-5 ${className}`}>
       {isDesktop ? (
         <h1 className="organization-list-title font-semibold text-gray-800 mb-4">User Management</h1>
       ) : (

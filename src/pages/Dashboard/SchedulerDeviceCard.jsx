@@ -6,6 +6,7 @@ import TemperatureRangeMeter from "./TemperatureRangeMeter";
 import Swal from "sweetalert2";
 import { useScheduler } from "../../contexts/SchedulerContext";
 import PowerToggle from "../../components/PowerToggle";
+import TruncatedText from "../../components/TruncatedText";
 
 // ── Helpers ─────────────────────────────────────────────────────
 function formatDuration(duration) {
@@ -518,13 +519,19 @@ const SchedulerDeviceCard = React.memo(function SchedulerDeviceCard({
       className={`freezer-card-container rounded-4xl bg-white ${isSelected ? "shadow-lg ring-1 ring-[#0D5CA4]/15" : ""} min-h-[175px] cursor-pointer transition hover:shadow-md px-4 py-2 flex flex-col justify-around`}
     >
       <div className="flex items-center justify-between">
-        <div className="flex flex-col items-start">
-          <div>
+        <div className="flex flex-col items-start flex-1 min-w-0">
+          <div className="w-full">
             <div className="flex items-center">
               <span className={`inline-block h-2 w-2 rounded-full mr-2 ${isOnline ? "bg-green-300" : "bg-gray-300"}`} />
               <div className="text-xs text-gray-500">Device ID</div>
             </div>
-            <div className="text-lg font-bold text-gray-900">{deviceName}</div>
+
+            <TruncatedText
+              text={deviceName}
+              className="text-lg font-bold text-gray-900"
+              maxLines={1}
+              tooltipPlacement="top"
+            />
           </div>
 
           <div className="flex flex-col mt-2 border-b-2 border-[#C3C1C1]">

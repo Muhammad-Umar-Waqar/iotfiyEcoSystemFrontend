@@ -247,7 +247,7 @@ const formatDays = (days = []) => {
 
 // ──────────────────────────────────────────────────────────────────────────
 
-const EventCard = ({ event, onToggle, onDelete }) => {
+const EventCard = ({ event, onToggle, onDelete, isTriggerEvent = false }) => {
   // Convert UTC days to local before displaying
   const localDays = convertUTCDaysToLocal(event.days, event.startTime);
   const { display, tooltip } = formatDays(localDays);
@@ -275,7 +275,9 @@ const EventCard = ({ event, onToggle, onDelete }) => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-slate-400">
               <Clock size={14} strokeWidth={2} />
-              <span className="text-xs font-medium tracking-wide">Schedule</span>
+              <span className="text-xs font-medium tracking-wide">
+                {isTriggerEvent ? "Trigger" : "Schedule"}
+              </span>
             </div>
             <button
               type="button"
@@ -287,21 +289,32 @@ const EventCard = ({ event, onToggle, onDelete }) => {
           </div>
 
           {/* Time */}
-          <div className="flex flex-wrap items-center justify-center gap-x-3">
-            <div className="flex flex-col items-center gap-0.5">
-              <span className="text-md font-extrabold tracking-tight text-slate-900 tabular-nums leading-none">
+          {isTriggerEvent ? (
+            // Trigger event: only start time
+            <div className="flex flex-col items-center justify-center gap-1">
+              <span className="text-2xl font-extrabold tracking-tight text-slate-900 tabular-nums leading-none">
                 {formatTime(event.startTime)}
               </span>
-              <span className="text-xs font-semibold text-gray-500">Start</span>
+              <span className="text-xs font-semibold text-gray-500">Trigger Time</span>
             </div>
-            <span className="text-2xl font-semibold text-slate-400 leading-none">-</span>
-            <div className="flex flex-col items-center gap-0.5">
-              <span className="text-md font-extrabold tracking-tight text-slate-900 tabular-nums leading-none">
-                {formatTime(event.endTime)}
-              </span>
-              <span className="text-xs font-semibold text-gray-500">End</span>
+          ) : (
+            // Scheduling event: start and end time
+            <div className="flex flex-wrap items-center justify-center gap-x-3">
+              <div className="flex flex-col items-center gap-0.5">
+                <span className="text-md font-extrabold tracking-tight text-slate-900 tabular-nums leading-none">
+                  {formatTime(event.startTime)}
+                </span>
+                <span className="text-xs font-semibold text-gray-500">Start</span>
+              </div>
+              <span className="text-2xl font-semibold text-slate-400 leading-none">-</span>
+              <div className="flex flex-col items-center gap-0.5">
+                <span className="text-md font-extrabold tracking-tight text-slate-900 tabular-nums leading-none">
+                  {formatTime(event.endTime)}
+                </span>
+                <span className="text-xs font-semibold text-gray-500">End</span>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Days */}
           <div>

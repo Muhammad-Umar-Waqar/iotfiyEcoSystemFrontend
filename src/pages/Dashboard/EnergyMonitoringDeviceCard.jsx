@@ -6,6 +6,7 @@ import PowerToggle from "../../components/PowerToggle";
 import { CalendarDays, TimerIcon } from "lucide-react";
 import Swal from "sweetalert2";
 import { useScheduler } from "../../contexts/SchedulerContext";
+import TruncatedText from "../../components/TruncatedText";
 
 function formatSmartNumber(v, maxDecimals = 3) {
   if (v === undefined || v === null || v === "") return "--";
@@ -66,6 +67,7 @@ const EnergyMonitoringDeviceCard = React.memo(function EnergyMonitoringDeviceCar
     interval = null, // For trigger category
     deviceState = "OFF", // NEW: WebSocket state (ON/OFF)
     scheduleData = null, // NEW: WebSocket schedule data
+    triggeredAlerts = [], // NEW: WebSocket triggered alerts for trigger devices
 }) {
     const { triggerDevice, triggerDeviceManual, skipEvent, toggleMap, eventsMap } = useScheduler();
 
@@ -316,16 +318,24 @@ const EnergyMonitoringDeviceCard = React.memo(function EnergyMonitoringDeviceCar
             <div className="px-4 py-3 h-full flex flex-col  justify-between">
 
                 <div className="flex justify-between ">
-                    <div>
-                        <div className="flex items-center">
-                            <span
-                                aria-hidden
-                                className={`inline-block h-1.5 w-1.5 rounded-full mr-2 shadow-sm ${isOnline ? "bg-green-300" : "bg-gray-300"}`}
-                                style={{ boxShadow: isOnline ? "0 0 6px rgba(34,197,94,0.45)" : "none" }}
+                    <div className="flex flex-col items-start flex-1 min-w-0">
+                        <div className="w-full">
+                            <div className="flex items-center">
+                                <span
+                                    aria-hidden
+                                    className={`inline-block h-1.5 w-1.5 rounded-full mr-2 shadow-sm ${isOnline ? "bg-green-300" : "bg-gray-300"}`}
+                                    style={{ boxShadow: isOnline ? "0 0 6px rgba(34,197,94,0.45)" : "none" }}
+                                />
+                                <div className="text-xs text-gray-500">Device ID</div>
+                            </div>
+
+                            <TruncatedText
+                                text={deviceName}
+                                className="text-lg font-bold text-gray-900"
+                                maxLines={1}
+                                tooltipPlacement="top"
                             />
-                            <div className="text-xs text-gray-500">Device ID</div>
                         </div>
-                        <div className="text-lg font-bold">{deviceName}</div>
                     </div>
 
                     <div>
@@ -407,13 +417,25 @@ const EnergyMonitoringDeviceCard = React.memo(function EnergyMonitoringDeviceCar
                     // Scheduling/Trigger: Show appropriate info based on category
                     <div className="flex justify-between items-center">
                         {category === "trigger" ? (
-                            // Trigger category: Show interval only
-                            <div className="flex items-center justify-center gap-2 w-full">
-                                <TimerIcon className="w-6 h-6 text-gray-600" />
-                                <div className="flex flex-col">
-                                    <p className="text-xs text-gray-500 font-semibold">Interval</p>
-                                    <div className="text-xs font-bold text-[#178D8F]">
-                                        {interval !== null && interval !== undefined ? `${interval}s` : "--"}
+                            // Trigger category: Show interval and triggered alerts from WebSocket
+                            <div className="flex items-center justify-between gap-2 w-full">
+                                <div className="flex items-center gap-2">
+                                    <TimerIcon className="w-6 h-6 text-gray-600" />
+                                    <div className="flex flex-col">
+                                        <p className="text-xs text-gray-500 font-semibold">Interval</p>
+                                        <div className="text-xs font-bold text-[#178D8F]">
+                                            {interval !== null && interval !== undefined ? `${interval}s` : "--"}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col items-end">
+                                    <p className="text-xs text-gray-500 font-semibold">Triggered Alerts</p>
+                                    <div className="text-xs font-bold text-rose-600">
+                                        {triggeredAlerts && triggeredAlerts.length > 0
+                                            ? triggeredAlerts.join(", ").replace(/Alert/g, "")
+                                            : "--"
+                                        }
                                     </div>
                                 </div>
                             </div>

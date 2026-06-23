@@ -8,7 +8,7 @@ import { fetchVenuesByOrganization } from "../../../slices/VenueSlice";
 import { createDevice, fetchDevicesByVenue } from "../../../slices/DeviceSlice";
 import { useDeviceManagement } from "../../../contexts/DeviceManagementContext";
 import Swal from "sweetalert2";
-import { Select, MenuItem, FormControl, InputLabel, Dialog, DialogTitle, DialogContent, DialogActions, Button, IconButton } from "@mui/material";
+import { Select, MenuItem, FormControl, InputLabel, Dialog, DialogTitle, DialogContent, DialogActions, Button, IconButton, Checkbox, FormControlLabel } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 import { canManage } from "../../../utils/permissions";
 import "../../../styles/pages/management-pages.css";
@@ -83,6 +83,25 @@ const makeConditionsFor = (deviceType) => {
   }));
 };
 
+// Get available alert access fields for each device type
+const ALERT_ACCESS_MAP = {
+  OD: ["tempAlertAccess", "humiAlertAccess", "odourAlertAccess"],
+  THD: ["tempAlertAccess", "humiAlertAccess"],
+  AQID: ["tempAlertAccess", "humiAlertAccess", "aqiAlertAccess"],
+  GLD: ["tempAlertAccess", "humiAlertAccess", "glAlertAccess"],
+  ED: ["tempAlertAccess", "humiAlertAccess", "voltageAlertAccess", "currentAlertAccess"],
+};
+
+const ALERT_ACCESS_LABELS = {
+  tempAlertAccess: "Temperature Alert",
+  humiAlertAccess: "Humidity Alert",
+  odourAlertAccess: "Odour Alert",
+  aqiAlertAccess: "AQI Alert",
+  glAlertAccess: "Gas Leakage Alert",
+  voltageAlertAccess: "Voltage Alert",
+  currentAlertAccess: "Current Alert",
+};
+
 const AddDevice = () => {
   const { user } = useSelector((state) => state.auth);
   const hasManagePermission = canManage(user);
@@ -96,6 +115,16 @@ const AddDevice = () => {
     venue: "",
     deviceType: "",
     category: "",
+  });
+
+  const [alertAccess, setAlertAccess] = useState({
+    tempAlertAccess: false,
+    humiAlertAccess: false,
+    odourAlertAccess: false,
+    aqiAlertAccess: false,
+    glAlertAccess: false,
+    voltageAlertAccess: false,
+    currentAlertAccess: false,
   });
 
   const dispatch = useDispatch();
@@ -153,6 +182,16 @@ const AddDevice = () => {
   useEffect(() => {
     if (formData.deviceType) {
       setConditions(makeConditionsFor(formData.deviceType));
+      // Reset alert access when device type changes
+      setAlertAccess({
+        tempAlertAccess: false,
+        humiAlertAccess: false,
+        odourAlertAccess: false,
+        aqiAlertAccess: false,
+        glAlertAccess: false,
+        voltageAlertAccess: false,
+        currentAlertAccess: false,
+      });
     } else {
       setConditions(makeConditionsFor("THD"));
     }
@@ -187,6 +226,13 @@ const AddDevice = () => {
       next[index] = { ...next[index], [key]: value };
       return next;
     });
+  };
+
+  const handleAlertAccessChange = (field) => {
+    setAlertAccess((prev) => ({
+      ...prev,
+      [field]: !prev[field],
+    }));
   };
 
   const handleSaveDevice = async () => {
@@ -269,21 +315,38 @@ const AddDevice = () => {
 
     const finalConditions = filtered;
 
+    const payload = {
+      deviceName: formData.deviceName.trim(),
+      venueId: formData.venue,
+      deviceType: formData.deviceType,
+      category: formData.category,
+      conditions: finalConditions,
+    };
+
+    // Add alert access fields for trigger category
+    if (formData.category === "trigger") {
+      payload.tempAlertAccess = alertAccess.tempAlertAccess;
+      payload.humiAlertAccess = alertAccess.humiAlertAccess;
+      payload.odourAlertAccess = alertAccess.odourAlertAccess;
+      payload.aqiAlertAccess = alertAccess.aqiAlertAccess;
+      payload.glAlertAccess = alertAccess.glAlertAccess;
+      payload.voltageAlertAccess = alertAccess.voltageAlertAccess;
+      payload.currentAlertAccess = alertAccess.currentAlertAccess;
+    }
+
     setDeviceLoading(true);
+
+    console.log('payload:<>', payload);
+
     try {
       const device = await dispatch(
-        createDevice({
-          deviceName: formData.deviceName.trim(),
-          venueId: formData.venue,
-          deviceType: formData.deviceType,
-          category: formData.category,
-          conditions: finalConditions,
-        })
+        createDevice(payload)
       ).unwrap();
 
       setCreatedDevice(device);
       Swal.fire({ icon: "success", title: "Device Created" });
-
+      // console.log('payload:<>', Devi);
+    
       // Only refresh device list if created device belongs to currently filtered venue
       // Compare formData.venue (created device's venue._id) with selectedVenueIdFromDeviceFilter (filter's venue._id)
       
@@ -296,6 +359,15 @@ const AddDevice = () => {
 
       setFormData({ deviceName: "", organization: "", venue: "", deviceType: "", category: "" });
       setConditions(makeConditionsFor("THD"));
+      setAlertAccess({
+        tempAlertAccess: false,
+        humiAlertAccess: false,
+        odourAlertAccess: false,
+        aqiAlertAccess: false,
+        glAlertAccess: false,
+        voltageAlertAccess: false,
+        currentAlertAccess: false,
+      });
       setCondModalOpen(false);
     } catch (err) {
       console.error("Create device error:", err);
@@ -328,7 +400,8 @@ const AddDevice = () => {
   };
 
   return (
-    <div className="AddingPage device-add-container rounded-xl shadow-sm w-full flex flex-col justify-center bg-[#EEF3F9] border border-[#E5E7EB]">
+    // <div className="AddingPage device-add-container rounded-xl shadow-sm w-full flex flex-col justify-center bg-[#EEF3F9] border border-[#E5E7EB]">
+      <div className="AddingPage device-add-container rounded-xl shadow-sm w-full h-full min-w-0 overflow-y-auto flex flex-col justify-center bg-[#EEF3F9] border border-[#E5E7EB]">
       <h2 className="device-add-title font-semibold mb-1 text-center">Add Device</h2>
       <p className="device-add-subtitle text-gray-500 mb-6 text-center">
         {hasManagePermission
@@ -337,7 +410,7 @@ const AddDevice = () => {
         }
       </p>
 
-      <div className={`space-y-4 max-w-sm mx-auto w-full ${!hasManagePermission ? 'opacity-60 pointer-events-none' : ''}`}>
+      <div className={`space-y-4 max-w-sm mx-auto w-full px-4 ${!hasManagePermission ? 'opacity-60 pointer-events-none' : ''}`}>
         <InputField
           id="deviceName"
           name="deviceName"
@@ -471,6 +544,34 @@ const AddDevice = () => {
                 </Select>
               </FormControl>
             </div>
+
+            {formData.category === "trigger" && formData.deviceType && (
+              <div className="mt-4 p-4 bg-white rounded-md border border-gray-200">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">Alert Access Configuration</h3>
+                <div className="space-y-2">
+                  {ALERT_ACCESS_MAP[formData.deviceType]?.map((accessField) => (
+                    <FormControlLabel
+                      key={accessField}
+                      control={
+                        <Checkbox
+                          checked={alertAccess[accessField]}
+                          onChange={() => handleAlertAccessChange(accessField)}
+                          disabled={!hasManagePermission}
+                          sx={{
+                            color: "#1E64D9",
+                            "&.Mui-checked": {
+                              color: "#1E64D9",
+                            },
+                          }}
+                        />
+                      }
+                      label={ALERT_ACCESS_LABELS[accessField]}
+                      sx={{ display: "flex", alignItems: "center" }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </>
         )}
 

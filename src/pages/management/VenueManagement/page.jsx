@@ -16,7 +16,7 @@ const VenueManagement = () => {
 
   return (
     <div className="MobileBackgroundChange venue-management-container md:h-full bg-white rounded-[20px] w-full h-full" onClick={handleOutsideClick}>
-      <div className="md:p-none p-[1rem] shadow-md flex flex-col lg:flex-row gap-2 lg:gap-0 h-full w-full rounded-[20px]">
+      <div className="md:p-none p-[1rem] shadow-md flex flex-col md:flex-row gap-2 lg:gap-0 h-full w-full rounded-[20px]">
         <VenueList className="ListPage venue-list-section"
           onVenueSelect={handleVenueSelect}
           selectedVenue={selectedVenue}

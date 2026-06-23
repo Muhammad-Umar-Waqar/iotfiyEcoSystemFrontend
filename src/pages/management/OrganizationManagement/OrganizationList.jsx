@@ -129,7 +129,7 @@ const OrganizationList = ({ onOrganizationSelect, selectedOrganization }) => {
 
   // render the list markup (keeps your classes unchanged)
   const renderListMarkup = () => (
-    <div className="ListPage   bg-white rounded-xl shadow-sm w-full h-full border border-[#E5E7EB] p-5 relative">
+    <div className="ListPage bg-white rounded-xl shadow-sm w-full h-full border border-[#E5E7EB] p-5 relative">
 
 
         {

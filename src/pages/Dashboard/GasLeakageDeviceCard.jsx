@@ -1,5 +1,6 @@
 // src/pages/Dashboard/GasLeakageDeviceCard.jsx
 
+import TruncatedText from "../../components/TruncatedText";
 import "../../styles/global/fonts.css";
 import "../../styles/pages/Dashboard/freezer-cards-responsive.css";
 import { Wind, Zap } from "lucide-react";
@@ -67,26 +68,24 @@ export default function GasLeakageDeviceCard({
 
         {/* Top Section */}
         <div className="device-id-section">
-          {/* <div className="flex flex-col items-start">
-            <span className={`device-id-label `}>Device ID</span> */}
-            {/* <h3 className={`responsive-value-deviceId `}>
-              {deviceId}
-            </h3> */}
-
-            {/* <div className="text-lg font-bold">{deviceId}</div>
-          </div> */}
-
-
-          <div title={lastUpdateStr}>
-            <div className="flex items-center">
+          <div title={lastUpdateStr} className="flex flex-col items-start flex-1 min-w-0">
+            <div className="w-full">
+              <div className="flex items-center">
                 <span
                   aria-hidden
                   className={`inline-block h-1.5 w-1.5 rounded-full mr-2 shadow-sm ${isOnline ? "bg-green-300" : "bg-gray-300"}`}
                   style={{ boxShadow: isOnline ? "0 0 6px rgba(34,197,94,0.45)" : "none" }}
                 />
-            <div className="text-xs text-gray-500">Device ID</div>
+                <div className="text-xs text-gray-500">Device ID</div>
+              </div>
+
+              <TruncatedText
+                text={deviceName}
+                className="text-lg font-bold text-gray-900"
+                maxLines={1}
+                tooltipPlacement="top"
+              />
             </div>
-            <div className="text-lg font-bold">{deviceName}</div>
           </div>
           
 

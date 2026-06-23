@@ -1,9 +1,9 @@
-
 // // src/pages/Dashboard/FreezerDeviceCard.jsx
 import "../../styles/global/fonts.css";
 import "../../styles/pages/Dashboard/freezer-cards-responsive.css";
 import { Wind, Zap } from "lucide-react"; // lucide icons for AQI and Gas
 import PropTypes from "prop-types";
+import TruncatedText from "../../components/TruncatedText";
 
 export default function FreezerDeviceCard({
   deviceId,
@@ -137,7 +137,12 @@ export default function FreezerDeviceCard({
           <div className="device-id-section">
             <div className="flex flex-col items-start">
               <span className={`device-id-label ${textClass}`}>Device ID</span>
-              <h3 className={`responsive-value-deviceId ${textClass}`}>{deviceId}</h3>
+              <TruncatedText
+                text={deviceId}
+                className={`responsive-value-deviceId ${textClass}`}
+                maxLines={1}
+                tooltipPlacement="top"
+              />
             </div>
 
             {/* Device-specific pill: appears for OMD/AQIMD/GLMD */}

@@ -92,7 +92,9 @@ const AddOrganization = () => {
   };
 
   return (
-    <div className="AddingPage organization-add-container rounded-xl shadow-sm w-full flex flex-col justify-center bg-[#EEF3F9] border border-[#E5E7EB]">
+    <div className="min-h-[60vh] flex items-center justify-center bg-[#EEF3F9] rounded-xl shadow-sm w-full md:flex flex-col justify-center  border border-[#E5E7EB]">
+      
+    <div className="  AddingPage organization-add-container  ">
       <h2 className="organization-add-title font-semibold mb-1 text-center">Add Organization</h2>
       <p className="organization-add-subtitle text-gray-500 mb-6 text-center">
         {hasManagePermission
@@ -125,6 +127,7 @@ const AddOrganization = () => {
           {loadingformSubmit ? "Saving..." : "Save"}
         </button>
       </div>
+    </div>
     </div>
   );
 };

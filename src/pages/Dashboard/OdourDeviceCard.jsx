@@ -7,6 +7,7 @@ import { CalendarDays, TimerIcon } from "lucide-react";
 import PowerToggle from "../../components/PowerToggle";
 import Swal from "sweetalert2";
 import { useScheduler } from "../../contexts/SchedulerContext";
+import TruncatedText from "../../components/TruncatedText";
 
 export default function OdourDeviceCard({
   deviceId,
@@ -27,13 +28,15 @@ export default function OdourDeviceCard({
   interval = null, // For trigger category
   deviceState = "OFF", // NEW: WebSocket state (ON/OFF)
   scheduleData = null, // NEW: WebSocket schedule data
+  triggeredAlerts = [], // NEW: WebSocket triggered alerts for trigger devices
 }) {
   const { triggerDevice, triggerDeviceManual, skipEvent, toggleMap, eventsMap } = useScheduler();
 
   // ✅ Use WebSocket state if available, fallback to context toggleMap
   const toggleState = deviceState?.toLowerCase() || toggleMap?.[deviceId] || "off";
   const [loading, setLoading] = useState(false);
-  const [apiScheduleData, setApiScheduleData] = useState(null); // ✅ NEW: API fallback data
+  const [apiScheduleData, setApiScheduleData] = useState(null); // ✅ API fallback data for scheduling
+  const [apiTriggerData, setApiTriggerData] = useState(null); // ✅ NEW: API fallback data for trigger
 
   console.log(`🔘 [OdourDeviceCard ${deviceId}] WebSocket state: ${deviceState}, Final toggleState: ${toggleState}`);
 
@@ -310,16 +313,24 @@ export default function OdourDeviceCard({
         <div className="freezer-card-content">
           {/* Device ID & Pill/Toggle */}
           <div className="device-id-section flex justify-between items-start">
-            <div title={lastUpdateTitle}>
-              <div className="flex items-center">
-                <span
-                  aria-hidden
-                  className={`inline-block h-1.5 w-1.5 rounded-full mr-2 shadow-sm ${isOnline ? "bg-green-300" : "bg-gray-300"}`}
-                  style={{ boxShadow: isOnline ? "0 0 6px rgba(34,197,94,0.45)" : "none" }}
+            <div title={lastUpdateTitle} className="flex flex-col items-start flex-1 min-w-0">
+              <div className="w-full">
+                <div className="flex items-center">
+                  <span
+                    aria-hidden
+                    className={`inline-block h-1.5 w-1.5 rounded-full mr-2 shadow-sm ${isOnline ? "bg-green-300" : "bg-gray-300"}`}
+                    style={{ boxShadow: isOnline ? "0 0 6px rgba(34,197,94,0.45)" : "none" }}
+                  />
+                  <div className="text-xs text-gray-500">Device ID</div>
+                </div>
+
+                <TruncatedText
+                  text={deviceName}
+                  className="text-lg font-bold text-gray-900"
+                  maxLines={1}
+                  tooltipPlacement="top"
                 />
-                <div className="text-xs text-gray-500">Device ID</div>
               </div>
-              <div className="text-lg font-bold">{deviceName}</div>
             </div>
 
             {isSchedulingOrTrigger ? (
@@ -368,13 +379,25 @@ export default function OdourDeviceCard({
           {isSchedulingOrTrigger && (
             <div className="flex justify-between items-center pt-2 border-t border-gray-200">
               {category === "trigger" ? (
-                // Trigger category: Show interval only
-                <div className="flex items-center justify-center gap-2 w-full">
-                  <TimerIcon className="w-5 h-5 text-gray-600" />
-                  <div className="flex flex-col">
-                    <p className="text-xs text-gray-500 font-semibold">Interval</p>
-                    <div className="text-xs font-bold text-[#178D8F]">
-                      {interval !== null && interval !== undefined ? `${interval}s` : "--"}
+                // Trigger category: Show interval and triggered alerts from WebSocket
+                <div className="flex items-center justify-between gap-2 w-full">
+                  <div className="flex items-center gap-2">
+                    <TimerIcon className="w-5 h-5 text-gray-600" />
+                    <div className="flex flex-col">
+                      <p className="text-xs text-gray-500 font-semibold">Interval</p>
+                      <div className="text-xs font-bold text-[#178D8F]">
+                        {interval !== null && interval !== undefined ? `${interval}s` : "--"}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-end">
+                    <p className="text-xs text-gray-500 font-semibold">Triggered Alerts</p>
+                    <div className="text-xs font-bold text-rose-600">
+                      {triggeredAlerts && triggeredAlerts.length > 0
+                        ? triggeredAlerts.join(", ").replace(/Alert/g, "")
+                        : "--"
+                      }
                     </div>
                   </div>
                 </div>

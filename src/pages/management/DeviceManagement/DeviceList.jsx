@@ -13,6 +13,7 @@ import "../../../styles/pages/management-pages.css";
 import { Drawer, IconButton, useMediaQuery, Chip, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 import TableSkeleton from "../../../components/skeletons/TableSkeleton";
+import TruncatedText from "../../../components/TruncatedText";
 
 const DEVICE_TYPE_LABEL = {
   OD: "Odour Device",
@@ -218,8 +219,9 @@ const DeviceList = ({ onDeviceSelect, selectedDevice }) => {
   const displayDevices = selectedVenue ? (devicesByVenue[selectedVenue] || []) : [];
 
   const renderListMarkup = () => (
-    <div className="ListPage device-list-container bg-white rounded-xl shadow-sm w-full h-full border border-[#E5E7EB] p-5">
-      {isDesktop ? (
+    // <div className="ListPage device-list-container bg-white rounded-xl shadow-sm w-full h-full border border-[#E5E7EB] p-5 ">
+    <div className="ListPage device-list-container bg-white rounded-xl shadow-sm w-full h-full border border-[#E5E7EB] p-5 flex flex-col min-h-0">  
+    {isDesktop ? (
         <h1 className="organization-list-title font-semibold text-gray-800 mb-4">Device Management</h1>
       ) : (
         <div className="flex justify-end">
@@ -230,9 +232,12 @@ const DeviceList = ({ onDeviceSelect, selectedDevice }) => {
       )}
 
       {/* Filters */}
-      <div className="mb-4 flex items-center gap-4 justify-between">
+      {/* <div className="mb-4 flex items-center gap-4 justify-between"> */}
+
+      <div className="mb-4 flex items-center gap-4 justify-between min-w-0 pb-1">
         {/* Organization Filter */}
-        <FormControl size="small" sx={{ minWidth: 220 }}>
+        {/* <FormControl size="small" sx={{ minWidth: 220 }}> */}
+        <FormControl size="small" sx={{ minWidth: 130, flexShrink: 0 }}>
           <InputLabel id="org-filter-label">Organization</InputLabel>
           <Select
             labelId="org-filter-label"
@@ -260,8 +265,10 @@ const DeviceList = ({ onDeviceSelect, selectedDevice }) => {
 
         {/* Venue Filter */}
         {selectedOrganization && (
-           <FormControl size="small" sx={{ minWidth: 220 }}>
-      <InputLabel id="venue-filter-label">Venue</InputLabel>
+          //  <FormControl size="small" sx={{ minWidth: 220 }}>
+
+<FormControl size="small" sx={{ minWidth: 130, flexShrink: 0 }}>
+            <InputLabel id="venue-filter-label">Venue</InputLabel>
       <Select
         labelId="venue-filter-label"
         value={selectedVenue}
@@ -292,8 +299,12 @@ const DeviceList = ({ onDeviceSelect, selectedDevice }) => {
         <h2 className="device-list-header text-center font-semibold text-gray-800">Device List</h2>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full table-auto text-left">
+      {/* <div className="overflow-x-auto">
+        <table className="w-full table-auto text-left"> */}
+        <div className="w-full min-w-0 overflow-x-auto flex-1 min-h-0">
+  <div className="min-w-[520px]">
+  <div className="overflow-x-auto ">
+    <table className="w-full table-fixed text-left">
           <thead>
             <tr className="bg-gray-100">
               <th className="device-table-header py-2 px-4 font-bold text-gray-800">Device Name</th>
@@ -303,8 +314,12 @@ const DeviceList = ({ onDeviceSelect, selectedDevice }) => {
             </tr>
           </thead>
         </table>
+  </div>
+  </div>
 
-        <div className="device-table-scroll overflow-y-auto pr-1 h-[50vh] sm:h-[45vh]">
+        {/* <div className="device-table-scroll overflow-y-auto pr-1 "> */}
+        <div className="device-table-scroll flex-1 min-h-0 overflow-y-auto overflow-x-auto pr-1">
+        <div className="min-w-[520px]">
           <table className="w-full table-auto text-left">
             <tbody>
               {devicesLoading && <TableSkeleton rows={5} />}
@@ -340,11 +355,37 @@ const DeviceList = ({ onDeviceSelect, selectedDevice }) => {
                     }`}
                     onClick={(e) => handleRowClick(device, e)}
                   >
-                    <td className="py-2 sm:py-3 px-2 sm:px-4">
+                    <td className="py-2 sm:py-3 px-2 sm:px-4 flex flex-col items-start flex-1 min-w-0">
                       <div className="flex flex-col">
-                        <span className="font-medium">{deviceName}</span>
-                        <span className="text-xs text-gray-500 sm:hidden">{deviceId}</span>
+                        {/* <span className="font-medium">{deviceName}</span> */}
+
+                        <TruncatedText
+                                      text={deviceName}
+                                      className=" font-normal text-gray-900"
+                                      maxLines={1}
+                                      tooltipPlacement="top"
+                                    />
                       </div>
+
+                       {/* <div title={lastUpdateStr} className="flex flex-col items-start flex-1 min-w-0">
+                                  <div className="w-full">
+                                    <div className="flex items-center">
+                                      <span
+                                        aria-hidden
+                                        className={`inline-block h-1.5 w-1.5 rounded-full mr-2 shadow-sm ${isOnline ? "bg-green-300" : "bg-gray-300"}`}
+                                        style={{ boxShadow: isOnline ? "0 0 6px rgba(34,197,94,0.45)" : "none" }}
+                                      />
+                                      <div className="text-xs text-gray-500">Device ID</div>
+                                    </div>
+                      
+                                    <TruncatedText
+                                      text={deviceName}
+                                      className="text-lg font-bold text-gray-900"
+                                      maxLines={1}
+                                      tooltipPlacement="top"
+                                    />
+                                  </div>
+                                </div> */}
                     </td>
                     {/* <td className="py-2 sm:py-3 px-2 sm:px-4 text-sm text-gray-600 hidden sm:table-cell">
                       {deviceId}
@@ -388,6 +429,7 @@ const DeviceList = ({ onDeviceSelect, selectedDevice }) => {
               })}
             </tbody>
           </table>
+        </div>
         </div>
       </div>
     </div>

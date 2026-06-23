@@ -8,6 +8,7 @@ import { Wind, CalendarDays, TimerIcon } from "lucide-react";
 import PowerToggle from "../../components/PowerToggle";
 import Swal from "sweetalert2";
 import { useScheduler } from "../../contexts/SchedulerContext";
+import TruncatedText from "../../components/TruncatedText";
 
 function getAQIStatus(aqi) {
   if (aqi === null || aqi === undefined || Number.isNaN(Number(aqi))) return { label: "Unknown", color: "bg-gray-200", textColor: "text-gray-800" };
@@ -40,6 +41,7 @@ export default function AQIDeviceCard({
   interval = null, // For trigger category
   deviceState = "OFF", // NEW: WebSocket state (ON/OFF)
   scheduleData = null, // NEW: WebSocket schedule data
+  triggeredAlerts = [], // NEW: WebSocket triggered alerts for trigger devices
 }) {
   const aqi = espAQI ?? null;
   const aqiStatus = getAQIStatus(aqi);
@@ -286,16 +288,24 @@ export default function AQIDeviceCard({
       <div className="flex h-full justify-between px-4 py-3">
         <div className="h-full flex flex-col justify-around items-between flex-1">
           <div className="flex justify-between items-start">
-            <div title={lastUpdateStr}>
-              <div className="flex items-center">
-                <span
-                  aria-hidden
-                  className={`inline-block h-1.5 w-1.5 rounded-full mr-2 shadow-sm ${isOnline ? "bg-green-300" : "bg-gray-300"}`}
-                  style={{ boxShadow: isOnline ? "0 0 6px rgba(34,197,94,0.45)" : "none" }}
+            <div title={lastUpdateStr} className="flex flex-col items-start flex-1 min-w-0">
+              <div className="w-full">
+                <div className="flex items-center">
+                  <span
+                    aria-hidden
+                    className={`inline-block h-1.5 w-1.5 rounded-full mr-2 shadow-sm ${isOnline ? "bg-green-300" : "bg-gray-300"}`}
+                    style={{ boxShadow: isOnline ? "0 0 6px rgba(34,197,94,0.45)" : "none" }}
+                  />
+                  <div className="text-xs text-gray-500">Device ID</div>
+                </div>
+
+                <TruncatedText
+                  text={deviceName}
+                  className="text-lg font-bold text-gray-900"
+                  maxLines={1}
+                  tooltipPlacement="top"
                 />
-                <div className="text-xs text-gray-500">Device ID</div>
               </div>
-              <div className="text-lg font-bold">{deviceName}</div>
             </div>
 
             {isSchedulingOrTrigger && (
@@ -331,13 +341,25 @@ export default function AQIDeviceCard({
             // Scheduling/Trigger: Show appropriate info based on category
             <div className="flex justify-between items-center mt-2">
               {category === "trigger" ? (
-                // Trigger category: Show interval only
-                <div className="flex items-center justify-center gap-2 w-full">
-                  <TimerIcon className="w-5 h-5 text-gray-600" />
-                  <div className="flex flex-col">
-                    <p className="text-xs text-gray-500 font-semibold">Interval</p>
-                    <div className="text-xs font-bold text-[#178D8F]">
-                      {interval !== null && interval !== undefined ? `${interval}s` : "--"}
+                // Trigger category: Show interval and triggered alerts from WebSocket
+                <div className="flex items-center justify-between gap-2 w-full">
+                  <div className="flex items-center gap-2">
+                    <TimerIcon className="w-5 h-5 text-gray-600" />
+                    <div className="flex flex-col">
+                      <p className="text-xs text-gray-500 font-semibold">Interval</p>
+                      <div className="text-xs font-bold text-[#178D8F]">
+                        {interval !== null && interval !== undefined ? `${interval}s` : "--"}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-end">
+                    <p className="text-xs text-gray-500 font-semibold">Triggered Alerts</p>
+                    <div className="text-xs font-bold text-rose-600">
+                      {triggeredAlerts && triggeredAlerts.length > 0
+                        ? triggeredAlerts.join(", ").replace(/Alert/g, "")
+                        : "--"
+                      }
                     </div>
                   </div>
                 </div>

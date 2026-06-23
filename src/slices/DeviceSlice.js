@@ -31,7 +31,8 @@ export const fetchAllDevices = createAsyncThunk(
 
 export const createDevice = createAsyncThunk(
   "Devices/create",
-  async ({ deviceName, venueId, deviceType, category, conditions = [] }, { rejectWithValue }) => {
+  // async ({ deviceName, venueId, deviceType, category, conditions = [] }, { rejectWithValue }) => {
+  async (payload, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
       if (!token) return rejectWithValue({ message: "No authentication token found" });
@@ -43,7 +44,11 @@ export const createDevice = createAsyncThunk(
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ deviceName, venueId, deviceType, category, conditions }),
+        // body: JSON.stringify({ deviceName, venueId, deviceType, category, conditions }),
+        body: JSON.stringify({
+          ...payload,
+          conditions: Array.isArray(payload.conditions) ? payload.conditions : [],
+        }),
       });
 
       const data = await res.json();
@@ -63,16 +68,35 @@ export const createDevice = createAsyncThunk(
 // update device
 export const updateDevice = createAsyncThunk(
   "Devices/update",
-  async ({ id, deviceName, venueId, deviceType, category, conditions = [], interval }, { rejectWithValue }) => {
+  async (payload, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
       if (!token) return rejectWithValue("No authentication token found");
 
-      const payload = { deviceName, venueId, deviceType, category, conditions };
+      const { id, ...updateData } = payload;
+
+      // Build the request payload with required fields
+      const requestPayload = {
+        deviceName: updateData.deviceName,
+        venueId: updateData.venueId,
+        deviceType: updateData.deviceType,
+        category: updateData.category,
+        conditions: updateData.conditions || [],
+      };
+
       // Only include interval if provided (for trigger devices)
-      if (interval !== undefined && interval !== null && interval !== "") {
-        payload.interval = Number(interval);
+      if (updateData.interval !== undefined && updateData.interval !== null && updateData.interval !== "") {
+        requestPayload.interval = Number(updateData.interval);
       }
+
+      // Include alert access fields if provided (for trigger devices)
+      if (updateData.tempAlertAccess !== undefined) requestPayload.tempAlertAccess = updateData.tempAlertAccess;
+      if (updateData.humiAlertAccess !== undefined) requestPayload.humiAlertAccess = updateData.humiAlertAccess;
+      if (updateData.odourAlertAccess !== undefined) requestPayload.odourAlertAccess = updateData.odourAlertAccess;
+      if (updateData.aqiAlertAccess !== undefined) requestPayload.aqiAlertAccess = updateData.aqiAlertAccess;
+      if (updateData.glAlertAccess !== undefined) requestPayload.glAlertAccess = updateData.glAlertAccess;
+      if (updateData.voltageAlertAccess !== undefined) requestPayload.voltageAlertAccess = updateData.voltageAlertAccess;
+      if (updateData.currentAlertAccess !== undefined) requestPayload.currentAlertAccess = updateData.currentAlertAccess;
 
       const res = await fetch(`${BASE}/device/update/${id}`, {
         method: "PUT",
@@ -81,7 +105,7 @@ export const updateDevice = createAsyncThunk(
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(requestPayload),
       });
 
       const data = await res.json();

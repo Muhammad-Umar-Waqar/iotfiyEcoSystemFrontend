@@ -1,5 +1,3 @@
-
-// src/pages/Dashboard/VenueDetailsPanel.jsx
 import AlertsChart from "./AlertsChart";
 import { useDispatch, useSelector } from "react-redux";
 import { useMemo, useEffect, useState } from "react";
@@ -12,6 +10,7 @@ import { Download, Cloud, Zap, SquareActivity, Plug, Power } from "lucide-react"
 import Swal from "sweetalert2";
 import DownloadModal from "./DownloadModal";
 import EventsSection from "../../components/events/EventsSection";
+import TriggerEventsSection from "../../components/events/TriggerEventsSection";
 import { useScheduler } from "../../contexts/SchedulerContext";
 
 // Convert UTC time string (HH:MM) to local time string in 12-hour format with AM/PM
@@ -614,6 +613,16 @@ export default function VenueDetailsPanel({
             externalOpen={powerModalOpen}
             onExternalClose={() => setPowerModalOpen(false)}
             onToggleChange={(val) => { }}
+          />
+        </div>
+      )}
+
+      {category === "trigger" && (
+        <div className="pt-6">
+          <TriggerEventsSection
+            selectedDevice={{ deviceId, venueId, venueName: displayVenueName, deviceType, category }}
+            externalOpen={powerModalOpen}
+            onExternalClose={() => setPowerModalOpen(false)}
           />
         </div>
       )}

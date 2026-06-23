@@ -13,7 +13,9 @@ import {
   MenuItem,
   TextField,
   CircularProgress,
-  IconButton
+  IconButton,
+  Checkbox,
+  FormControlLabel
 } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 import { Thermometer } from "lucide-react";
@@ -80,6 +82,25 @@ const makeConditionsFor = (deviceType, existingConditions = []) => {
   });
 };
 
+// Get available alert access fields for each device type
+const ALERT_ACCESS_MAP = {
+  OD: ["tempAlertAccess", "humiAlertAccess", "odourAlertAccess"],
+  THD: ["tempAlertAccess", "humiAlertAccess"],
+  AQID: ["tempAlertAccess", "humiAlertAccess", "aqiAlertAccess"],
+  GLD: ["tempAlertAccess", "humiAlertAccess", "glAlertAccess"],
+  ED: ["tempAlertAccess", "humiAlertAccess", "voltageAlertAccess", "currentAlertAccess"],
+};
+
+const ALERT_ACCESS_LABELS = {
+  tempAlertAccess: "Temperature Alert",
+  humiAlertAccess: "Humidity Alert",
+  odourAlertAccess: "Odour Alert",
+  aqiAlertAccess: "AQI Alert",
+  glAlertAccess: "Gas Leakage Alert",
+  voltageAlertAccess: "Voltage Alert",
+  currentAlertAccess: "Current Alert",
+};
+
 const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
@@ -99,6 +120,16 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
     deviceType: "",
     category: "",
     interval: "",
+  });
+
+  const [alertAccess, setAlertAccess] = useState({
+    tempAlertAccess: false,
+    humiAlertAccess: false,
+    odourAlertAccess: false,
+    aqiAlertAccess: false,
+    glAlertAccess: false,
+    voltageAlertAccess: false,
+    currentAlertAccess: false,
   });
 
   const [conditions, setConditions] = useState([]);
@@ -125,7 +156,7 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
     try {
       setLoading(true);
       const device = await dispatch(fetchSingleDevice(deviceId)).unwrap();
-
+      console.log('Individual deviceData: ', device)
       // Extract organization and venue from populated data
       const orgId = device.venue?.organization?._id || device.venue?.organization;
       const venueId = device.venue?._id || device.venue;
@@ -137,6 +168,17 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
         deviceType: device.deviceType || "",
         category: device.category || "",
         interval: device.interval !== undefined ? String(device.interval) : "",
+      });
+
+      // Set alert access fields for trigger category
+      setAlertAccess({
+        tempAlertAccess: device.tempAlertAccess || false,
+        humiAlertAccess: device.humiAlertAccess || false,
+        odourAlertAccess: device.odourAlertAccess || false,
+        aqiAlertAccess: device.aqiAlertAccess || false,
+        glAlertAccess: device.glAlertAccess || false,
+        voltageAlertAccess: device.voltageAlertAccess || false,
+        currentAlertAccess: device.currentAlertAccess || false,
       });
 
       // Set conditions based on device type
@@ -175,6 +217,16 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
       setFormData((prev) => ({ ...prev, deviceType: value }));
       // Update conditions when device type changes
       setConditions(makeConditionsFor(value, []));
+      // Reset alert access when device type changes
+      setAlertAccess({
+        tempAlertAccess: false,
+        humiAlertAccess: false,
+        odourAlertAccess: false,
+        aqiAlertAccess: false,
+        glAlertAccess: false,
+        voltageAlertAccess: false,
+        currentAlertAccess: false,
+      });
       return;
     }
 
@@ -208,6 +260,13 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
       next[index] = { ...next[index], [key]: value };
       return next;
     });
+  };
+
+  const handleAlertAccessChange = (field) => {
+    setAlertAccess((prev) => ({
+      ...prev,
+      [field]: !prev[field],
+    }));
   };
 
   const handleSave = async () => {
@@ -298,19 +357,30 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
 
     const finalConditions = filtered;
 
+    const payload = {
+      id: deviceId,
+      deviceName: formData.deviceName.trim(),
+      venueId: formData.venue,
+      deviceType: formData.deviceType,
+      category: formData.category,
+      conditions: finalConditions,
+      interval: formData.category === "trigger" ? formData.interval : undefined,
+    };
+
+    // Add alert access fields for trigger category
+    if (formData.category === "trigger") {
+      payload.tempAlertAccess = alertAccess.tempAlertAccess;
+      payload.humiAlertAccess = alertAccess.humiAlertAccess;
+      payload.odourAlertAccess = alertAccess.odourAlertAccess;
+      payload.aqiAlertAccess = alertAccess.aqiAlertAccess;
+      payload.glAlertAccess = alertAccess.glAlertAccess;
+      payload.voltageAlertAccess = alertAccess.voltageAlertAccess;
+      payload.currentAlertAccess = alertAccess.currentAlertAccess;
+    }
+
     setSaving(true);
     try {
-      await dispatch(
-        updateDevice({
-          id: deviceId,
-          deviceName: formData.deviceName.trim(),
-          venueId: formData.venue,
-          deviceType: formData.deviceType,
-          category: formData.category,
-          conditions: finalConditions,
-          interval: formData.category === "trigger" ? formData.interval : undefined,
-        })
-      ).unwrap();
+      await dispatch(updateDevice(payload)).unwrap();
 
       Swal.fire({
         icon: "success",
@@ -435,6 +505,33 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
                   size="small"
                   helperText="Required for trigger devices"
                 />
+              )}
+
+              {formData.category === "trigger" && formData.deviceType && (
+                <div className="mt-3 p-3 bg-gray-50 rounded-md border border-gray-200">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-2">Alert Access Configuration</h3>
+                  <div className="space-y-1">
+                    {ALERT_ACCESS_MAP[formData.deviceType]?.map((accessField) => (
+                      <FormControlLabel
+                        key={accessField}
+                        control={
+                          <Checkbox
+                            checked={alertAccess[accessField]}
+                            onChange={() => handleAlertAccessChange(accessField)}
+                            sx={{
+                              color: "#1E64D9",
+                              "&.Mui-checked": {
+                                color: "#1E64D9",
+                              },
+                            }}
+                          />
+                        }
+                        label={ALERT_ACCESS_LABELS[accessField]}
+                        sx={{ display: "flex", alignItems: "center" }}
+                      />
+                    ))}
+                  </div>
+                </div>
               )}
 
               <Button
