@@ -69,6 +69,8 @@ export default function VenueDetailsPanel({
   isOnline = true,
   deviceState = "OFF", // NEW: WebSocket state
   scheduleData = null, // NEW: WebSocket schedule data for eventId
+  pendingCreateEvent = false,
+  onPendingCreateEventHandled,
 }) {
 
   const dispatch = useDispatch();
@@ -92,6 +94,12 @@ export default function VenueDetailsPanel({
   const [downloadOpen, setDownloadOpen] = useState(false);
   const [powerModalOpen, setPowerModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!pendingCreateEvent) return;
+    setPowerModalOpen(true);
+    onPendingCreateEventHandled?.();
+  }, [pendingCreateEvent, onPendingCreateEventHandled]);
 
   const orgVenues = useSelector((state) => (orgId ? state.Venue.venuesByOrg[orgId] || [] : []));
   const globalVenues = useSelector((state) => state.Venue.Venues || []);

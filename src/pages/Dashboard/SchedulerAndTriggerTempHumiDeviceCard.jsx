@@ -1,12 +1,14 @@
 
 import React, { useMemo, useState, useEffect, useRef } from "react";
-import { CalendarDays, Sunrise, Sun, Sunset, TimerIcon } from "lucide-react";
+import { CalendarDays, Sunrise, Sun, Sunset, TimerIcon, CirclePlus, CalendarClock } from "lucide-react";
 import "../../styles/pages/Dashboard/dashboard-styles.css";
 import TemperatureRangeMeter from "./TemperatureRangeMeter";
 import Swal from "sweetalert2";
 import { useScheduler } from "../../contexts/SchedulerContext";
 import PowerToggle from "../../components/PowerToggle";
 import TruncatedText from "../../components/TruncatedText";
+import { resolveAlertState } from "../../utils/triggerAlertUtils";
+import { handleCreateEventPlusClick } from "../../utils/schedulingCardUtils";
 
 // ── Helpers ─────────────────────────────────────────────────────
 function formatDuration(duration) {
@@ -158,6 +160,8 @@ const SchedulerAndTriggerTempHumiDeviceCard = React.memo(function SchedulerDevic
   deviceName,
   interval = null, // NEW: For trigger category
   triggeredAlerts = [], // NEW: WebSocket triggered alerts for trigger devices
+  lastUpdateISO = null,
+  onCreateEventClick,
 }) {
 
   const { triggerDevice, skipEvent, toggleMap, eventsMap } = useScheduler();
@@ -280,7 +284,9 @@ const SchedulerAndTriggerTempHumiDeviceCard = React.memo(function SchedulerDevic
   }, [displayEvents]);
 
   const displayState = toggleState;
-  const isDisabled = !!wsRunningEvent || !isOnline;  // Disable if event running OR device offline
+  const isDisabled = category === "trigger"
+    ? !isOnline
+    : !!wsRunningEvent || !isOnline;
 
   console.log(`[TSD ${deviceId}] WebSocket running event:`, wsRunningEvent);
   console.log(`[TSD ${deviceId}] Final displayState:`, displayState, "| Is Running:", !!wsRunningEvent, "| Is Online:", isOnline);
@@ -448,15 +454,37 @@ const SchedulerAndTriggerTempHumiDeviceCard = React.memo(function SchedulerDevic
 };
 
 
-  const temp = Number(espTemprature) || 0;
-  const hum = Number(espHumidity) || 0;
+  const toNumberOrNull = (v) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  };
 
-  const hour = useMemo(() => new Date(pollHitTime).getHours(), [pollHitTime]);
-  const timeOfDay = hour >= 5 && hour <= 8 ? "sunrise"
-    : hour >= 9 && hour <= 16 ? "day"
-      : hour >= 17 && hour <= 19 ? "sunset" : "night";
+  const tempDisplay = toNumberOrNull(espTemprature);
+  const humDisplay = toNumberOrNull(espHumidity);
+  const lastUpdateStr = lastUpdateISO ? new Date(lastUpdateISO).toLocaleString() : "";
+  const cardSelectedClass = isSelected ? "shadow-lg transform scale-[1.01]" : "";
+
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 10 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const hour = new Date(now).getHours();
+  const timeOfDay =
+    hour >= 5 && hour <= 8 ? "sunrise"
+      : hour >= 9 && hour <= 16 ? "day"
+        : hour >= 17 && hour <= 19 ? "sunset"
+          : "night";
 
   const statusColorClass = (hasAlert) => hasAlert ? "bg-rose-300" : "bg-emerald-200";
+
+  const effectiveHumidityAlert = resolveAlertState(category, triggeredAlerts, "humidity", humidityAlert);
+  const effectiveTemperatureAlert = resolveAlertState(category, triggeredAlerts, "temperature", temperatureAlert);
+
+  // Legacy values used by scheduling layout
+  const temp = tempDisplay ?? 0;
+  const hum = humDisplay ?? 0;
 
   const formatTime = (time) => {
     if (!time) return "--:--";
@@ -511,9 +539,99 @@ const SchedulerAndTriggerTempHumiDeviceCard = React.memo(function SchedulerDevic
 
   const displayEventType = finalEventType !== "NO_EVENT" ? finalEventType : "--";
 
+  const hasScheduleEvent =
+    Boolean(finalEvent) && finalEventType !== "NO_EVENT" && displayEventType !== "--";
+
   console.log(`📅 [SchedulerDeviceCard ${deviceId}] WebSocket schedule:`, scheduleData);
   console.log(`📅 [SchedulerDeviceCard ${deviceId}] API fallback schedule:`, apiScheduleData);
   console.log(`📅 [SchedulerDeviceCard ${deviceId}] Final display - Start: ${displayStart}, Duration: ${displayDuration}, Type: ${displayEventType}`);
+
+  if (category === "trigger") {
+    
+    return (
+      <div
+        onClick={onCardSelect}
+        className={`freezer-card-container relative rounded-4xl bg-white px-4  py-2 ${cardSelectedClass} cursor-pointer`}
+      >
+        <div className="flex flex-row h-full justify-between items-start">
+          {/* LEFT: icons + meter */}
+          <div className="h-full flex flex-col justify-between flex-shrink-0 min-w-[140px] w-1/3">
+            <div title={lastUpdateStr} className="flex flex-col items-start flex-1 min-w-0">
+              <div className="w-full">
+                <div className="flex items-center">
+                  <span
+                    aria-hidden
+                    className={`inline-block h-1.5 w-1.5 rounded-full mr-2 shadow-sm ${isOnline ? "bg-green-300" : "bg-gray-300"}`}
+                    style={{ boxShadow: isOnline ? "0 0 6px rgba(34,197,94,0.45)" : "none" }}
+                  />
+                  <div className="text-xs text-gray-500">Device ID</div>
+                </div>
+
+                <TruncatedText
+                  text={deviceName}
+                  className="text-lg font-bold text-gray-900"
+                  maxLines={1}
+                  tooltipPlacement="top"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-start gap-3 mt-2 flex-nowrap overflow-hidden border-b-2 border-[#C3C1C1] pb-2">
+              <div className={`p-2 rounded-full border ${timeOfDay === "sunrise" ? "border-1 border-gray-600" : "border-transparent"}`}>
+                <Sunrise size={18} className={`${timeOfDay === "sunrise" ? "text-yellow-600" : "text-gray-500"}`} />
+              </div>
+              <div className={`p-2 rounded-full border ${timeOfDay === "day" ? "border-1 border-gray-600" : "border-transparent"}`}>
+                <Sun size={18} className={`${timeOfDay === "day" ? "text-yellow-500" : "text-gray-500"}`} />
+              </div>
+              <div className={`p-2 rounded-full border ${(timeOfDay === "sunset" || timeOfDay === "night") ? "border-1 border-gray-600" : "border-transparent"} `}>
+                <Sunset size={18} className={`${timeOfDay === "sunset" ? "text-orange-500" : "text-gray-500"}`} />
+              </div>
+            </div>
+
+            <TemperatureRangeMeter value={tempDisplay !== null ? Math.round(tempDisplay) : 0} />
+          </div>
+
+          {/* RIGHT: toggle + temp/humidity alerts */}
+          <div className="h-full flex flex-col items-end justify-around">
+            <PowerToggle
+              displayState={displayState}
+              isLocked={isDisabled}
+              loading={loading}
+              onClick={handleToggleClick}
+            />
+
+            <div className="h-full flex flex-col items-center justify-around mt-5">
+              <div>
+                <div className="text-sm text-gray-500">Temperature</div>
+                <div className="text-3xl font-bold">
+                  {tempDisplay !== null ? `${Math.round(tempDisplay)}` : "--"}<span className="font-normal">°C</span>
+                </div>
+                <div className="mt-2">
+                  <div className="h-2 rounded-full overflow-hidden bg-gray-100">
+                    <div className={`h-2 ${statusColorClass(effectiveTemperatureAlert)}`} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-right">
+                <div className="text-sm text-gray-500">Humidity</div>
+                <div className="text-2xl font-bold">
+                  {humDisplay !== null ? `${Math.round(humDisplay)}%` : "--"}
+                </div>
+                <div className="mt-2">
+                  <div className="h-2 rounded-full overflow-hidden bg-gray-100">
+                    <div className={`h-2 ${statusColorClass(effectiveHumidityAlert)}`} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -538,10 +656,22 @@ const SchedulerAndTriggerTempHumiDeviceCard = React.memo(function SchedulerDevic
 
           {/* <div className="flex flex-col mt-2 border-b-2 border-[#C3C1C1]"> */}
           <div className="flex flex-col mt-2">
-            <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-full ${timeOfDay === "sunrise" ? "border border-gray-600" : ""}`}><Sunrise size={18} /></div>
+            {/* <div className="flex items-center gap-3"> */}
+              {/* <div className={`p-2 rounded-full ${timeOfDay === "sunrise" ? "border border-gray-600" : ""}`}><Sunrise size={18} /></div>
               <div className={`p-2 rounded-full ${timeOfDay === "day" ? "border border-gray-600" : ""}`}><Sun size={18} /></div>
-              <div className={`p-2 rounded-full ${(timeOfDay === "sunset" || timeOfDay === "night") ? "border border-gray-600" : ""}`}><Sunset size={18} /></div>
+              <div className={`p-2 rounded-full ${(timeOfDay === "sunset" || timeOfDay === "night") ? "border border-gray-600" : ""}`}><Sunset size={18} /></div> */}
+            {/* </div> */}
+
+            <div className="flex items-center justify-start gap-3 mt-2 flex-nowrap overflow-hidden border-b-2 border-[#C3C1C1] pb-2">
+              <div className={`p-2 rounded-full border ${timeOfDay === "sunrise" ? "border-1 border-gray-600" : "border-transparent"}`}>
+                <Sunrise size={18} className={`${timeOfDay === "sunrise" ? "text-yellow-600" : "text-gray-500"}`} />
+              </div>
+              <div className={`p-2 rounded-full border ${timeOfDay === "day" ? "border-1 border-gray-600" : "border-transparent"}`}>
+                <Sun size={18} className={`${timeOfDay === "day" ? "text-yellow-500" : "text-gray-500"}`} />
+              </div>
+              <div className={`p-2 rounded-full border ${(timeOfDay === "sunset" || timeOfDay === "night") ? "border-1 border-gray-600" : "border-transparent"} `}>
+                <Sunset size={18} className={`${timeOfDay === "sunset" ? "text-orange-500" : "text-gray-500"}`} />
+              </div>
             </div>
             <TemperatureRangeMeter value={Math.round(temp)} />
           </div>
@@ -555,70 +685,65 @@ const SchedulerAndTriggerTempHumiDeviceCard = React.memo(function SchedulerDevic
               <div className="text-xs text-gray-500">Humidity</div>
               <div className="text-xl font-bold">{Math.round(hum)}%</div>
               <div className="h-2 rounded-full overflow-hidden bg-gray-100">
-                <div className={`h-2 ${statusColorClass(humidityAlert)}`} />
+                <div className={`h-2 ${statusColorClass(effectiveHumidityAlert)}`} />
               </div>
             </div>
             <div className="text-right mt-2">
               <div className="text-xs text-gray-500">Temperature</div>
               <div className="text-xl font-bold">{Math.round(temp)}°C</div>
               <div className="h-2 rounded-full overflow-hidden bg-gray-100">
-                <div className={`h-2 ${statusColorClass(temperatureAlert)}`} />
+                <div className={`h-2 ${statusColorClass(effectiveTemperatureAlert)}`} />
               </div>
             </div>
           </div>
         </div>
       </div>
-      <div className="flex justify-between items-center pt-2 border-t border-gray-200">
-        {category === "trigger" ? (
-          // Trigger category: Show interval and triggered alerts from WebSocket
-          <div className="flex items-center justify-between gap-2 w-full">
-            <div className="flex items-center gap-2">
-              <TimerIcon className="w-5 h-5 text-gray-600" />
-              <div className="flex flex-col">
-                <p className="text-xs text-gray-500 font-semibold">Interval</p>
-                <div className="text-xs font-bold text-[#178D8F]">
-                  {interval !== null && interval !== undefined ? `${interval}s` : "--"}
+      {category === "scheduling" && (
+        <div className="pt-2 border-t border-gray-200">
+          {hasScheduleEvent ? (
+            <div className="flex justify-between items-center">
+              <div className="flex items-center justify-center gap-2">
+                <CalendarDays className="w-6 h-6 text-gray-600" />
+                <div className="flex flex-col">
+                  <p className="text-xs text-gray-500 font-semibold">Starting</p>
+                  <div className="text-xs font-bold text-[#178D8F]">{displayStart}</div>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center gap-1 text-xs text-gray-500 font-semibold">
+                  <TimerIcon className="w-3 h-3" /> Duration
+                </div>
+                <div className="text-xs font-bold text-[#178D8F]">{displayDuration}</div>
+              </div>
+
+              <div>
+                <div className="text-xs text-gray-500 font-semibold">Event Type</div>
+                <div className={`text-xs font-bold ${displayEventType === "CURRENT" ? "text-emerald-600" : "text-gray-500"}`}>
+                  {displayEventType}
                 </div>
               </div>
             </div>
-
-            <div className="flex flex-col items-end">
-              <p className="text-xs text-gray-500 font-semibold">Triggered Alerts</p>
-              <div className="text-xs font-bold text-rose-600">
-                {triggeredAlerts && triggeredAlerts.length > 0
-                  ? triggeredAlerts.join(", ").replace(/Alert/g, "")
-                  : "--"
-                }
+          ) : (
+            <div className="flex justify-center items-center gap-3">
+              <CalendarClock size={24} className="text-gray-600" />
+              <div className="flex items-center gap-2">
+                <div className="flex flex-col">
+                  <p className="text-xs font-normal">No Event Found!</p>
+                  <p className="text-xs font-thin text-gray-500">Schedule upcoming event.</p>
+                </div>
+                <div>
+                  <CirclePlus
+                    size={24}
+                    className="text-gray-600 cursor-pointer"
+                    onClick={(e) => handleCreateEventPlusClick(e, onCardSelect, onCreateEventClick)}
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        ) : (
-          // Scheduling category: Show starting/duration/event type
-          <>
-            <div className="flex items-center justify-center gap-2">
-              <CalendarDays className="w-6 h-6 text-gray-600" />
-              <div className="flex flex-col">
-                <p className="text-xs text-gray-500 font-semibold">Starting</p>
-                <div className="text-xs font-bold text-[#178D8F]">{displayStart}</div>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center gap-1 text-xs text-gray-500 font-semibold">
-                <TimerIcon className="w-3 h-3" /> Duration
-              </div>
-              <div className="text-xs font-bold text-[#178D8F]">{displayDuration}</div>
-            </div>
-
-            <div>
-              <div className="text-xs text-gray-500 font-semibold">Event Type</div>
-              <div className={`text-xs font-bold ${displayEventType === "CURRENT" ? "text-emerald-600" : "text-gray-500"}`}>
-                {displayEventType}
-              </div>
-            </div>
-          </>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 });

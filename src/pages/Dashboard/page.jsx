@@ -59,6 +59,7 @@ export default function Dashboard() {
   const [isInitialDevicesLoad,     setIsInitialDevicesLoad]     = useState(true);
   const [isContextChanging,        setIsContextChanging]        = useState(false);
   const [drawerOpen,               setDrawerOpen]               = useState(false);
+  const [pendingCreateEvent,       setPendingCreateEvent]       = useState(false);
 
   // const isDesktop        = useMediaQuery("(min-width:768px)");
   const isDesktopForIcon = useMediaQuery("(min-width:760px)");
@@ -431,6 +432,7 @@ export default function Dashboard() {
                     espCurrent:       liveData.current ?? device?.espCurrent,
                     temperatureAlert: liveData.alerts?.some(a => a.type === 'temperature') ?? device?.temperatureAlert,
                     humidityAlert:    liveData.alerts?.some(a => a.type === 'humidity') ?? device?.humidityAlert,
+                    voltageAlert:     liveData.alerts?.some(a => a.type === 'voltage') ?? device?.voltageAlert,
                     odourAlert:       liveData.alerts?.some(a => a.type === 'odour') ?? device?.odourAlert,
                     aqiAlert:         liveData.alerts?.some(a => a.type === 'AQI') ?? device?.aqiAlert,
                     glAlert:          liveData.alerts?.some(a => a.type === 'gass') ?? device?.glAlert,
@@ -440,6 +442,10 @@ export default function Dashboard() {
                     category:         category, // NEW: Pass category for API selection
                     interval:         liveData.interval ?? device?.interval, // NEW: Interval for trigger devices
                     triggeredAlerts:  liveData.triggeredAlerts ?? [], // NEW: Triggered alerts for trigger devices
+                    onCreateEventClick:
+                      category === "scheduling" || category === "trigger"
+                        ? () => setPendingCreateEvent(true)
+                        : undefined,
 
                   };
 
@@ -469,6 +475,7 @@ export default function Dashboard() {
                         category={category}
                         events={eventsMap[String(device.deviceId)] ?? []}
                         onRefreshScheduler={fetchSchedulerData}
+                        scheduleData={deviceScheduleMap[deviceKey]}
                         interval={device?.interval}
                       />
                     );
@@ -483,6 +490,7 @@ export default function Dashboard() {
                         category={category}
                         events={eventsMap[String(device.deviceId)] ?? []}
                         onRefreshScheduler={fetchSchedulerData}
+                        scheduleData={deviceScheduleMap[deviceKey]}
                         interval={device?.interval}
                       />
                     );
@@ -495,9 +503,8 @@ export default function Dashboard() {
                         key={idKey}
                         {...commonProps}
                         category={category}
-                        events={eventsMap[String(device.deviceId)] ?? []}
                         onRefreshScheduler={fetchSchedulerData}
-                        interval={device?.interval}
+                        scheduleData={deviceScheduleMap[deviceKey]}
                       />
                     );
                   }
@@ -511,6 +518,7 @@ export default function Dashboard() {
                         category={category}
                         events={eventsMap[String(device.deviceId)] ?? []}
                         onRefreshScheduler={fetchSchedulerData}
+                        scheduleData={deviceScheduleMap[deviceKey]}
                         interval={device?.interval}
                       />
                     );
@@ -644,9 +652,19 @@ export default function Dashboard() {
         };
 
         const panelContent = isDesktop ? (
-          <VenueDetailsPanel {...mergedProps} />
+          <VenueDetailsPanel
+            {...mergedProps}
+            pendingCreateEvent={pendingCreateEvent}
+            onPendingCreateEventHandled={() => setPendingCreateEvent(false)}
+          />
         ) : (
-          <VenueDetailsPanel {...mergedProps} closeIcon onClose={() => setDrawerOpen(false)} />
+          <VenueDetailsPanel
+            {...mergedProps}
+            closeIcon
+            onClose={() => setDrawerOpen(false)}
+            pendingCreateEvent={pendingCreateEvent}
+            onPendingCreateEventHandled={() => setPendingCreateEvent(false)}
+          />
         );
 
         return isDesktop ? (

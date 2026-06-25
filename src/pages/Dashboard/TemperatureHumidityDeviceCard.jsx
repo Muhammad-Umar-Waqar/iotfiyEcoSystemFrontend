@@ -59,7 +59,7 @@ export default function TemperatureHumidityDeviceCard({
       className={`freezer-card-container relative rounded-4xl bg-white min-h-[160px] p-4 ${cardSelectedClass} cursor-pointer`}
     >
       {/* top-right status pill */}
-      <div className="absolute top-0 right-0 flex items-center z-10">
+      {/* <div className="absolute top-0 right-0 flex items-center z-10">
         <div className={`flex rounded-bl-2xl ${temperatureAlert ? "bg-rose-100" : "bg-[#DCE8F4]/50"}`}>
           <p className="px-2 pr-4 py-1 text-sm text-[#020F24]">Alert</p>
           {hasAnyAlert && (
@@ -82,7 +82,7 @@ export default function TemperatureHumidityDeviceCard({
             </div>
           )}
         </div>
-      </div>
+      </div> */}
 
       {/* MAIN ROW */}
       <div className="flex flex-row h-full justify-between items-start">
@@ -173,3 +173,4 @@ TemperatureHumidityDeviceCard.propTypes = {
   isOnline: PropTypes.bool,
   lastUpdateISO: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
+
