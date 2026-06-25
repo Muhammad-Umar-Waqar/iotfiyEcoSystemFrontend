@@ -387,7 +387,6 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const { loading: authLoading } = useSelector((state) => state.auth);
   const { pendingPlan, pendingCustomPlan } = useSelector((state) => state.subscription);
 
   const onChange = (e) => {
@@ -414,6 +413,7 @@ const Login = () => {
     }
 
     try {
+      setLoading(true);
       // Step 1: Login to get token
       const result = await dispatch(
         loginUser({ email: formData.email, password: formData.password })
@@ -457,6 +457,8 @@ const Login = () => {
         title: 'Login Failed',
         text: error.message || 'Invalid credentials.',
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -671,12 +673,12 @@ const Login = () => {
             <div className="!mt-12">
               <button
                 type="submit"
-                disabled={loading || authLoading}
+                disabled={loading}
                 className={`w-full shadow-xl py-2.5 px-4 text-[15px] font-medium tracking-wide rounded-lg text-white focus:outline-none ${
-                  (loading || authLoading) ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
+                  loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
                 }`}
               >
-                {loading || authLoading
+                {loading
                   ? (isRegisterMode ? 'Registering...' : 'Logging in...')
                   : (isRegisterMode ? 'Register' : 'Log In')}
               </button>

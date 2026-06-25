@@ -75,14 +75,22 @@ const storage = {
   removeItem: (key) => Promise.resolve(localStorage.removeItem(key)),
 };
 
+const authPersistConfig = {
+  key: 'auth',
+  storage,
+  blacklist: ['loading', 'error'],
+};
+
+const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
+
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['auth'],
+  whitelist: ['subscription'],
 };
 
 const rootReducer = combineReducers({
-  auth: authReducer,
+  auth: persistedAuthReducer,
   subscription: subscriptionReducer,
   Organization: OrganizationReducer,
   Device: DeviceReducer,

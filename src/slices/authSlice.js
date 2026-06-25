@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { REHYDRATE } from 'redux-persist';
 import { authService } from '../services/authService';
 
 // Async thunks
@@ -62,9 +63,16 @@ const authSlice = createSlice({
       state.user = action.payload;
       state.isAuthenticated = true;
     },
+    resetAuthLoading: (state) => {
+      state.loading = false;
+    },
   },
   extraReducers: (builder) => {
     builder
+      .addCase(REHYDRATE, (state) => {
+        // Never restore a stuck loading flag from persisted storage
+        state.loading = false;
+      })
       // Login
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
@@ -80,9 +88,9 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload?.message || 'Login failed';
       })
-      // Fetch current user
+      // Fetch current user (session restore — separate from login button state)
       .addCase(fetchCurrentUser.pending, (state) => {
-        state.loading = true;
+        // Intentionally do not set loading — avoids disabling Login on page refresh
       })
       .addCase(fetchCurrentUser.fulfilled, (state, action) => {
         state.loading = false;
@@ -101,9 +109,15 @@ const authSlice = createSlice({
         state.token = null;
         state.isAuthenticated = false;
         state.loading = false;
+      })
+      .addCase(logoutUser.rejected, (state) => {
+        state.user = null;
+        state.token = null;
+        state.isAuthenticated = false;
+        state.loading = false;
       });
   },
 });
 
-export const { clearError, setUser } = authSlice.actions;
+export const { clearError, setUser, resetAuthLoading } = authSlice.actions;
 export default authSlice.reducer;
