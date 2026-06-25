@@ -400,8 +400,8 @@ const AddDevice = () => {
   };
 
   return (
-    // <div className="AddingPage device-add-container rounded-xl shadow-sm w-full flex flex-col justify-center bg-[#EEF3F9] border border-[#E5E7EB]">
-      <div className="AddingPage device-add-container rounded-xl shadow-sm w-full h-full min-w-0 overflow-y-auto flex flex-col justify-center bg-[#EEF3F9] border border-[#E5E7EB]">
+    <div className="min-h-[60vh] flex items-center justify-center bg-[#EEF3F9] rounded-xl shadow-sm w-full md:flex flex-col justify-center border border-[#E5E7EB]">
+      <div className="AddingPage device-add-container">
       <h2 className="device-add-title font-semibold mb-1 text-center">Add Device</h2>
       <p className="device-add-subtitle text-gray-500 mb-6 text-center">
         {hasManagePermission
@@ -615,6 +615,7 @@ const AddDevice = () => {
             </div>
           </div>
         )}
+      </div>
       </div>
 
       <Dialog open={condModalOpen} onClose={() => setCondModalOpen(false)} fullWidth maxWidth="sm">

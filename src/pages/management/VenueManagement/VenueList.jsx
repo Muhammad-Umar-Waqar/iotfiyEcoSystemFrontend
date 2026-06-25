@@ -733,9 +733,9 @@ const VenueList = ({ onVenueSelect, selectedVenue }) => {
   const displayedVenues = getDisplayedVenues();
 
   const renderListMarkup = () => (
-    <div className="venue-list-container bg-white rounded-xl shadow-sm w-full  border border-[#E5E7EB] flex flex-col overflow-hidden">
+    <div className="bg-white rounded-xl shadow-sm w-full border border-[#E5E7EB] p-5 flex flex-col">
       {isDesktop ? (
-        <h1 className="venue-list-title font-semibold text-gray-800 mb-4">
+        <h1 className="organization-list-title font-semibold text-gray-800 mb-4">
           Venue Management
         </h1>
       ) : (
@@ -757,128 +757,120 @@ const VenueList = ({ onVenueSelect, selectedVenue }) => {
       />
 
       <div className="mb-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="venue-list-header text-left font-semibold text-gray-800">
-              Venue List
-            </h2>
-          </div>
+        <h2 className="organization-list-header text-center font-semibold text-gray-800">
+          Venue List
+        </h2>
 
-          <div>
-            <FormControl size="small" sx={{ minWidth: 160 }}>
-              <Select
-                labelId="org-filter-label"
-                value={orgFilter || ""}
-                onChange={(e) => setOrgFilter(e.target.value)}
-                displayEmpty
-              >
-                {Organizations.length === 0 ? (
-                  <MenuItem value="" disabled>
-                    No organizations
+        <div className="flex justify-end mt-3">
+          <FormControl size="small" sx={{ minWidth: 200 }}>
+            <Select
+              labelId="org-filter-label"
+              value={orgFilter || ""}
+              onChange={(e) => setOrgFilter(e.target.value)}
+              displayEmpty
+            >
+              {Organizations.length === 0 ? (
+                <MenuItem value="" disabled>
+                  No organizations
+                </MenuItem>
+              ) : (
+                Organizations.map((org) => (
+                  <MenuItem key={org._id ?? org.id} value={org._id ?? org.id}>
+                    {org.name}
                   </MenuItem>
-                ) : (
-                  Organizations.map((org) => (
-                    <MenuItem key={org._id ?? org.id} value={org._id ?? org.id}>
-                      {org.name}
-                    </MenuItem>
-                  ))
-                )}
-              </Select>
-            </FormControl>
-          </div>
+                ))
+              )}
+            </Select>
+          </FormControl>
         </div>
-
-        <div className="mx-auto mt-2 h-px w-4/5 bg-[#2563EB]/40"></div>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-hidden">
-        <div className="venue-table-scroll h-full overflow-y-auto pr-1">
-          <table className="w-full table-auto text-left">
-            <thead className="sticky top-0 z-10 bg-white">
-              <tr className="bg-gray-100">
-                <th className="venue-table-header py-2 px-4 font-bold text-gray-800">
-                  Venue Name
-                </th>
-                <th className="venue-table-header py-2 px-4 text-center">
-                  Actions
-                </th>
+      <div className="organization-table-scroll overflow-y-auto flex-1 min-h-0 pr-1">
+        <table className="w-full table-auto text-left">
+          <thead className="sticky top-0 z-10 bg-white">
+            <tr className="bg-gray-100">
+              <th className="text-lg py-5 px-4 font-bold text-gray-800">
+                Venue Name
+              </th>
+              <th className="text-lg py-5 px-4 text-center">
+                Actions
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {loading ? (
+              <TableSkeleton rows={4} showNumber={true} showActions={true} />
+            ) : error ? (
+              <tr>
+                <td colSpan={2} className="p-4 text-center text-gray-500">
+                  {error === "Failed to fetch" ? "No Venues Found" : error}
+                </td>
               </tr>
-            </thead>
+            ) : displayedVenues.length === 0 ? (
+              <tr>
+                <td colSpan={2} className="p-4 text-center text-gray-500">
+                  No venues found. Add one to get started.
+                </td>
+              </tr>
+            ) : (
+              displayedVenues.map((venue, index) => {
+                const id = venue._id ?? venue.id ?? index;
+                const displayName = venue.name ?? `Venue ${index + 1}`;
 
-            <tbody>
-              {loading ? (
-                <TableSkeleton rows={4} showNumber={true} showActions={true} />
-              ) : error ? (
-                <tr>
-                  <td colSpan={2} className="text-center py-4 text-gray-500">
-                    {error === "Failed to fetch" ? "No Venues Found" : error}
-                  </td>
-                </tr>
-              ) : displayedVenues.length === 0 ? (
-                <tr>
-                  <td colSpan={2} className="text-center py-4 text-gray-500">
-                    No venues found. Add one to get started.
-                  </td>
-                </tr>
-              ) : (
-                displayedVenues.map((venue, index) => {
-                  const id = venue._id ?? venue.id ?? index;
-                  const displayName = venue.name ?? `Venue ${index + 1}`;
-
-                  return (
-                    <tr
-                      key={id}
-                      className={`border-b border-gray-200 cursor-pointer transition-colors hover:bg-blue-50/60 ${
-                        selectedVenue?._id === id ? "bg-blue-50 border-blue-300" : ""
-                      }`}
-                      onClick={(e) => handleRowClick(venue, e)}
-                    >
-                      <td className="venue-table-cell py-2 sm:py-3 px-2 sm:px-4">
-                        {index + 1}. {displayName}
-                      </td>
-                      <td className="venue-table-cell py-2 sm:py-3 px-2 sm:px-4">
-                        <div
-                          className="flex justify-center gap-2 sm:gap-3"
-                          onClick={(e) => e.stopPropagation()}
+                return (
+                  <tr
+                    key={id}
+                    className={`border-b border-gray-200 cursor-pointer transition-colors hover:bg-blue-50/60 ${
+                      selectedVenue?._id === id ? "bg-blue-50 border-blue-300" : ""
+                    }`}
+                    onClick={(e) => handleRowClick(venue, e)}
+                  >
+                    <td className="organization-table-cell py-2 sm:py-3 px-2 sm:px-4">
+                      {index + 1}. {displayName}
+                    </td>
+                    <td className="organization-table-cell py-2 sm:py-3 px-2 sm:px-4">
+                      <div
+                        className="flex justify-center gap-2 sm:gap-3"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          onClick={() => handleEditOpen(id, displayName)}
+                          disabled={!hasManagePermission}
+                          className={`organization-action-btn rounded-full border border-green-500/50 bg-white flex items-center justify-center hover:bg-green-50 p-[4px] ${
+                            !hasManagePermission
+                              ? "opacity-50 cursor-not-allowed"
+                              : "cursor-pointer"
+                          }`}
                         >
-                          <button
-                            onClick={() => handleEditOpen(id, displayName)}
-                            disabled={!hasManagePermission}
-                            className={`venue-action-btn rounded-full border border-green-500/50 bg-white flex items-center justify-center hover:bg-green-50 p-[4px] ${
-                              !hasManagePermission
-                                ? "opacity-50 cursor-not-allowed"
-                                : "cursor-pointer"
-                            }`}
-                          >
-                            <Pencil
-                              className="text-green-600 venue-action-icon"
-                              size={16}
-                            />
-                          </button>
+                          <Pencil
+                            className="text-green-600 organization-action-icon"
+                            size={16}
+                          />
+                        </button>
 
-                          <button
-                            onClick={() => handleDelete(id, displayName)}
-                            disabled={!hasManagePermission}
-                            className={`venue-action-btn rounded-full border border-red-500/50 bg-white flex items-center justify-center hover:bg-red-50 p-[4px] ${
-                              !hasManagePermission
-                                ? "opacity-50 cursor-not-allowed"
-                                : "cursor-pointer"
-                            }`}
-                          >
-                            <Trash
-                              className="text-red-600 venue-action-icon"
-                              size={16}
-                            />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+                        <button
+                          onClick={() => handleDelete(id, displayName)}
+                          disabled={!hasManagePermission}
+                          className={`organization-action-btn rounded-full border border-red-500/50 bg-white flex items-center justify-center hover:bg-red-50 p-[4px] ${
+                            !hasManagePermission
+                              ? "opacity-50 cursor-not-allowed"
+                              : "cursor-pointer"
+                          }`}
+                        >
+                          <Trash
+                            className="text-red-600 organization-action-icon"
+                            size={16}
+                          />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
@@ -891,7 +883,7 @@ const VenueList = ({ onVenueSelect, selectedVenue }) => {
         <>
           <div className="flex items-center justify-between mb-4">
             <img src="/logo-half.png" className="w-auto h-[30px]" />
-            <h1 className="venue-list-title font-semibold text-gray-800">
+            <h1 className="organization-list-title font-semibold text-gray-800">
               Venue Management
             </h1>
             <div>
@@ -911,7 +903,7 @@ const VenueList = ({ onVenueSelect, selectedVenue }) => {
             onClose={() => setDrawerOpen(false)}
             PaperProps={{ style: { width: "100%" } }}
           >
-            <div className="p-4">{renderListMarkup()}</div>
+            {renderListMarkup()}
           </Drawer>
         </>
       )}

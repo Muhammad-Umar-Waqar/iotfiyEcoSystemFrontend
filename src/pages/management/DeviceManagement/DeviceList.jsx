@@ -219,10 +219,11 @@ const DeviceList = ({ onDeviceSelect, selectedDevice }) => {
   const displayDevices = selectedVenue ? (devicesByVenue[selectedVenue] || []) : [];
 
   const renderListMarkup = () => (
-    // <div className="ListPage device-list-container bg-white rounded-xl shadow-sm w-full h-full border border-[#E5E7EB] p-5 ">
-    <div className="ListPage device-list-container bg-white rounded-xl shadow-sm w-full h-full border border-[#E5E7EB] p-2 flex flex-col min-h-0">  
-    {isDesktop ? (
-        <h1 className="organization-list-title font-semibold text-gray-800 mb-4">Device Management</h1>
+    <div className="bg-white rounded-xl shadow-sm w-full border border-[#E5E7EB] p-5 flex flex-col">
+      {isDesktop ? (
+        <h1 className="organization-list-title font-semibold text-gray-800 mb-4">
+          Device Management
+        </h1>
       ) : (
         <div className="flex justify-end">
           <IconButton onClick={() => setDrawerOpen(false)} edge="start" aria-label="close-details" size="small">
@@ -231,13 +232,8 @@ const DeviceList = ({ onDeviceSelect, selectedDevice }) => {
         </div>
       )}
 
-      {/* Filters */}
-      {/* <div className="mb-4 flex items-center gap-4 justify-between"> */}
-
-      <div className="mb-4 flex items-center gap-4 justify-between min-w-0 pb-1">
-        {/* Organization Filter */}
-        {/* <FormControl size="small" sx={{ minWidth: 220 }}> */}
-        <FormControl size="small" sx={{ minWidth: 130, flexShrink: 0 }}>
+      <div className="mb-4 flex items-center gap-4 justify-between">
+        <FormControl size="small" sx={{ minWidth: 200 }}>
           <InputLabel id="org-filter-label">Organization</InputLabel>
           <Select
             labelId="org-filter-label"
@@ -263,19 +259,16 @@ const DeviceList = ({ onDeviceSelect, selectedDevice }) => {
           </Select>
         </FormControl>
 
-        {/* Venue Filter */}
         {selectedOrganization && (
-          //  <FormControl size="small" sx={{ minWidth: 220 }}>
-
-<FormControl size="small" sx={{ minWidth: 130, flexShrink: 0 }}>
+          <FormControl size="small" sx={{ minWidth: 200 }}>
             <InputLabel id="venue-filter-label">Venue</InputLabel>
-      <Select
-        labelId="venue-filter-label"
-        value={selectedVenue}
-        label="Venue"
-        onChange={handleVenueChange}
-        disabled={venueLoading || availableVenues.length === 0}
-      >
+            <Select
+              labelId="venue-filter-label"
+              value={selectedVenue}
+              label="Venue"
+              onChange={handleVenueChange}
+              disabled={venueLoading || availableVenues.length === 0}
+            >
               {venueLoading ? (
                 <MenuItem disabled>Loading venues...</MenuItem>
               ) : availableVenues.length === 0 ? (
@@ -296,123 +289,107 @@ const DeviceList = ({ onDeviceSelect, selectedDevice }) => {
       </div>
 
       <div className="mb-4">
-        <h2 className="device-list-header text-center font-semibold text-gray-800">Device List</h2>
+        <h2 className="organization-list-header text-center font-semibold text-gray-800">
+          Device List
+        </h2>
       </div>
 
-      {/* <div className="overflow-x-auto">
-        <table className="w-full table-auto text-left"> */}
+      <div className="organization-table-scroll overflow-y-auto flex-1 min-h-0 pr-1">
+        <table className="w-full table-auto text-left">
+          <thead className="sticky top-0 z-10 bg-white">
+            <tr className="bg-gray-100">
+              <th className="text-lg py-5 px-4 font-bold text-gray-800">
+                Device Name
+              </th>
+              <th className="text-lg py-5 px-4 text-center">
+                Type
+              </th>
+              <th className="text-lg py-5 px-4 text-center">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {devicesLoading && <TableSkeleton rows={5} />}
 
+            {!devicesLoading && !selectedVenue && (
+              <tr>
+                <td colSpan={3} className="p-4 text-center text-gray-500">
+                  Please select an organization and venue to view devices.
+                </td>
+              </tr>
+            )}
 
-        <div className="device-table-scroll flex-1 min-h-0 overflow-auto">
-  <table className="w-full table-fixed text-left">
- 
+            {!devicesLoading && selectedVenue && displayDevices.length === 0 && (
+              <tr>
+                <td colSpan={3} className="p-4 text-center text-gray-500">
+                  No devices found for this venue. Add one to get started.
+                </td>
+              </tr>
+            )}
 
-<thead>
-  <tr>
-    <th className="sticky top-0 z-20 bg-gray-100 device-table-header py-2 px-4 font-bold text-gray-800 w-[20%]">
-      Device Name
-    </th>
+            {!devicesLoading && displayDevices.map((device, index) => {
+              const id = device._id || index;
+              const deviceName = device.deviceName || `Device ${index + 1}`;
+              const deviceType = device.deviceType || "THD";
+              const category = device.category || "monitoring";
 
-    <th className="sticky top-0 z-20 bg-gray-100 device-table-header py-2 px-4 text-center w-[20%]">
-      Type
-    </th>
-
-    <th className="sticky top-0 z-20 bg-gray-100 device-table-header py-2 px-4 text-center w-[20%]">
-      Actions
-    </th>
-  </tr>
-</thead>
-            <tbody>
-              {devicesLoading && <TableSkeleton rows={5} />}
-
-              {!devicesLoading && !selectedVenue && (
-                <tr>
-                  <td colSpan="4" className="p-4 text-center text-gray-500">
-                    Please select an organization and venue to view devices.
+              return (
+                <tr
+                  key={id}
+                  className={`border-b border-gray-200 cursor-pointer transition-colors hover:bg-blue-50/60 ${
+                    selectedDevice?._id === id ? "bg-blue-50 border-blue-300" : ""
+                  }`}
+                  onClick={(e) => handleRowClick(device, e)}
+                >
+                  <td className="organization-table-cell py-2 sm:py-3 px-2 sm:px-4">
+                    <TruncatedText
+                      text={deviceName}
+                      className="font-normal text-gray-900"
+                      maxLines={1}
+                      tooltipPlacement="top"
+                    />
+                  </td>
+                  <td className="organization-table-cell py-2 sm:py-3 px-2 sm:px-4 text-center">
+                    <div className="flex flex-col gap-1 items-center">
+                      <Chip
+                        label={DEVICE_TYPE_LABEL[deviceType] || deviceType}
+                        size="small"
+                        color={DEVICE_TYPE_COLOR[deviceType] || "default"}
+                      />
+                      <span className="text-xs text-gray-500">{CATEGORY_LABEL[category]}</span>
+                    </div>
+                  </td>
+                  <td className="organization-table-cell py-2 sm:py-3 px-2 sm:px-4">
+                    <div className="flex justify-center gap-2 sm:gap-3" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={(e) => handleEdit(device, e)}
+                        disabled={!hasManagePermission || working}
+                        className={`organization-action-btn rounded-full border border-green-500/50 bg-white flex items-center justify-center hover:bg-green-50 p-[4px] ${
+                          !hasManagePermission || working ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                        }`}
+                        title="Edit device"
+                      >
+                        <Pencil className="text-green-600 organization-action-icon" size={16} />
+                      </button>
+                      <button
+                        onClick={(e) => handleDelete(device, e)}
+                        disabled={!hasManagePermission || working}
+                        className={`organization-action-btn rounded-full border border-red-500/50 bg-white flex items-center justify-center hover:bg-red-50 p-[4px] ${
+                          !hasManagePermission || working ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                        }`}
+                        title="Delete device"
+                      >
+                        <Trash className="text-red-600 organization-action-icon" size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
-              )}
-
-              {!devicesLoading && selectedVenue && displayDevices.length === 0 && (
-                <tr>
-                  <td colSpan="4" className="p-4 text-center text-gray-500">
-                    No devices found for this venue. Add one to get started.
-                  </td>
-                </tr>
-              )}
-
-              {!devicesLoading && displayDevices.map((device, index) => {
-                const id = device._id || index;
-                const deviceName = device.deviceName || `Device ${index + 1}`;
-                const deviceId = device.deviceId || "N/A";
-                const deviceType = device.deviceType || "THD";
-                const category = device.category || "monitoring";
-
-                return (
-                  <tr
-                    key={id}
-                    className={`border-b border-gray-200 cursor-pointer transition-colors hover:bg-blue-50/60 ${
-                      selectedDevice?._id === id ? "bg-blue-50 border-blue-300" : ""
-                    }`}
-                    onClick={(e) => handleRowClick(device, e)}
-                  >
-                    <td className="py-2 sm:py-3 px-2 sm:px-4 flex flex-col items-start flex-1 min-w-0">
-                      <div className="flex flex-col">
-                        <TruncatedText
-                                      text={deviceName}
-                                      className=" font-normal text-gray-900"
-                                      maxLines={1}
-                                      tooltipPlacement="top"
-                                    />
-                      </div>
-
-                   
-                    </td>
-              
-                    <td className="py-2 sm:py-3 px-2 sm:px-4 text-center">
-                      <div className="flex flex-col gap-1 items-center">
-                        <Chip
-                          label={DEVICE_TYPE_LABEL[deviceType] || deviceType}
-                          size="small"
-                          color={DEVICE_TYPE_COLOR[deviceType] || "default"}
-                        />
-                        <span className="text-xs text-gray-500">{CATEGORY_LABEL[category]}</span>
-                      </div>
-                    </td>
-                    <td className="py-2 sm:py-3 px-2 sm:px-4">
-                      <div className="flex justify-center gap-2 sm:gap-3" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          onClick={(e) => handleEdit(device, e)}
-                          disabled={!hasManagePermission || working}
-                          className={`rounded-full border border-green-500/50 bg-white flex items-center justify-center hover:bg-green-50 p-2 ${
-                            !hasManagePermission || working ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-                          }`}
-                          title="Edit device"
-                        >
-                          <Pencil className="text-green-600" size={16} />
-                        </button>
-                        <button
-                          onClick={(e) => handleDelete(device, e)}
-                          disabled={!hasManagePermission || working}
-                          className={`rounded-full border border-red-500/50 bg-white flex items-center justify-center hover:bg-red-50 p-2 ${
-                            !hasManagePermission || working ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-                          }`}
-                          title="Delete device"
-                        >
-                          <Trash className="text-red-600" size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-          
-    </tbody>
-  </table>
-</div>
-
-
-      
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 
@@ -423,8 +400,8 @@ const DeviceList = ({ onDeviceSelect, selectedDevice }) => {
       ) : (
         <>
           <div className="flex items-center justify-between mb-4">
-            <img src="/logo-half.png" className="w-auto h-[30px]" alt="Logo"/>
-            <h1 className="device-list-title font-semibold text-gray-800">Device Management</h1>
+            <img src="/logo-half.png" className="w-auto h-[30px]" alt="Logo" />
+            <h1 className="organization-list-title font-semibold text-gray-800">Device Management</h1>
             <div>
               <IconButton aria-label="Open devices" size="small" onClick={() => setDrawerOpen(true)}>
                 <Menu size={20} />
@@ -438,7 +415,7 @@ const DeviceList = ({ onDeviceSelect, selectedDevice }) => {
             onClose={() => setDrawerOpen(false)}
             PaperProps={{ style: { width: "100%" } }}
           >
-            <div className="p-4">{renderListMarkup()}</div>
+            {renderListMarkup()}
           </Drawer>
         </>
       )}
