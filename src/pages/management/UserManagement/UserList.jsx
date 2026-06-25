@@ -265,6 +265,7 @@ import EditUserModal from "../../../components/Modals/UserManagement/EditUserMod
 import { Drawer, IconButton, useMediaQuery, Chip, Tooltip } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 import TableSkeleton from "../../../components/skeletons/TableSkeleton";
+import { managementDrawerUserPaperProps, ManagementDrawerBody } from "../../../utils/managementDrawer";
 
 const UserList = ({ onUserSelect, selectedUser }) => {
   const dispatch = useDispatch();
@@ -381,7 +382,7 @@ const UserList = ({ onUserSelect, selectedUser }) => {
       </div>
 
       <div className="flex-1 min-h-0 overflow-hidden">
-  <div className="h-full min-h-0 overflow-auto">
+  <div className="h-full min-h-0 overflow-y-auto overscroll-contain">
     <table className="w-full table-fixed text-left border-collapse">
   <thead className="sticky top-0 z-20 bg-white ">
   <tr className="bg-gray-100">
@@ -510,9 +511,11 @@ const UserList = ({ onUserSelect, selectedUser }) => {
             anchor="right"
             open={drawerOpen}
             onClose={() => setDrawerOpen(false)}
-            PaperProps={{ sx: { width: "100%", maxWidth: 440 } }}
+            PaperProps={managementDrawerUserPaperProps}
           >
-            <div className="p-3 h-full">{renderListMarkup()}</div>
+            <ManagementDrawerBody className="p-3">
+              {renderListMarkup()}
+            </ManagementDrawerBody>
           </Drawer>
         </>
       )}

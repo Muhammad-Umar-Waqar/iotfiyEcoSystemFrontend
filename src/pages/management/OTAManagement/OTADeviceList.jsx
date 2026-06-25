@@ -813,6 +813,7 @@ import { Drawer, IconButton, useMediaQuery } from "@mui/material";
 import { Menu, Wifi, WifiOff, ChevronRight, Zap, CheckCircle2, AlertCircle, Loader2, X } from "lucide-react";
 import CloseIcon from "@mui/icons-material/Close";
 import { useDeviceWebSocket } from "../../../hooks/useDeviceWebSocket";
+import { managementDrawerPaperProps, ManagementDrawerBody } from "../../../utils/managementDrawer";
 import { io } from "socket.io-client";
 
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:5050";
@@ -1182,7 +1183,7 @@ const OTADeviceList = ({ selectedVersion, onVersionSelect }) => {
   // RESKINNED MARKUP — identical structure / conditions, new classes
   // ══════════════════════════════════════════════════════════
   const renderOTAMarkup = () => (
-    <div className="flex flex-col h-full bg-white rounded-xl lg:rounded-r-none lg:rounded-l-xl border border-slate-200 overflow-hidden">
+    <div className="flex flex-col h-full min-h-0 bg-white rounded-xl lg:rounded-r-none lg:rounded-l-xl border border-slate-200 overflow-hidden">
 
       {/* Mobile close button */}
       {!isDesktop && (
@@ -1250,7 +1251,7 @@ const OTADeviceList = ({ selectedVersion, onVersionSelect }) => {
       </div>
 
       {/* ── Scrollable device rows ──────────────────────────── */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-3 py-2">
+      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 py-2">
         {loading ? (
           <div className="flex flex-col items-center justify-center h-full gap-2 text-slate-400">
             <Loader2 size={20} className="animate-spin" />
@@ -1397,11 +1398,11 @@ const OTADeviceList = ({ selectedVersion, onVersionSelect }) => {
             anchor="right"
             open={drawerOpen}
             onClose={() => setDrawerOpen(false)}
-            PaperProps={{ style: { width: "100%" } }}
+            PaperProps={managementDrawerPaperProps}
           >
-            <div className="p-4 h-full">
+            <ManagementDrawerBody className="p-4">
               {renderOTAMarkup()}
-            </div>
+            </ManagementDrawerBody>
           </Drawer>
         </>
       )}

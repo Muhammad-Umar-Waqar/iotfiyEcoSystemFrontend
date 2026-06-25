@@ -18,6 +18,7 @@ import "../../../styles/pages/management-pages.css";
 import TableSkeleton from "../../../components/skeletons/TableSkeleton";
 import CloseIcon from '@mui/icons-material/Close';
 import { Drawer, IconButton, useMediaQuery } from "@mui/material";
+import { managementDrawerPaperProps, ManagementDrawerBody } from "../../../utils/managementDrawer";
 
 const OrganizationList = ({ onOrganizationSelect, selectedOrganization }) => {
   const dispatch = useDispatch();
@@ -129,7 +130,7 @@ const OrganizationList = ({ onOrganizationSelect, selectedOrganization }) => {
 
   // render the list markup (keeps your classes unchanged)
   const renderListMarkup = () => (
-<div className="bg-white rounded-xl shadow-sm w-full border border-[#E5E7EB] p-5 flex flex-col ">
+<div className="bg-white rounded-xl shadow-sm w-full border border-[#E5E7EB] p-5 flex flex-col h-full min-h-0 overflow-hidden">
 
         {
       isDesktop ?
@@ -138,9 +139,7 @@ const OrganizationList = ({ onOrganizationSelect, selectedOrganization }) => {
     <>
     <div className="flex justify-end">
           <IconButton
-            onClick={() => {
-              setDrawerOpen(!drawerOpen); // guard, then call
-            }}
+            onClick={() => setDrawerOpen(false)}
             edge="start"
             aria-label="close-details"
             size="small"
@@ -155,7 +154,7 @@ const OrganizationList = ({ onOrganizationSelect, selectedOrganization }) => {
         <h2 className="organization-list-header text-center font-semibold text-gray-800">Organization List</h2>
       </div>
 
-    <div className="organization-table-scroll overflow-y-auto flex-1 min-h-0 pr-1">
+    <div className="organization-table-scroll overflow-y-auto flex-1 min-h-0 pr-1 overscroll-contain">
   <table className="w-full table-auto text-left">
     <thead className="sticky top-0 z-10 bg-white">
       <tr className="bg-gray-100">
@@ -274,13 +273,11 @@ const OrganizationList = ({ onOrganizationSelect, selectedOrganization }) => {
             anchor="right"
             open={drawerOpen}
             onClose={() => setDrawerOpen(false)}
-            PaperProps={{ style: { width: "100%" } }}
+            PaperProps={managementDrawerPaperProps}
           >
-
-
-              {/* Inside drawer we render the exact same markup (classes unchanged) */}
+            <ManagementDrawerBody>
               {renderListMarkup()}
-
+            </ManagementDrawerBody>
           </Drawer>
         </>
       )}
