@@ -20,7 +20,7 @@ import TemperatureHumidityDeviceCard from "./TemperatureHumidityDeviceCard";
 import OdourDeviceCard from "./OdourDeviceCard";
 import GasLeakageDeviceCard from "./GasLeakageDeviceCard";
 import EnergyMonitoringDeviceCard from "./EnergyMonitoringDeviceCard";
-import SchedulerDeviceCard from "./SchedulerDeviceCard";
+import SchedulerAndTriggerTempHumiDeviceCard from "./SchedulerAndTriggerTempHumiDeviceCard";
 import { useOrgVenue } from "../../contexts/OrgVenueContext";
 import { useScheduler } from "../../contexts/SchedulerContext";
 import { useDeviceWebSocket } from "../../hooks/useDeviceWebSocket";
@@ -445,10 +445,10 @@ export default function Dashboard() {
 
                   // ── Category-based rendering ──
 
-                  // THD with scheduling or trigger → use SchedulerDeviceCard
+                  // THD with scheduling or trigger → use SchedulerAndTriggerTempHumiDeviceCard
                   if (device.deviceType === "THD" && (category === "scheduling" || category === "trigger")) {
                     return (
-                      <SchedulerDeviceCard
+                      <SchedulerAndTriggerTempHumiDeviceCard
                         key={idKey}
                         {...commonProps}
                         events={eventsMap[String(device.deviceId)] ?? []}
@@ -558,19 +558,7 @@ export default function Dashboard() {
                         />
                       );
 
-                    case "TSD":
-                      return (
-                        <SchedulerDeviceCard
-                          key={idKey}
-                          {...commonProps}
-                          startingOn={device?.scheduler?.startingOn}
-                          duration={device?.scheduler?.duration}
-                          repeatDays={device?.scheduler?.repeatDays ?? []}
-                          enabled={device?.scheduler?.enabled}
-                          events={eventsMap[String(device.deviceId)] ?? []}
-                          onRefreshScheduler={fetchSchedulerData}
-                        />
-                      );
+              
 
                     default:
                       return (
@@ -602,24 +590,13 @@ export default function Dashboard() {
 
       {/* ── Right panel / drawer ─────────────────────────────────────────── */}
       {(() => {
-        // Find selected device
-        // const selectedDevice = selectedFreezerDeviceId
-        //   ? freezerDevices.find(
-        //       (d) => String(d._id ?? d.id ?? d.deviceId) === String(selectedFreezerDeviceId)
-        //     )
-        //   : null;
+   
 
         const selectedDevice =
   freezerDevices.find(
     (d) => String(d._id ?? d.id ?? d.deviceId) === String(selectedFreezerDeviceId)
   ) || null;
 
-        // if (!selectedDevice) return null;
-
-          
-        // Get device key and WebSocket data
-        // const deviceKey = String(selectedDevice.deviceId);
-        // const liveData = deviceDataMap[deviceKey] || {};
 
         const deviceKey = selectedDevice?.deviceId
           ? String(selectedDevice?.deviceId)
@@ -628,11 +605,14 @@ export default function Dashboard() {
         const liveData = deviceDataMap[deviceKey] || {};
 
         // Calculate online status based on device type
-        const deviceType = selectedDevice?.deviceType;
-        const isOnline =
-          deviceType === "TSD" || deviceType === "ESD"
-            ? Boolean(schedulerDeviceOnlineMap[deviceKey])
-            : Boolean(deviceOnlineMap[deviceKey]);
+        // const deviceType = selectedDevice?.deviceType;
+        // const isOnline =
+          // deviceType === "TSD" || deviceType === "ESD"
+          //   ? Boolean(schedulerDeviceOnlineMap[deviceKey])
+          //   : Boolean(deviceOnlineMap[deviceKey]);
+         
+          const isOnline = Boolean(deviceOnlineMap[deviceKey]); // NEW: WebSocket online status
+
 
         // Merge WebSocket data with device data (WebSocket first!)
         const mergedProps = {

@@ -140,7 +140,7 @@ const getNextEvent = (events = []) => {
 };
 
 // ================== MAIN CARD ==================
-const SchedulerDeviceCard = React.memo(function SchedulerDeviceCard({
+const SchedulerAndTriggerTempHumiDeviceCard = React.memo(function SchedulerDeviceCard({
   deviceId,
   espTemprature,
   espHumidity,
@@ -623,4 +623,4 @@ const SchedulerDeviceCard = React.memo(function SchedulerDeviceCard({
   );
 });
 
-export default SchedulerDeviceCard;
+export default SchedulerAndTriggerTempHumiDeviceCard;

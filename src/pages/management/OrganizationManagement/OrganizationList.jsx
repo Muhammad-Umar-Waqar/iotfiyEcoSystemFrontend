@@ -129,8 +129,7 @@ const OrganizationList = ({ onOrganizationSelect, selectedOrganization }) => {
 
   // render the list markup (keeps your classes unchanged)
   const renderListMarkup = () => (
-    <div className="ListPage bg-white rounded-xl shadow-sm w-full h-full border border-[#E5E7EB] p-5 relative">
-
+<div className="bg-white rounded-xl shadow-sm w-full border border-[#E5E7EB] p-5 flex flex-col ">
 
         {
       isDesktop ?
@@ -152,77 +151,102 @@ const OrganizationList = ({ onOrganizationSelect, selectedOrganization }) => {
     </>
     }
 
-      {/* Subscription Usage Indicator */}
-      <SubscriptionUsageIndicator
-        resourceType="organization"
-        currentCount={displayOrganizations.length}
-      />
-
       <div className="mb-4">
         <h2 className="organization-list-header text-center font-semibold text-gray-800">Organization List</h2>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full table-auto text-left">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="organization-table-header py-2 px-4 font-bold text-gray-800">Organization Name</th>
-              <th className="organization-table-header py-2 px-4 text-center">Actions</th>
-            </tr>
-          </thead>
-        </table>
+    <div className="organization-table-scroll overflow-y-auto flex-1 min-h-0 pr-1">
+  <table className="w-full table-auto text-left">
+    <thead className="sticky top-0 z-10 bg-white">
+      <tr className="bg-gray-100">
+        <th className="text-lg py-5 px-4 font-bold text-gray-800">
+          Organization Name
+        </th>
+        <th className="text-lg py-5 px-4 text-center">
+          Actions
+        </th>
+      </tr>
+    </thead>
 
-        <div className="organization-table-scroll overflow-y-auto pr-1 h-[63vh] sm:h-[58vh]">
-          <table className="w-full table-auto text-left">
-            <tbody>
-              {isLoading && <TableSkeleton rows={4} />}
+    <tbody>
+      {isLoading && <TableSkeleton rows={4} />}
 
-              {!isLoading && displayOrganizations.map((org, index) => {
-                const id = org._id ?? org.id ?? index;
-                const displayName = org.name ?? org.organization_name ?? `Organization ${index + 1}`;
+      {!isLoading &&
+        displayOrganizations.map((org, index) => {
+          const id = org._id ?? org.id ?? index;
+          const displayName =
+            org.name ??
+            org.organization_name ??
+            `Organization ${index + 1}`;
 
-                return (
-                  <tr
-                    key={id}
-                    className={`border-b border-gray-200 cursor-pointer transition-colors hover:bg-blue-50/60 ${
-                      (selectedOrganization?._id === id || selectedOrganization?.id === id) ? "bg-blue-50 border-blue-300" : ""
+          return (
+            <tr
+              key={id}
+              className={`border-b border-gray-200 cursor-pointer transition-colors hover:bg-blue-50/60 ${
+                selectedOrganization?._id === id ||
+                selectedOrganization?.id === id
+                  ? "bg-blue-50 border-blue-300"
+                  : ""
+              }`}
+              onClick={(e) => handleRowClick(org, e)}
+            >
+              <td className="organization-table-cell py-2 sm:py-3 px-2 sm:px-4">
+                {index + 1}. {displayName}
+              </td>
+
+              <td className="organization-table-cell py-2 sm:py-3 px-2 sm:px-4">
+                <div
+                  className="flex justify-center gap-2 sm:gap-3"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    onClick={() => handleEditOpen(displayName, id)}
+                    disabled={!hasManagePermission}
+                    className={`organization-action-btn rounded-full border border-green-500/50 bg-white flex items-center justify-center hover:bg-green-50 p-[4px] ${
+                      !hasManagePermission
+                        ? "opacity-50 cursor-not-allowed"
+                        : "cursor-pointer"
                     }`}
-                    onClick={(e) => handleRowClick(org, e)}
                   >
-                    <td className="organization-table-cell py-2 sm:py-3 px-2 sm:px-4">{index + 1}. {displayName}</td>
-                    <td className="organization-table-cell py-2 sm:py-3 px-2 sm:px-4">
-                      <div className="flex justify-center gap-2 sm:gap-3" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          onClick={() => handleEditOpen(displayName, id)}
-                          disabled={!hasManagePermission}
-                          className={`organization-action-btn rounded-full border border-green-500/50 bg-white flex items-center justify-center hover:bg-green-50 p-[4px] ${
-                            !hasManagePermission ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-                          }`}
-                        >
-                          <Pencil className="text-green-600 organization-action-icon" size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteOpen(displayName, id)}
-                          disabled={!hasManagePermission}
-                          className={`organization-action-btn rounded-full border border-red-500/50 bg-white flex items-center justify-center hover:bg-red-50 p-[4px] ${
-                            !hasManagePermission ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-                          }`}
-                        >
-                          <Trash className="text-red-600 organization-action-icon"  size={16}/>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+                    <Pencil
+                      className="text-green-600 organization-action-icon"
+                      size={16}
+                    />
+                  </button>
 
-              {!isLoading && displayOrganizations.length === 0 && (
-                <tr><td className="p-4 text-center text-gray-500 ">No organizations found.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                  <button
+                    onClick={() => handleDeleteOpen(displayName, id)}
+                    disabled={!hasManagePermission}
+                    className={`organization-action-btn rounded-full border border-red-500/50 bg-white flex items-center justify-center hover:bg-red-50 p-[4px] ${
+                      !hasManagePermission
+                        ? "opacity-50 cursor-not-allowed"
+                        : "cursor-pointer"
+                    }`}
+                  >
+                    <Trash
+                      className="text-red-600 organization-action-icon"
+                      size={16}
+                    />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          );
+        })}
+
+      {!isLoading && displayOrganizations.length === 0 && (
+        <tr>
+          <td
+            colSpan={2}
+            className="p-4 text-center text-gray-500"
+          >
+            No organizations found.
+          </td>
+        </tr>
+      )}
+    </tbody>
+  </table>
+</div>
     </div>
   );
 

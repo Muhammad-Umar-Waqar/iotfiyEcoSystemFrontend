@@ -220,7 +220,7 @@ const DeviceList = ({ onDeviceSelect, selectedDevice }) => {
 
   const renderListMarkup = () => (
     // <div className="ListPage device-list-container bg-white rounded-xl shadow-sm w-full h-full border border-[#E5E7EB] p-5 ">
-    <div className="ListPage device-list-container bg-white rounded-xl shadow-sm w-full h-full border border-[#E5E7EB] p-5 flex flex-col min-h-0">  
+    <div className="ListPage device-list-container bg-white rounded-xl shadow-sm w-full h-full border border-[#E5E7EB] p-2 flex flex-col min-h-0">  
     {isDesktop ? (
         <h1 className="organization-list-title font-semibold text-gray-800 mb-4">Device Management</h1>
       ) : (
@@ -301,26 +301,27 @@ const DeviceList = ({ onDeviceSelect, selectedDevice }) => {
 
       {/* <div className="overflow-x-auto">
         <table className="w-full table-auto text-left"> */}
-        <div className="w-full min-w-0 overflow-x-auto flex-1 min-h-0">
-  <div className="min-w-[520px]">
-  <div className="overflow-x-auto ">
-    <table className="w-full table-fixed text-left">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="device-table-header py-2 px-4 font-bold text-gray-800">Device Name</th>
-              {/* <th className="device-table-header py-2 px-4 font-bold text-gray-800 hidden sm:table-cell">Device ID</th> */}
-              <th className="device-table-header py-2 px-4 text-center">Type</th>
-              <th className="device-table-header py-2 px-4 text-center">Actions</th>
-            </tr>
-          </thead>
-        </table>
-  </div>
-  </div>
 
-        {/* <div className="device-table-scroll overflow-y-auto pr-1 "> */}
-        <div className="device-table-scroll flex-1 min-h-0 overflow-y-auto overflow-x-auto pr-1">
-        <div className="min-w-[520px]">
-          <table className="w-full table-auto text-left">
+
+        <div className="device-table-scroll flex-1 min-h-0 overflow-auto">
+  <table className="w-full table-fixed text-left">
+ 
+
+<thead>
+  <tr>
+    <th className="sticky top-0 z-20 bg-gray-100 device-table-header py-2 px-4 font-bold text-gray-800 w-[20%]">
+      Device Name
+    </th>
+
+    <th className="sticky top-0 z-20 bg-gray-100 device-table-header py-2 px-4 text-center w-[20%]">
+      Type
+    </th>
+
+    <th className="sticky top-0 z-20 bg-gray-100 device-table-header py-2 px-4 text-center w-[20%]">
+      Actions
+    </th>
+  </tr>
+</thead>
             <tbody>
               {devicesLoading && <TableSkeleton rows={5} />}
 
@@ -357,8 +358,6 @@ const DeviceList = ({ onDeviceSelect, selectedDevice }) => {
                   >
                     <td className="py-2 sm:py-3 px-2 sm:px-4 flex flex-col items-start flex-1 min-w-0">
                       <div className="flex flex-col">
-                        {/* <span className="font-medium">{deviceName}</span> */}
-
                         <TruncatedText
                                       text={deviceName}
                                       className=" font-normal text-gray-900"
@@ -367,29 +366,9 @@ const DeviceList = ({ onDeviceSelect, selectedDevice }) => {
                                     />
                       </div>
 
-                       {/* <div title={lastUpdateStr} className="flex flex-col items-start flex-1 min-w-0">
-                                  <div className="w-full">
-                                    <div className="flex items-center">
-                                      <span
-                                        aria-hidden
-                                        className={`inline-block h-1.5 w-1.5 rounded-full mr-2 shadow-sm ${isOnline ? "bg-green-300" : "bg-gray-300"}`}
-                                        style={{ boxShadow: isOnline ? "0 0 6px rgba(34,197,94,0.45)" : "none" }}
-                                      />
-                                      <div className="text-xs text-gray-500">Device ID</div>
-                                    </div>
-                      
-                                    <TruncatedText
-                                      text={deviceName}
-                                      className="text-lg font-bold text-gray-900"
-                                      maxLines={1}
-                                      tooltipPlacement="top"
-                                    />
-                                  </div>
-                                </div> */}
+                   
                     </td>
-                    {/* <td className="py-2 sm:py-3 px-2 sm:px-4 text-sm text-gray-600 hidden sm:table-cell">
-                      {deviceId}
-                    </td> */}
+              
                     <td className="py-2 sm:py-3 px-2 sm:px-4 text-center">
                       <div className="flex flex-col gap-1 items-center">
                         <Chip
@@ -427,11 +406,13 @@ const DeviceList = ({ onDeviceSelect, selectedDevice }) => {
                   </tr>
                 );
               })}
-            </tbody>
-          </table>
-        </div>
-        </div>
-      </div>
+          
+    </tbody>
+  </table>
+</div>
+
+
+      
     </div>
   );
 
