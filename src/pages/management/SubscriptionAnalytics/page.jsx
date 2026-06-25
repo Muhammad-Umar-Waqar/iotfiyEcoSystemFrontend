@@ -247,44 +247,6 @@ const SubscriptionAnalytics = () => {
     fetchData();
   }, [dispatch, user, isManager]);
 
-  // Access denied
-  if (!isManager) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          height: "100%",
-          background: "#F8FAFC",
-        }}
-      >
-        <div style={{ textAlign: "center", padding: "32px" }}>
-          <div
-            style={{
-              width: 64,
-              height: 64,
-              borderRadius: "50%",
-              background: "#FEE2E2",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              margin: "0 auto 16px",
-            }}
-          >
-            <AlertCircle size={28} color="#EF4444" />
-          </div>
-          <h2 style={{ fontSize: "18px", fontWeight: 700, color: "#0F172A", marginBottom: "8px" }}>
-            Access Denied
-          </h2>
-          <p style={{ color: "#64748B", fontSize: "14px" }}>
-            Only managers can view subscription analytics.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   if (loading) {
     return (
       <div

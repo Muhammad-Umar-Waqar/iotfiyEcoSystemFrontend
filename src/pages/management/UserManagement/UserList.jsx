@@ -352,18 +352,6 @@ const UserList = ({ onUserSelect, selectedUser }) => {
     }
   };
 
-  // If not manager, show access denied
-  if (!isManager) {
-    return (
-      <div className="bg-white rounded-xl shadow-sm w-full h-full border border-[#E5E7EB] p-5 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Access Denied</h2>
-          <p className="text-gray-600">Only managers can access User Management.</p>
-        </div>
-      </div>
-    );
-  }
-
   const renderListMarkup = () => (
     // <div className="bg-white rounded-xl shadow-sm w-full h-full border border-[#E5E7EB] p-4 sm:p-5 flex flex-col">
     <div className="bg-white rounded-xl shadow-sm w-full h-full min-h-0 border border-[#E5E7EB] p-4 sm:p-5 flex flex-col overflow-hidden">  

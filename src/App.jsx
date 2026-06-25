@@ -1,8 +1,10 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchCurrentUser } from './slices/authSlice';
 import ProtectedRoute from './components/ProtectedRoute';
+import GuestRoute from './components/GuestRoute';
+import RoleHomeRedirect from './components/RoleHomeRedirect';
 import ManagementLayout from './layouts/ManagementLayout';
 import Login from './pages/auth/Login';
 import VerifyOtp from './pages/auth/VerifyOtp';
@@ -22,6 +24,8 @@ import { OrgVenueProvider } from './contexts/OrgVenueContext';
 import { SchedulerProvider } from "./contexts/SchedulerContext";
 import OTAManagement from './pages/management/OTAManagement/page';
 import AdminDashboard from './pages/AdminDashboard/page';
+import NotFound from './pages/NotFound';
+import HomePage from './pages/home/Home';
 
 // Session restoration component
 function SessionRestoration({ children }) {
@@ -45,15 +49,19 @@ function App() {
         <SchedulerProvider>
       <Router>
         <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
+          {/* Guest-only routes (redirect to dashboard if already logged in) */}
+          <Route path="/" element={<GuestRoute><HomePage /></GuestRoute>} />
+          <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
+          <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
+          <Route path="/verify-otp" element={<GuestRoute><VerifyOtp /></GuestRoute>} />
+          <Route path="/verify-otp/:token" element={<GuestRoute><VerifyOtp /></GuestRoute>} />
+
+          {/* Token flows — allow without session (email links) */}
           <Route path="/reset-password/:token" element={<ResetPassword />} />
-          <Route path="/verify-otp" element={<VerifyOtp />} />
-          <Route path="/verify-otp/:token" element={<VerifyOtp />} />
-          <Route path="/select-plan" element={<SelectPlan />} />
           <Route path="/setup-password/:token" element={<SetupPassword />} />
+
+          {/* Plans — guests and logged-in managers can both access */}
+          <Route path="/select-plan" element={<SelectPlan />} />
 
             {/* Protected Routes - Management (Manager & User) */}
             <Route
@@ -68,8 +76,22 @@ function App() {
               <Route path="organization" element={<OrganizationManagement />} />
               <Route path="venue" element={<VenueManagement />} />
               <Route path="device" element={<DeviceManagement />} />
-              <Route path="users" element={<UserManagement />} />
-              <Route path="subscription" element={<SubscriptionAnalytics />} />
+              <Route
+                path="users"
+                element={
+                  <ProtectedRoute allowedRoles={['manager']}>
+                    <UserManagement />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="subscription"
+                element={
+                  <ProtectedRoute allowedRoles={['manager']}>
+                    <SubscriptionAnalytics />
+                  </ProtectedRoute>
+                }
+              />
             </Route>
 
             {/* Protected Routes - Admin */}
@@ -88,21 +110,10 @@ function App() {
               <Route path="ota" element={<OTAManagement />} />
             </Route>
 
-            {/* Unauthorized */}
-            <Route
-              path="/unauthorized"
-              element={
-                <div className="min-h-screen flex items-center justify-center bg-gray-100">
-                  <div className="text-center">
-                    <h1 className="text-4xl font-bold text-red-600">Unauthorized</h1>
-                    <p className="mt-4 text-gray-600">You don't have permission to access this page.</p>
-                  </div>
-                </div>
-              }
-            />
+            <Route path="/unauthorized" element={<RoleHomeRedirect />} />
 
             {/* 404 */}
-            <Route path="*" element={<Navigate to="/login" replace />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Router>
           </SchedulerProvider>

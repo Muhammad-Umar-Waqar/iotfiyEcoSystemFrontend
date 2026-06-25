@@ -481,16 +481,6 @@ const AddUser = ({ selectedUser }) => {
     }
   };
 
-  // If not manager, show access denied
-  if (!isManager) {
-    return (
-      <div className="rounded-xl shadow-sm w-full h-full flex flex-col items-center justify-center bg-[#EEF3F9] border border-[#E5E7EB] p-6 text-center">
-        <h2 className="text-xl font-semibold text-gray-800 mb-2">Access Denied</h2>
-        <p className="text-gray-600">Only managers can create users.</p>
-      </div>
-    );
-  }
-
   return (
     <div className="rounded-xl shadow-sm w-full h-full  flex flex-col items-center justify-center bg-[#EEF3F9] border border-[#E5E7EB] p-4 sm:p-5">
       <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-1 text-center">
