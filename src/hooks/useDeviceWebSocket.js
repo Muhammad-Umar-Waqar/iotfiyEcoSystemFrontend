@@ -1,6 +1,7 @@
 // src/hooks/useDeviceWebSocket.js
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { io } from 'socket.io-client';
+import { mergeTriggeredAlerts } from '../utils/triggerAlertUtils';
 
 const SOCKET_URL = import.meta.env.VITE_WS_URL || 'http://localhost:5054';
 
@@ -96,21 +97,32 @@ export const useDeviceWebSocket = (devices = []) => {
         console.log(`📡 [${deviceId}] Received data:`, data);
 
         // Update device data map
-        setDeviceDataMap(prev => ({
-          ...prev,
-          [deviceId]: {
-            ...prev[deviceId],
-            ...data.data, // Sensor values: temperature, humidity, odour, AQI, voltage, current
-            state: data.state, // ON/OFF for scheduling devices
-            alerts: data.alerts || [],
-            triggeredAlerts: data.triggeredAlerts || [], // NEW: Triggered alerts for trigger category
-            interval: data.interval, // NEW: Interval for trigger devices
-            category: data.category,
-            deviceType: data.deviceType,
-            lastUpdateISO: data.timestamp,
-            receivedAt: Date.now()
-          }
-        }));
+        setDeviceDataMap(prev => {
+          const previous = prev[deviceId] || {};
+          const isTrigger =
+            data.category === 'trigger' || previous.category === 'trigger';
+
+          return {
+            ...prev,
+            [deviceId]: {
+              ...previous,
+              ...data.data, // Sensor values: temperature, humidity, odour, AQI, voltage, current
+              state: data.state ?? previous.state, // ON/OFF for scheduling devices
+              alerts:
+                Array.isArray(data.alerts) && data.alerts.length > 0
+                  ? data.alerts
+                  : previous.alerts || [],
+              triggeredAlerts: isTrigger
+                ? mergeTriggeredAlerts(previous.triggeredAlerts, data.triggeredAlerts)
+                : data.triggeredAlerts || [],
+              interval: data.interval ?? previous.interval,
+              category: data.category ?? previous.category,
+              deviceType: data.deviceType ?? previous.deviceType,
+              lastUpdateISO: data.timestamp ?? previous.lastUpdateISO,
+              receivedAt: Date.now()
+            }
+          };
+        });
 
         // Mark device as online when we receive data
         setDeviceOnlineMap(prev => ({

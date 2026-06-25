@@ -74,7 +74,7 @@ function TempHumidityOdourMetrics({
         hasAlert={temperatureAlert}
       />
       <OdourMetricItem
-        icon={odourIcon}
+        icon="/anti-odour.png"
         iconAlt="Odour"
         label="Odour"
         value={displayOdour !== null ? `${displayOdour}%` : "0%"}

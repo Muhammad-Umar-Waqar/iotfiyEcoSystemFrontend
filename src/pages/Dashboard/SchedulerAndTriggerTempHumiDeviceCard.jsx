@@ -730,7 +730,7 @@ const SchedulerAndTriggerTempHumiDeviceCard = React.memo(function SchedulerDevic
               <div className="flex items-center gap-2">
                 <div className="flex flex-col">
                   <p className="text-xs font-normal">No Event Found!</p>
-                  <p className="text-xs font-thin text-gray-500">Schedule upcoming event.</p>
+                  <p className="text-xs font-thin text-gray-500">Set upcoming event.</p>
                 </div>
                 <div>
                   <CirclePlus

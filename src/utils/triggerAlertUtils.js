@@ -1,4 +1,15 @@
 /**
+ * Keep the last non-empty triggeredAlerts until a new alert payload arrives.
+ * Routine telemetry often omits triggeredAlerts, which would otherwise clear the UI.
+ */
+export function mergeTriggeredAlerts(previous = [], incoming) {
+  if (Array.isArray(incoming) && incoming.length > 0) {
+    return incoming;
+  }
+  return Array.isArray(previous) ? previous : [];
+}
+
+/**
  * Check if a sensor type appears in WebSocket triggeredAlerts (e.g. "temperatureAlert").
  */
 export function isTriggeredAlert(triggeredAlerts, type) {
