@@ -13,38 +13,39 @@ const useScrollY = () => {
   return y;
 };
 
-// ─── design tokens ────────────────────────────────────────────────────────────
+// ─── design tokens (aligned with manager/user dashboard) ─────────────────────
 const T = {
-  teal:      '#178D8F',
-  tealDark:  '#0f6567',
-  tealLight: '#e6f4f4',
-  tealMid:   '#b2dfdf',
-  pageBg:    '#F5F6FA',
-  panelBg:   '#EEF3F9',
-  white:     '#ffffff',
-  slate900:  '#0f172a',
-  slate700:  '#334155',
-  slate500:  '#64748b',
-  slate200:  '#e2e8f0',
-  slate100:  '#f1f5f9',
-  rose:      '#EF4444',
-  roseBg:    '#FEE2E2',
+  primary:       '#0D5CA4',
+  primaryDark:   '#07518D',
+  primaryHover:  '#0b4e8a',
+  primaryTint:   '#07518D12',
+  primaryBorder: 'rgba(7, 81, 141, 0.22)',
+  pageBg:        '#F5F6FA',
+  panelBg:       '#07518D12',
+  white:         '#ffffff',
+  slate900:      '#0f172a',
+  slate700:      '#334155',
+  slate500:      '#64748b',
+  slate200:      '#e2e8f0',
+  slate100:      '#f1f5f9',
+  rose:          '#EF4444',
+  roseBg:        '#FEE2E2',
 };
 
 // ─── shared styles ─────────────────────────────────────────────────────────────
 const btn = {
   primary: {
     display: 'inline-flex', alignItems: 'center', gap: 8,
-    background: T.teal, color: '#fff', fontWeight: 600,
+    background: T.primary, color: '#fff', fontWeight: 600,
     fontSize: 15, padding: '12px 28px', borderRadius: 10,
     border: 'none', cursor: 'pointer', textDecoration: 'none',
     transition: 'background .18s, transform .14s',
   },
   outline: {
     display: 'inline-flex', alignItems: 'center', gap: 8,
-    background: 'transparent', color: T.teal, fontWeight: 600,
+    background: 'transparent', color: T.primary, fontWeight: 600,
     fontSize: 15, padding: '11px 26px', borderRadius: 10,
-    border: `1.5px solid ${T.teal}`, cursor: 'pointer',
+    border: `1.5px solid ${T.primary}`, cursor: 'pointer',
     textDecoration: 'none', transition: 'background .18s, color .18s',
   },
   ghost: {
@@ -232,11 +233,11 @@ const Hero = () => {
           <div className="hero-copy">
             <div style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
-              background: T.tealLight, color: T.tealDark,
+              background: T.primaryTint, color: T.primaryDark,
               fontSize: 13, fontWeight: 600, padding: '6px 14px', borderRadius: 20,
-              border: `1px solid ${T.tealMid}`, marginBottom: 24,
+              border: `1px solid ${T.primaryBorder}`, marginBottom: 24,
             }}>
-              <Icon name="wifi" size={14} color={T.teal} />
+              <Icon name="wifi" size={14} color={T.primary} />
               IoT Management Platform
             </div>
 
@@ -246,8 +247,8 @@ const Hero = () => {
             }}>
               Monitor every{' '}
               <span style={{
-                color: T.teal,
-                borderBottom: `3px solid ${T.tealMid}`,
+                color: T.primary,
+                borderBottom: `3px solid ${T.primaryBorder}`,
                 paddingBottom: 2,
               }}>device</span>
               {' '}in real time
@@ -266,15 +267,15 @@ const Hero = () => {
               <button
                 onClick={() => navigate('/select-plan')}
                 style={btn.primary}
-                onMouseEnter={e => e.currentTarget.style.background = T.tealDark}
-                onMouseLeave={e => e.currentTarget.style.background = T.teal}
+                onMouseEnter={e => e.currentTarget.style.background = T.primaryHover}
+                onMouseLeave={e => e.currentTarget.style.background = T.primary}
               >
                 View plans <Icon name="arrowRight" size={16} color="#fff" />
               </button>
               <button
                 onClick={() => navigate('/login')}
                 style={btn.outline}
-                onMouseEnter={e => { e.currentTarget.style.background = T.tealLight; }}
+                onMouseEnter={e => { e.currentTarget.style.background = T.primaryTint; }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
               >
                 Sign in
@@ -285,7 +286,7 @@ const Hero = () => {
             <div className="hero-stats">
               {stats.map((s, i) => (
                 <div key={i} className="hero-stat-item">
-                  <div style={{ fontSize: 26, fontWeight: 800, color: T.teal, letterSpacing: '-0.5px' }}>{s.val}</div>
+                  <div style={{ fontSize: 26, fontWeight: 800, color: T.primary, letterSpacing: '-0.5px' }}>{s.val}</div>
                   <div style={{ fontSize: 12, color: T.slate500, marginTop: 3 }}>{s.label}</div>
                 </div>
               ))}
@@ -311,7 +312,7 @@ const Hero = () => {
               }}>
                 <span style={{ fontSize: 13, fontWeight: 600, color: T.slate700 }}>Live Dashboard — Ven1</span>
                 <span style={{
-                  background: T.teal, color: '#fff', fontSize: 11,
+                  background: T.primary, color: '#fff', fontSize: 11,
                   fontWeight: 600, padding: '3px 10px', borderRadius: 20,
                 }}>● LIVE</span>
               </div>
@@ -321,7 +322,7 @@ const Hero = () => {
                 {[
                   { name: 'TempMonitor', icon: 'thermometer', val: '0°C', sub: 'Humidity 0%', color: '#3b82f6', on: true },
                   { name: 'AQI Trigger', icon: 'wind', val: '--', sub: 'Unknown', color: '#f59e0b', on: false },
-                  { name: 'EnergyMon', icon: 'zap', val: '0.00 W', sub: 'Voltage --V', color: T.teal, on: true },
+                  { name: 'EnergyMon', icon: 'zap', val: '0.00 W', sub: 'Voltage --V', color: T.primary, on: true },
                   { name: 'OdourSensor', icon: 'wifi', val: '86%', sub: 'Temp 33°C', color: '#8b5cf6', on: true },
                 ].map((d, i) => (
                   <div key={i} style={{
@@ -382,7 +383,7 @@ const Features = () => {
       desc: 'Real-time readings from all sensors with threshold alerts and historical trends.',
     },
     {
-      icon: 'wind', color: T.teal,
+      icon: 'wind', color: T.primary,
       title: 'AQI & Odour tracking',
       desc: 'Air quality index and odour percentage with colour-coded gauges and trigger logic.',
     },
@@ -402,7 +403,7 @@ const Features = () => {
       desc: 'Push firmware to entire device fleets from the admin panel without touching hardware.',
     },
     {
-      icon: 'bar', color: '#14b8a6',
+      icon: 'bar', color: T.primaryDark,
       title: 'Scheduling engine',
       desc: 'Define recurring ON/OFF schedules per device with start/end times and weekday masks.',
     },
@@ -424,11 +425,11 @@ const Features = () => {
         <div style={{ textAlign: 'center', marginBottom: 64 }}>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
-            background: T.tealLight, color: T.tealDark,
+            background: T.primaryTint, color: T.primaryDark,
             fontSize: 13, fontWeight: 600, padding: '5px 14px', borderRadius: 20,
-            border: `1px solid ${T.tealMid}`, marginBottom: 16,
+            border: `1px solid ${T.primaryBorder}`, marginBottom: 16,
           }}>
-            <Icon name="cpu" size={13} color={T.teal} /> Platform capabilities
+            <Icon name="cpu" size={13} color={T.primary} /> Platform capabilities
           </div>
           <h2 style={{
             fontSize: 40, fontWeight: 800, color: T.slate900,
@@ -478,7 +479,7 @@ const Features = () => {
 const HowItWorks = () => {
   const steps = [
     { icon: 'users', color: '#6366f1', title: 'Register & pick a plan', desc: 'Create your manager account and activate a subscription that fits your fleet size.' },
-    { icon: 'building', color: T.teal, title: 'Set up org & venues', desc: 'Structure your deployment — organisations, venues, and assign devices to each location.' },
+    { icon: 'building', color: T.primary, title: 'Set up org & venues', desc: 'Structure your deployment — organisations, venues, and assign devices to each location.' },
     { icon: 'cpu', color: '#f59e0b', title: 'Connect your devices', desc: 'Pair IoT hardware, configure categories (monitor / trigger / schedule), and go live.' },
     { icon: 'bar', color: '#ec4899', title: 'Monitor & act', desc: 'Watch live feeds, receive threshold alerts, push OTA updates, and export reports.' },
   ];
@@ -489,11 +490,11 @@ const HowItWorks = () => {
         <div style={{ textAlign: 'center', marginBottom: 64 }}>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
-            background: T.tealLight, color: T.tealDark,
+            background: T.primaryTint, color: T.primaryDark,
             fontSize: 13, fontWeight: 600, padding: '5px 14px', borderRadius: 20,
-            border: `1px solid ${T.tealMid}`, marginBottom: 16,
+            border: `1px solid ${T.primaryBorder}`, marginBottom: 16,
           }}>
-            <Icon name="zap" size={13} color={T.teal} /> Getting started
+            <Icon name="zap" size={13} color={T.primary} /> Getting started
           </div>
           <h2 style={{ fontSize: 40, fontWeight: 800, color: T.slate900, letterSpacing: '-1px', margin: '0 0 16px' }}>
             Up and running in minutes
@@ -550,12 +551,12 @@ const PricingCTA = () => {
     <section style={{ background: T.white, padding: '96px 24px', borderTop: `1px solid ${T.slate200}` }}>
       <div style={{
         maxWidth: 780, margin: '0 auto', textAlign: 'center',
-        background: `linear-gradient(135deg, ${T.panelBg} 0%, ${T.tealLight} 100%)`,
-        borderRadius: 24, border: `1px solid ${T.tealMid}`,
+        background: `linear-gradient(135deg, ${T.primaryTint} 0%, rgba(7, 81, 141, 0.06) 100%)`,
+        borderRadius: 24, border: `1px solid ${T.primaryBorder}`,
         padding: '64px 48px',
       }}>
         <div style={{
-          width: 64, height: 64, borderRadius: 16, background: T.teal,
+          width: 64, height: 64, borderRadius: 16, background: T.primary,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           margin: '0 auto 24px',
         }}>
@@ -572,15 +573,15 @@ const PricingCTA = () => {
           <button
             onClick={() => navigate('/select-plan')}
             style={btn.primary}
-            onMouseEnter={e => e.currentTarget.style.background = T.tealDark}
-            onMouseLeave={e => e.currentTarget.style.background = T.teal}
+            onMouseEnter={e => e.currentTarget.style.background = T.primaryHover}
+            onMouseLeave={e => e.currentTarget.style.background = T.primary}
           >
             View pricing <Icon name="arrowRight" size={16} color="#fff" />
           </button>
           <button
             onClick={() => navigate('/login', { state: { register: true } })}
             style={btn.outline}
-            onMouseEnter={e => e.currentTarget.style.background = T.tealLight}
+            onMouseEnter={e => e.currentTarget.style.background = T.primaryTint}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
             Create free account
@@ -693,7 +694,7 @@ const ResponsiveStyle = () => (
       width: min(340px, 100%);
       height: min(340px, 100%);
       border-radius: 50%;
-      background: radial-gradient(circle, ${T.tealLight} 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(13, 92, 164, 0.16) 0%, transparent 70%);
       top: -40px;
       right: 0;
       z-index: 0;
