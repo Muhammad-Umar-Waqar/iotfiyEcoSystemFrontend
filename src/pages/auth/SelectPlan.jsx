@@ -571,10 +571,6 @@ import { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import Swal from 'sweetalert2';
-import {
-  Dialog, DialogTitle, DialogContent, DialogActions,
-  TextField, Button, Stack,
-} from '@mui/material';
 import api from '../../services/api';
 import {
   setPendingPlan, setPendingCustomPlan,
@@ -582,21 +578,22 @@ import {
   purchaseSubscription,
 } from '../../slices/subscriptionSlice';
 
-// ─── design tokens ─────────────────────────────────────────────────────────────
+// ─── design tokens (aligned with dashboard / home) ─────────────────────────────
 const T = {
-  teal:      '#178D8F',
-  tealDark:  '#0f6567',
-  tealLight: '#e6f4f4',
-  tealMid:   '#b2dfdf',
-  pageBg:    '#F5F6FA',
-  panelBg:   '#EEF3F9',
-  white:     '#ffffff',
-  slate900:  '#0f172a',
-  slate700:  '#334155',
-  slate500:  '#64748b',
-  slate300:  '#cbd5e1',
-  slate200:  '#e2e8f0',
-  slate100:  '#f1f5f9',
+  primary:       '#0D5CA4',
+  primaryDark:   '#07518D',
+  primaryHover:  '#0b4e8a',
+  primaryTint:   '#07518D12',
+  primaryBorder: 'rgba(7, 81, 141, 0.22)',
+  pageBg:        '#F5F6FA',
+  panelBg:       '#07518D12',
+  white:         '#ffffff',
+  slate900:      '#0f172a',
+  slate700:      '#334155',
+  slate500:      '#64748b',
+  slate300:      '#cbd5e1',
+  slate200:      '#e2e8f0',
+  slate100:      '#f1f5f9',
 };
 
 // ─── tiny icon ─────────────────────────────────────────────────────────────────
@@ -615,6 +612,7 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
     shield:      'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
     calendar:    'M8 2v4M16 2v4M3 10h18M3 6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z',
     wifi:        'M1 6.5C7.1 0.8 16.9 0.8 23 6.5M5 10.5C9.1 6.8 14.9 6.8 19 10.5M9 14.5c1.9-1.7 5.1-1.7 7 0M12 18h.01',
+    x:           'M18 6L6 18M6 6l12 12',
   };
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
@@ -628,7 +626,7 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
 // ─── plan accent colours (cycle if more plans) ─────────────────────────────────
 const PLAN_ACCENTS = [
   { color: '#3b82f6', bg: '#eff6ff', border: '#bfdbfe', label: 'Starter' },
-  { color: T.teal,   bg: T.tealLight, border: T.tealMid, label: 'Professional' },
+  { color: T.primary, bg: T.primaryTint, border: T.primaryBorder, label: 'Professional' },
   { color: '#8b5cf6', bg: '#f5f3ff', border: '#ddd6fe', label: 'Enterprise' },
 ];
 
@@ -787,15 +785,15 @@ const CustomPlanCard = ({ onClick }) => (
     transition: 'border-color .18s, background .18s',
   }}
     onClick={onClick}
-    onMouseEnter={e => { e.currentTarget.style.borderColor = T.teal; e.currentTarget.style.background = T.tealLight; }}
+    onMouseEnter={e => { e.currentTarget.style.borderColor = T.primary; e.currentTarget.style.background = T.primaryTint; }}
     onMouseLeave={e => { e.currentTarget.style.borderColor = T.slate300; e.currentTarget.style.background = T.white; }}
   >
     <div style={{
       width: 56, height: 56, borderRadius: 16,
-      background: T.tealLight, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: T.primaryTint, display: 'flex', alignItems: 'center', justifyContent: 'center',
       marginBottom: 16,
     }}>
-      <Icon name="sparkle" size={24} color={T.teal} />
+      <Icon name="sparkle" size={24} color={T.primary} />
     </div>
     <h3 style={{ fontSize: 17, fontWeight: 700, color: T.slate900, margin: '0 0 8px' }}>Custom plan</h3>
     <p style={{ fontSize: 14, color: T.slate500, lineHeight: 1.6, margin: '0 0 20px', maxWidth: 200 }}>
@@ -803,11 +801,313 @@ const CustomPlanCard = ({ onClick }) => (
     </p>
     <div style={{
       display: 'inline-flex', alignItems: 'center', gap: 6,
-      color: T.teal, fontSize: 14, fontWeight: 600,
+      color: T.primary, fontSize: 14, fontWeight: 600,
     }}>
-      <Icon name="plus" size={15} color={T.teal} /> Configure plan
+      <Icon name="plus" size={15} color={T.primary} /> Configure plan
     </div>
   </div>
+);
+
+// ─── custom plan form modal ────────────────────────────────────────────────────
+const EMPTY_CUSTOM_PLAN = {
+  name: '', description: '', price: '', durationDays: '',
+  maxOrganizations: '', maxVenues: '', maxDevices: '', maxUsers: '',
+};
+
+const fieldFocus = (e) => {
+  e.currentTarget.style.borderColor = T.primary;
+  e.currentTarget.style.boxShadow = `0 0 0 3px ${T.primaryTint}`;
+};
+const fieldBlur = (e) => {
+  e.currentTarget.style.borderColor = T.slate200;
+  e.currentTarget.style.boxShadow = 'none';
+};
+
+const FormField = ({ label, required, hint, children }) => (
+  <div className="custom-plan-field">
+    <label style={{
+      display: 'block', fontSize: 13, fontWeight: 600,
+      color: T.slate700, marginBottom: 6,
+    }}>
+      {label}{required && <span style={{ color: T.primary, marginLeft: 3 }}>*</span>}
+    </label>
+    {children}
+    {hint && (
+      <p style={{ fontSize: 12, color: T.slate500, margin: '6px 0 0', lineHeight: 1.45 }}>{hint}</p>
+    )}
+  </div>
+);
+
+const LimitField = ({ icon, label, name, value, onChange }) => (
+  <div style={{
+    background: T.white, border: `1px solid ${T.slate200}`,
+    borderRadius: 12, padding: '14px 14px 12px',
+    transition: 'border-color .15s, box-shadow .15s',
+  }}
+    className="custom-plan-limit"
+  >
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+      <div style={{
+        width: 28, height: 28, borderRadius: 8,
+        background: T.primaryTint, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <Icon name={icon} size={14} color={T.primary} />
+      </div>
+      <span style={{ fontSize: 13, fontWeight: 600, color: T.slate700 }}>{label}</span>
+    </div>
+    <input
+      type="number" name={name} value={value} min={0}
+      onChange={onChange} placeholder="No limit"
+      style={{
+        width: '100%', boxSizing: 'border-box',
+        padding: '10px 12px', fontSize: 15, fontWeight: 600,
+        border: `1.5px solid ${T.slate200}`, borderRadius: 8,
+        outline: 'none', color: T.slate900, background: T.slate100,
+      }}
+      onFocus={fieldFocus} onBlur={fieldBlur}
+    />
+  </div>
+);
+
+const CustomPlanModal = ({
+  open, onClose, data, onChange, onSubmit,
+  isAuthenticated, submitting,
+}) => {
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [open, onClose]);
+
+  if (!open) return null;
+
+  const inputStyle = {
+    width: '100%', boxSizing: 'border-box',
+    padding: '11px 14px', fontSize: 14,
+    border: `1.5px solid ${T.slate200}`, borderRadius: 10,
+    outline: 'none', color: T.slate900, background: T.white,
+    fontFamily: 'inherit', transition: 'border-color .15s, box-shadow .15s',
+  };
+
+  return (
+    <div
+      className="custom-plan-overlay"
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 200,
+        background: 'rgba(15, 23, 42, 0.45)',
+        backdropFilter: 'blur(4px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '16px',
+      }}
+    >
+      <div
+        className="custom-plan-modal"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: '100%', maxWidth: 560, maxHeight: 'min(92vh, 820px)',
+          background: T.white, borderRadius: 20,
+          border: `1px solid ${T.slate200}`,
+          boxShadow: '0 24px 64px rgba(0,0,0,0.18)',
+          display: 'flex', flexDirection: 'column', overflow: 'hidden',
+        }}
+      >
+        {/* Header */}
+        <div style={{
+          padding: '20px 22px', borderBottom: `1px solid ${T.slate200}`,
+          display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12,
+          background: `linear-gradient(180deg, ${T.primaryTint} 0%, ${T.white} 100%)`,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+            <div style={{
+              width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+              background: T.primary, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: `0 4px 14px ${T.primary}44`,
+            }}>
+              <Icon name="sparkle" size={20} color="#fff" />
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: T.slate900 }}>
+                Build a custom plan
+              </h2>
+              <p style={{ margin: '4px 0 0', fontSize: 13, color: T.slate500, lineHeight: 1.45 }}>
+                Tailor pricing and resource limits to your deployment.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button" onClick={onClose} aria-label="Close"
+            style={{
+              flexShrink: 0, width: 36, height: 36, borderRadius: 10,
+              border: `1px solid ${T.slate200}`, background: T.white,
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >
+            <Icon name="x" size={18} color={T.slate500} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <form
+          onSubmit={(e) => { e.preventDefault(); onSubmit(); }}
+          style={{ flex: 1, overflowY: 'auto', padding: '22px' }}
+        >
+          <div style={{ marginBottom: 22 }}>
+            <div style={{
+              fontSize: 11, fontWeight: 700, letterSpacing: 0.8,
+              textTransform: 'uppercase', color: T.primaryDark, marginBottom: 14,
+            }}>
+              Plan details
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <FormField label="Plan name" required>
+                <input name="name" value={data.name} onChange={onChange} required
+                  placeholder="e.g. Warehouse fleet"
+                  style={inputStyle} onFocus={fieldFocus} onBlur={fieldBlur}
+                />
+              </FormField>
+              <FormField label="Description" hint="Optional — shown on the plan card.">
+                <textarea name="description" value={data.description} onChange={onChange}
+                  rows={3} placeholder="Brief summary of what this plan covers…"
+                  style={{ ...inputStyle, resize: 'vertical', minHeight: 80, lineHeight: 1.5 }}
+                  onFocus={fieldFocus} onBlur={fieldBlur}
+                />
+              </FormField>
+            </div>
+          </div>
+
+          <div style={{ marginBottom: 22 }}>
+            <div style={{
+              fontSize: 11, fontWeight: 700, letterSpacing: 0.8,
+              textTransform: 'uppercase', color: T.primaryDark, marginBottom: 14,
+            }}>
+              Billing
+            </div>
+            <div className="custom-plan-billing-grid" style={{ display: 'grid', gap: 14 }}>
+              <FormField label="Price (USD)" required>
+                <div style={{ position: 'relative' }}>
+                  <span style={{
+                    position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
+                    fontSize: 14, fontWeight: 600, color: T.slate500,
+                  }}>$</span>
+                  <input name="price" type="number" value={data.price} onChange={onChange}
+                    required min={0} placeholder="0"
+                    style={{ ...inputStyle, paddingLeft: 28, fontWeight: 700, fontSize: 16 }}
+                    onFocus={fieldFocus} onBlur={fieldBlur}
+                  />
+                </div>
+              </FormField>
+              <FormField label="Duration (days)" required>
+                <div style={{ position: 'relative' }}>
+                  <input name="durationDays" type="number" value={data.durationDays}
+                    onChange={onChange} required min={1} placeholder="30"
+                    style={inputStyle} onFocus={fieldFocus} onBlur={fieldBlur}
+                  />
+                  <span style={{
+                    position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
+                    pointerEvents: 'none', display: 'flex',
+                  }}>
+                    <Icon name="calendar" size={16} color={T.slate500} />
+                  </span>
+                </div>
+              </FormField>
+            </div>
+          </div>
+
+          <div>
+            <div style={{
+              display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
+              gap: 12, marginBottom: 14, flexWrap: 'wrap',
+            }}>
+              <div style={{
+                fontSize: 11, fontWeight: 700, letterSpacing: 0.8,
+                textTransform: 'uppercase', color: T.primaryDark,
+              }}>
+                Resource limits
+              </div>
+              {/* <span style={{ fontSize: 12, color: T.slate500 }}>Leave blank for platform defaults</span> */}
+            </div>
+            <div className="custom-plan-limits-grid" style={{ display: 'grid', gap: 12 }}>
+              <LimitField icon="building" label="Organisations" name="maxOrganizations"
+                value={data.maxOrganizations} onChange={onChange} />
+              <LimitField icon="wifi" label="Venues" name="maxVenues"
+                value={data.maxVenues} onChange={onChange} />
+              <LimitField icon="cpu" label="Devices" name="maxDevices"
+                value={data.maxDevices} onChange={onChange} />
+              <LimitField icon="users" label="Users" name="maxUsers"
+                value={data.maxUsers} onChange={onChange} />
+            </div>
+          </div>
+        </form>
+
+        {/* Footer */}
+        <div className="custom-plan-footer" style={{
+          padding: '16px 22px', borderTop: `1px solid ${T.slate200}`,
+          background: T.slate100, display: 'flex', gap: 10,
+        }}>
+          <button type="button" onClick={onClose}
+            style={{
+              flex: 1, padding: '12px 16px', borderRadius: 10,
+              border: `1.5px solid ${T.slate200}`, background: T.white,
+              color: T.slate700, fontSize: 14, fontWeight: 600, cursor: 'pointer',
+            }}>
+            Cancel
+          </button>
+          <button type="button" onClick={onSubmit} disabled={submitting}
+            style={{
+              flex: 2, padding: '12px 16px', borderRadius: 10, border: 'none',
+              background: submitting ? `${T.primary}99` : T.primary,
+              color: '#fff', fontSize: 14, fontWeight: 700, cursor: submitting ? 'not-allowed' : 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              transition: 'background .15s',
+            }}
+            onMouseEnter={e => { if (!submitting) e.currentTarget.style.background = T.primaryHover; }}
+            onMouseLeave={e => { if (!submitting) e.currentTarget.style.background = submitting ? `${T.primary}99` : T.primary; }}
+          >
+            {submitting ? 'Creating…' : (
+              <>
+                <Icon name={isAuthenticated ? 'sparkle' : 'arrowRight'} size={15} color="#fff" />
+                {isAuthenticated ? 'Create plan' : 'Save & sign in'}
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── responsive styles ─────────────────────────────────────────────────────────
+const SelectPlanStyles = () => (
+  <style>{`
+    .select-plan-nav { padding: 0 32px; }
+    .select-plan-title { font-size: clamp(1.75rem, 4.5vw, 2.75rem); }
+    .custom-plan-billing-grid { grid-template-columns: 1fr 1fr; }
+    .custom-plan-limits-grid { grid-template-columns: 1fr 1fr; }
+    @media (max-width: 640px) {
+      .select-plan-nav { padding: 0 16px; }
+      .select-plan-back-label { display: none; }
+      .custom-plan-overlay { align-items: flex-end; padding: 0; }
+      .custom-plan-modal {
+        max-width: 100% !important;
+        max-height: 94vh !important;
+        border-radius: 20px 20px 0 0 !important;
+      }
+      .custom-plan-billing-grid,
+      .custom-plan-limits-grid { grid-template-columns: 1fr; }
+      .custom-plan-footer { flex-direction: column-reverse; }
+      .custom-plan-footer button { flex: none !important; width: 100%; }
+    }
+    @media (max-width: 480px) {
+      .select-plan-logo-text { display: none; }
+    }
+  `}</style>
 );
 
 // ─── MAIN COMPONENT ────────────────────────────────────────────────────────────
@@ -816,10 +1116,8 @@ const SelectPlan = () => {
   const [loading, setLoading] = useState(true);
   const [purchasingPlanId, setPurchasingPlanId] = useState(null);
   const [customPlanModalOpen, setCustomPlanModalOpen] = useState(false);
-  const [customPlanData, setCustomPlanData] = useState({
-    name: '', description: '', price: '', durationDays: '',
-    maxOrganizations: '', maxVenues: '', maxDevices: '', maxUsers: '',
-  });
+  const [creatingCustom, setCreatingCustom] = useState(false);
+  const [customPlanData, setCustomPlanData] = useState({ ...EMPTY_CUSTOM_PLAN });
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -899,6 +1197,7 @@ const SelectPlan = () => {
       dispatch(setPendingCustomPlan(customPlanData));
       navigate('/login', { state: { from: '/select-plan' } }); return;
     }
+    setCreatingCustom(true);
     try {
       await api.post('/subscription/create-plan', { ...customPlanData, type: 'custom' });
       Swal.fire({ icon: 'success', title: 'Custom Plan Created', timer: 2000, showConfirmButton: false });
@@ -907,53 +1206,61 @@ const SelectPlan = () => {
       fetchPlans();
     } catch (err) {
       Swal.fire({ icon: 'error', title: 'Creation Failed', text: err.response?.data?.message || 'Failed to create custom plan.' });
+    } finally {
+      setCreatingCustom(false);
     }
   };
 
   const handleCloseCustomModal = () => {
     setCustomPlanModalOpen(false);
     if (!isAuthenticated) {
-      setCustomPlanData({ name: '', description: '', price: '', durationDays: '', maxOrganizations: '', maxVenues: '', maxDevices: '', maxUsers: '' });
+      setCustomPlanData({ ...EMPTY_CUSTOM_PLAN });
     }
   };
 
   // ── render ────────────────────────────────────────────────────────────────────
   return (
     <div style={{ minHeight: '100vh', background: T.pageBg, fontFamily: 'inherit' }}>
+      <SelectPlanStyles />
 
       {/* ── Top nav bar ──────────────────────────────────────────────────────── */}
-      <nav style={{
+      <nav className="select-plan-nav" style={{
         background: T.white, borderBottom: `1px solid ${T.slate200}`,
-        padding: '0 32px', height: 60,
+        height: 60,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         position: 'sticky', top: 0, zIndex: 50,
         boxShadow: '0 1px 8px rgba(0,0,0,0.05)',
       }}>
         <NavLink to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
           <img src="/logo.png" alt="IoTify" style={{ height: 30 }} onError={e => e.target.style.display = 'none'} />
-          <span style={{ fontWeight: 700, fontSize: 17, color: T.teal }}>IoTify</span>
+          <span className="select-plan-logo-text" style={{ fontWeight: 700, fontSize: 17, color: T.primary }}>IoTify</span>
         </NavLink>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <NavLink to="/" style={{
             display: 'flex', alignItems: 'center', gap: 6,
             fontSize: 14, fontWeight: 500, color: T.slate500, textDecoration: 'none',
           }}
-            onMouseEnter={e => e.currentTarget.style.color = T.teal}
+            onMouseEnter={e => e.currentTarget.style.color = T.primary}
             onMouseLeave={e => e.currentTarget.style.color = T.slate500}
           >
-            <Icon name="arrowLeft" size={14} color="currentColor" /> Back to home
+            <Icon name="arrowLeft" size={14} color="currentColor" />
+            <span className="select-plan-back-label">Back to home</span>
           </NavLink>
           {isAuthenticated ? (
             <button onClick={() => navigate(user?.role === 'admin' ? '/admin/management' : '/management')}
               style={{
-                background: T.teal, color: '#fff', border: 'none',
+                background: T.primary, color: '#fff', border: 'none',
                 borderRadius: 8, padding: '7px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-              }}>
+                transition: 'background .15s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = T.primaryHover; }}
+              onMouseLeave={e => { e.currentTarget.style.background = T.primary; }}
+            >
               Dashboard
             </button>
           ) : (
             <NavLink to="/login" style={{
-              background: T.teal, color: '#fff', borderRadius: 8,
+              background: T.primary, color: '#fff', borderRadius: 8,
               padding: '7px 16px', fontSize: 13, fontWeight: 600, textDecoration: 'none',
             }}>
               Sign in
@@ -969,14 +1276,14 @@ const SelectPlan = () => {
         <div style={{ textAlign: 'center', marginBottom: 64 }}>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
-            background: T.tealLight, color: T.tealDark,
+            background: T.primaryTint, color: T.primaryDark,
             fontSize: 13, fontWeight: 600, padding: '5px 14px', borderRadius: 20,
-            border: `1px solid ${T.tealMid}`, marginBottom: 18,
+            border: `1px solid ${T.primaryBorder}`, marginBottom: 18,
           }}>
-            <Icon name="wifi" size={13} color={T.teal} /> Simple, transparent pricing
+            <Icon name="wifi" size={13} color={T.primary} /> Simple, transparent pricing
           </div>
-          <h1 style={{
-            fontSize: 44, fontWeight: 800, color: T.slate900,
+          <h1 className="select-plan-title" style={{
+            fontWeight: 800, color: T.slate900,
             letterSpacing: '-1.5px', margin: '0 0 14px', lineHeight: 1.1,
           }}>
             Choose the right plan
@@ -1003,8 +1310,8 @@ const SelectPlan = () => {
         {loading ? (
           <div style={{ textAlign: 'center', padding: '80px 0' }}>
             <div style={{
-              width: 44, height: 44, border: `3px solid ${T.tealMid}`,
-              borderTopColor: T.teal, borderRadius: '50%',
+              width: 44, height: 44, border: `3px solid ${T.slate200}`,
+              borderTopColor: T.primary, borderRadius: '50%',
               animation: 'spin 0.8s linear infinite', margin: '0 auto 16px',
             }} />
             <p style={{ color: T.slate500, fontSize: 15 }}>Loading plans…</p>
@@ -1042,7 +1349,7 @@ const SelectPlan = () => {
               {[
                 { icon: 'shield', color: '#16a34a', text: 'No lock-in — cancel any time' },
                 { icon: 'zap',    color: '#d97706', text: 'Instant activation after payment' },
-                { icon: 'cpu',    color: T.teal,    text: 'OTA updates on all plans' },
+                { icon: 'cpu',    color: T.primary,    text: 'OTA updates on all plans' },
                 { icon: 'users',  color: '#8b5cf6', text: 'Role-based access included' },
               ].map((r, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 9, color: T.slate500, fontSize: 14 }}>
@@ -1055,70 +1362,15 @@ const SelectPlan = () => {
         )}
       </div>
 
-      {/* ── Custom plan modal ──────────────────────────────────────────────────── */}
-      <Dialog
+      <CustomPlanModal
         open={customPlanModalOpen}
         onClose={handleCloseCustomModal}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{
-          style: { borderRadius: 16, border: `1px solid ${T.slate200}` }
-        }}
-      >
-        <DialogTitle style={{
-          fontWeight: 700, fontSize: 18, color: T.slate900,
-          borderBottom: `1px solid ${T.slate200}`, padding: '20px 24px',
-          display: 'flex', alignItems: 'center', gap: 10,
-        }}>
-          <div style={{
-            width: 36, height: 36, borderRadius: 10, background: T.tealLight,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <Icon name="sparkle" size={18} color={T.teal} />
-          </div>
-          Build a custom plan
-        </DialogTitle>
-
-        <DialogContent style={{ padding: '24px' }}>
-          <Stack spacing={2} sx={{ mt: 0.5 }}>
-            <TextField fullWidth label="Plan name" name="name"
-              value={customPlanData.name} onChange={handleCustomPlanInputChange} required />
-            <TextField fullWidth label="Description" name="description"
-              value={customPlanData.description} onChange={handleCustomPlanInputChange} multiline rows={2} />
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <TextField fullWidth label="Price ($)" name="price" type="number"
-                value={customPlanData.price} onChange={handleCustomPlanInputChange}
-                inputProps={{ min: 0 }} required />
-              <TextField fullWidth label="Duration (days)" name="durationDays" type="number"
-                value={customPlanData.durationDays} onChange={handleCustomPlanInputChange}
-                inputProps={{ min: 0 }} required />
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <TextField fullWidth label="Max organisations" name="maxOrganizations" type="number"
-                value={customPlanData.maxOrganizations} onChange={handleCustomPlanInputChange} inputProps={{ min: 0 }} />
-              <TextField fullWidth label="Max venues" name="maxVenues" type="number"
-                value={customPlanData.maxVenues} onChange={handleCustomPlanInputChange} inputProps={{ min: 0 }} />
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <TextField fullWidth label="Max devices" name="maxDevices" type="number"
-                value={customPlanData.maxDevices} onChange={handleCustomPlanInputChange} inputProps={{ min: 0 }} />
-              <TextField fullWidth label="Max users" name="maxUsers" type="number"
-                value={customPlanData.maxUsers} onChange={handleCustomPlanInputChange} inputProps={{ min: 0 }} />
-            </div>
-          </Stack>
-        </DialogContent>
-
-        <DialogActions style={{ padding: '16px 24px', borderTop: `1px solid ${T.slate200}`, gap: 8 }}>
-          <Button onClick={handleCloseCustomModal}
-            style={{ color: T.slate500, textTransform: 'none', fontWeight: 600 }}>
-            Cancel
-          </Button>
-          <Button onClick={handleCreateCustomPlan} variant="contained"
-            style={{ background: T.teal, textTransform: 'none', fontWeight: 700, borderRadius: 8, padding: '8px 24px' }}>
-            {isAuthenticated ? 'Create plan' : 'Save & sign in'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        data={customPlanData}
+        onChange={handleCustomPlanInputChange}
+        onSubmit={handleCreateCustomPlan}
+        isAuthenticated={isAuthenticated}
+        submitting={creatingCustom}
+      />
     </div>
   );
 };
