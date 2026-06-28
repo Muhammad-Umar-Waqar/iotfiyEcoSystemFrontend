@@ -77,7 +77,7 @@ export default function VenueDetailsPanel({
   const user  = useSelector((state) => state.auth.user);
   const orgId = organizationId || user?.organization || null;
 
-  const { eventsMap, toggleMap, setEvents, triggerDevice, skipEvent } = useScheduler();
+  const { eventsMap, toggleMap, setEvents, bumpEventsRefresh } = useScheduler();
 
   const schedulerEvents = deviceId ? eventsMap[deviceId] ?? [] : [];
 
@@ -144,7 +144,7 @@ export default function VenueDetailsPanel({
     return resolvedToggle;
   }, [runningSchedulerEvent, resolvedToggle, isOnline]);
 
-  // ✅ Refresh events from backend (same logic as EventsSection)
+  // Refresh events in context + EventsSection (via bumpEventsRefresh)
   const refreshEvents = async () => {
     try {
       if (!deviceId) return;
@@ -159,9 +159,8 @@ export default function VenueDetailsPanel({
       );
 
       const data = await res.json();
-      const fetchedEvents = data.schedules || [];
+      const fetchedEvents = data.events || [];
 
-      // Fetch current/next status and mark events
       const statusRes = await fetch(
         `${import.meta.env.VITE_API_URL}/event/get/${deviceId}`,
         {
@@ -174,7 +173,7 @@ export default function VenueDetailsPanel({
       const statusData = await statusRes.json();
 
       let markedEvents = fetchedEvents;
-      if (statusData && statusData.event) {
+      if (statusData?.event) {
         const { type, event } = statusData;
         markedEvents = fetchedEvents.map(e => {
           if (e._id === event._id) {
@@ -184,9 +183,8 @@ export default function VenueDetailsPanel({
         });
       }
 
-      // Sync to context
       setEvents(deviceId, markedEvents);
-
+      bumpEventsRefresh(deviceId);
     } catch (err) {
       console.error("Failed to refresh events:", err);
     }
@@ -219,13 +217,30 @@ export default function VenueDetailsPanel({
       if (result.isConfirmed) {
         try {
           setLoading(true);
-          await skipEvent(deviceId);
-          await refreshEvents();
+          const response = await fetch(
+            `${import.meta.env.VITE_API_URL}/event/${runningSchedulerEvent._id}/status`,
+            {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+              body: JSON.stringify({ status: "INACTIVE" }),
+            }
+          );
+
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || "Failed to disable event");
+          }
+
+          await response.json();
+          bumpEventsRefresh(deviceId);
         } catch (err) {
           Swal.fire({
             icon: "error",
             title: "Failed",
-            text: err.message || "Could not skip event",
+            text: err.message || "Could not disable event",
           });
         } finally {
           setLoading(false);

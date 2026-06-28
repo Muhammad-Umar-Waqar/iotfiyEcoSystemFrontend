@@ -7,12 +7,21 @@ const TOKEN = localStorage.getItem("token");
 export function SchedulerProvider({ children }) {
   const [eventsMap, setEventsMap] = useState({});
   const [toggleMap, setToggleMap] = useState({});
+  const [eventsRefreshMap, setEventsRefreshMap] = useState({});
 
   const setEvents = useCallback((deviceId, updated) =>
     setEventsMap(prev => ({
       ...prev,
       [deviceId]: updated || [],
     })), []);
+
+  const bumpEventsRefresh = useCallback((deviceId) => {
+    if (!deviceId) return;
+    setEventsRefreshMap(prev => ({
+      ...prev,
+      [deviceId]: (prev[deviceId] ?? 0) + 1,
+    }));
+  }, []);
 
   const setToggle = useCallback((deviceId, val) =>
     setToggleMap(prev => ({
@@ -150,7 +159,17 @@ export function SchedulerProvider({ children }) {
 
   return (
     <SchedulerContext.Provider
-      value={{ eventsMap, toggleMap, setEvents, setToggle, triggerDevice, triggerDeviceManual, skipEvent }}
+      value={{
+        eventsMap,
+        toggleMap,
+        eventsRefreshMap,
+        setEvents,
+        setToggle,
+        bumpEventsRefresh,
+        triggerDevice,
+        triggerDeviceManual,
+        skipEvent,
+      }}
     >
       {children}
     </SchedulerContext.Provider>

@@ -48,7 +48,7 @@ export default function Dashboard() {
     clearVenue,
   } = useOrgVenue();
 
-  const { eventsMap, setEvents, setToggle } = useScheduler();
+  const { eventsMap, setEvents, bumpEventsRefresh } = useScheduler();
 
   // ── Local UI state ────────────────────────────────────────────────────────
   const [selectedOrgId,            setSelectedOrgId]            = useState("");
@@ -242,17 +242,14 @@ export default function Dashboard() {
 
           console.log(`📋 [page.jsx] Fetched ${allEvents.length} events for ${deviceKey}`);
 
-          // Store events in context
           setEvents(deviceKey, allEvents);
+          bumpEventsRefresh(deviceKey);
         }
-
-        // If there is no current/next event the device is effectively off
-        if (!statusData?.event) setToggle(deviceKey, "off");
       } catch (err) {
         console.warn(`Scheduler fetch error for ${deviceKey}:`, err);
       }
     }
-  }, [freezerDevices, token, setEvents, setToggle]);
+  }, [freezerDevices, token, setEvents, bumpEventsRefresh]);
 
   useEffect(() => {
     if (freezerDevices.length > 0) fetchSchedulerData();

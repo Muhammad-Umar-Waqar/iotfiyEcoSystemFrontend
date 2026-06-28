@@ -25,7 +25,7 @@ const EventsSection = ({
   const [openModal, setOpenModal] = useState(false);
   const scrollContainerRef = useRef(null);
   const [events, setEvents] = useState([]);
-  const { setEvents: setContextEvents } = useScheduler();
+  const { setEvents: setContextEvents, eventsRefreshMap = {} } = useScheduler() ?? {};
 
   const isModalOpen = openModal || externalOpen;
 
@@ -117,7 +117,7 @@ const EventsSection = ({
 
   useEffect(() => {
     fetchEvents();
-  }, [selectedDevice?.deviceId]);
+  }, [selectedDevice?.deviceId, eventsRefreshMap?.[selectedDevice?.deviceId]]);
 
   // const addEvent = (newEvent) => {
   //   const collision = hasCollision(events, newEvent);
