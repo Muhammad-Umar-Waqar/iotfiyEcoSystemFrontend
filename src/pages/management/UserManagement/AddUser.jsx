@@ -494,7 +494,7 @@ const AddUser = ({ selectedUser }) => {
 
       <form
         onSubmit={handleSubmit}
-        className={`space-y-4 w-full flex flex-col px-10 ${
+        className={`space-y-4 mx-auto md:w-[70%] flex flex-col ${
           !hasManagePermission ? "opacity-60 pointer-events-none" : ""
         }`}
       >

@@ -9,7 +9,7 @@ import Swal from "sweetalert2";
 import { useScheduler } from "../../contexts/SchedulerContext";
 import TruncatedText from "../../components/TruncatedText";
 import { resolveAlertState } from "../../utils/triggerAlertUtils";
-import { handleCreateEventPlusClick } from "../../utils/schedulingCardUtils";
+import { handleCreateEventPlusClick, convertUTCToLocal } from "../../utils/schedulingCardUtils";
 
 function toInt(v) {
   const n = Number(v);
@@ -104,7 +104,7 @@ export default function OdourDeviceCard({
   triggeredAlerts = [],
   onCreateEventClick,
 }) {
-  const { triggerDevice, triggerDeviceManual, toggleMap } = useScheduler();
+  const { toggleMap } = useScheduler();
 
   const toggleState = deviceState?.toLowerCase() || toggleMap?.[deviceId] || "off";
   const [loading, setLoading] = useState(false);
@@ -159,10 +159,13 @@ export default function OdourDeviceCard({
     }
 
     if (category === "scheduling" && wsRunningEvent) {
+      const localStartTime = convertUTCToLocal(wsRunningEvent.startTime);
+      const localEndTime = convertUTCToLocal(wsRunningEvent.endTime);
+
       const result = await Swal.fire({
         title: "Event Currently Running",
         html: `The <b>${wsRunningEvent.command || "Scheduled"}</b> event is active.<br/>
-               <span style="color:#64748b;font-size:13px">${wsRunningEvent.startTime} → ${wsRunningEvent.endTime}</span><br/><br/>
+               <span style="color:#64748b;font-size:13px">${localStartTime} → ${localEndTime}</span><br/><br/>
                Do you want to disable this event?`,
         icon: "warning",
         showCancelButton: true,
@@ -214,10 +217,47 @@ export default function OdourDeviceCard({
 
     try {
       setLoading(true);
+
       if (category === "trigger") {
-        await triggerDeviceManual(deviceId, nextAction);
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/device/manual-trigger/${deviceId}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: JSON.stringify({ state: nextAction }),
+          }
+        );
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || "Failed to trigger device");
+        }
+
+        await response.json();
       } else {
-        await triggerDevice(deviceId, nextAction);
+        const eventId = scheduleData?.event?._id;
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/event/manual-toggle`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: JSON.stringify({ deviceId, eventId }),
+          }
+        );
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || "Failed to toggle device");
+        }
+
+        await response.json();
+        await onRefreshScheduler?.();
       }
     } catch (err) {
       Swal.fire({ icon: "error", title: "Failed", text: err.message || "Command failed" });
@@ -430,8 +470,10 @@ export default function OdourDeviceCard({
     // </div>
 
     <div
-  className={`freezer-card-container bg-white ${selectedClass} flex flex-col`}
->
+      onClick={() => onCardSelect?.()}
+      className={`freezer-card-container bg-white ${selectedClass} flex flex-col cursor-pointer`}
+      style={isSelected ? { transform: "scale(1.01)" } : {}}
+    >
   <div className="relative w-full px-4 py-2 flex-1 flex flex-col">
     <div className="device-id-section flex justify-between items-start">
       {deviceIdHeader}

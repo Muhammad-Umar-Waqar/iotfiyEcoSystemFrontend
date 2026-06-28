@@ -369,6 +369,7 @@
 // export default Login;
 import { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser, fetchCurrentUser } from '../../slices/authSlice';
 import api from '../../services/api';
@@ -527,6 +528,21 @@ const Login = () => {
       <div className="min-h-[60vh] grid md:grid-cols-2 rounded-4xl  place-items-center max-w-6xl w-full bg-white shadow-lg overflow-hidden ">
         {/* Left (Form) Section */}
         <div className="p-10 lg:p-18 w-full">
+          <NavLink
+            to="/"
+            className="inline-flex items-center gap-2.5 mb-6 text-sm font-medium text-slate-600 hover:text-[#178D8F] transition-colors group"
+            aria-label="Back to home"
+          >
+            <span className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-slate-200 bg-slate-50 shadow-sm group-hover:border-[#178D8F]/40 group-hover:bg-[#178D8F]/10 group-hover:shadow-md transition-all duration-200">
+              <ArrowLeft
+                size={18}
+                strokeWidth={2.25}
+                className="text-slate-600 group-hover:text-[#178D8F] group-hover:-translate-x-0.5 transition-all duration-200"
+              />
+            </span>
+            <span className="hidden sm:inline">Back to home</span>
+          </NavLink>
+
           <form className="space-y-3 lg:p-3" onSubmit={onSubmit}>
             <div className="mb-8 text-center md:text-left">
               <img src="/logo.png" alt="IoTify Logo" className="h-10 mx-auto md:mx-0 mb-4" />

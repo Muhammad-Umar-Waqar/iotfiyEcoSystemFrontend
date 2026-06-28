@@ -94,7 +94,7 @@ const AddOrganization = () => {
   return (
     <div className="min-h-[60vh] flex items-center justify-center bg-[#EEF3F9] rounded-xl shadow-sm w-full md:flex flex-col justify-center  border border-[#E5E7EB]">
       
-    <div className="  AddingPage organization-add-container  ">
+    <div className="  AddingPage organization-add-container w-full">
       <h2 className="organization-add-title font-semibold mb-1 text-center">Add Organization</h2>
       <p className="organization-add-subtitle text-gray-500 mb-6 text-center">
         {hasManagePermission
@@ -103,7 +103,7 @@ const AddOrganization = () => {
         }
       </p>
 
-      <div className={`organization-add-form space-y-4 max-w-sm mx-auto w-full ${!hasManagePermission ? 'opacity-60 pointer-events-none' : ''}`}>
+      <div className={`organization-add-form space-y-4 mx-auto  md:w-[70%] ${!hasManagePermission ? 'opacity-60 pointer-events-none' : ''}`}>
         <InputField
           id="organization_name"
           name="organization_name"

@@ -104,16 +104,21 @@ export default function VenueDetailsPanel({
   const orgVenues = useSelector((state) => (orgId ? state.Venue.venuesByOrg[orgId] || [] : []));
   const globalVenues = useSelector((state) => state.Venue.Venues || []);
   const venuesFromSlice = orgVenues.length ? orgVenues : globalVenues;
-  const isSchedulerDevice = String(deviceType) === "TSD" || category === "scheduling";
+  const isSchedulerDevice =
+    category === "scheduling" || String(deviceType) === "TSD";
 
-  useEffect(() => {
-    if (orgId && !orgVenues.length) {
-      dispatch(fetchVenuesByOrganization(orgId));
+    // ✅ Use WebSocket data for SCHEDULES ONLY running event (same logic as Card)
+  const wsRunningEvent = useMemo(() => {
+    if (category !== "scheduling") return null;
+    if (scheduleData?.type === "CURRENT" && scheduleData?.event) {
+      return scheduleData.event;
     }
-  }, [orgId, orgVenues.length, dispatch]);
+    return null;
+  }, [scheduleData, category]);
 
   // ── Trust Backend Type (Same logic as Card) ──
   const runningSchedulerEvent = useMemo(() => {
+    if (wsRunningEvent) return wsRunningEvent;
     if (!schedulerEvents || schedulerEvents.length === 0) return null;
 
     let item = schedulerEvents[0];
@@ -125,7 +130,13 @@ export default function VenueDetailsPanel({
 
     // Only consider it running if backend says type === "CURRENT"
     return item?.type === "CURRENT" ? item : null;
-  }, [schedulerEvents]);
+  }, [wsRunningEvent, schedulerEvents]);
+
+  useEffect(() => {
+    if (orgId && !orgVenues.length) {
+      dispatch(fetchVenuesByOrganization(orgId));
+    }
+  }, [orgId, orgVenues.length, dispatch]);
 
   const displayToggleState = useMemo(() => {
     // Show gray when event is running OR device is offline

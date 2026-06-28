@@ -102,7 +102,7 @@ const AddVenue = () => {
   return (
       <div className="min-h-[60vh] flex items-center justify-center bg-[#EEF3F9] rounded-xl shadow-sm w-full md:flex flex-col justify-center  border border-[#E5E7EB]">
       
-    <div className="AddingPage venue-add-container ">
+    <div className="AddingPage venue-add-container w-full">
       <h2 className="venue-add-title font-semibold mb-1 text-center">Add Venues</h2>
       <p className="venue-add-subtitle text-gray-500 mb-6 text-center">
         {hasManagePermission
@@ -111,7 +111,7 @@ const AddVenue = () => {
         }
       </p>
 
-      <form className={`space-y-4 max-w-sm mx-auto w-full ${!hasManagePermission ? 'opacity-60 pointer-events-none' : ''}`} onSubmit={handleVenue}>
+      <form className={`space-y-4 md:w-[70%] mx-auto ${!hasManagePermission ? 'opacity-60 pointer-events-none' : ''}`} onSubmit={handleVenue}>
         <div className="relative bg-white">
           <LucideBox className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
           <input

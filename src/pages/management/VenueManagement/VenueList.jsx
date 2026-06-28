@@ -790,10 +790,10 @@ const VenueList = ({ onVenueSelect, selectedVenue }) => {
         <table className="w-full table-auto text-left">
           <thead className="sticky top-0 z-10 bg-white">
             <tr className="bg-gray-100">
-              <th className="text-lg py-5 px-4 font-bold text-gray-800">
+              <th className="text-lg py-5 px-4 font-semibold text-gray-800">
                 Venue Name
               </th>
-              <th className="text-lg py-5 px-4 text-center">
+              <th className="text-lg font-semibold py-5 px-4 text-center text-gray-800" >
                 Actions
               </th>
             </tr>

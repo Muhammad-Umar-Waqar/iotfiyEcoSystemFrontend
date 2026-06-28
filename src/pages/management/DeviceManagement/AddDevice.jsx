@@ -401,7 +401,7 @@ const AddDevice = () => {
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center bg-[#EEF3F9] rounded-xl shadow-sm w-full md:flex flex-col justify-center border border-[#E5E7EB]">
-      <div className="AddingPage device-add-container">
+      <div className="AddingPage device-add-container w-full">
       <h2 className="device-add-title font-semibold mb-1 text-center">Add Device</h2>
       <p className="device-add-subtitle text-gray-500 mb-6 text-center">
         {hasManagePermission
@@ -410,7 +410,7 @@ const AddDevice = () => {
         }
       </p>
 
-      <div className={`space-y-4 max-w-sm mx-auto w-full px-4 ${!hasManagePermission ? 'opacity-60 pointer-events-none' : ''}`}>
+      <div className={`space-y-4 mx-auto  md:w-[70%] px-4 ${!hasManagePermission ? 'opacity-60 pointer-events-none' : ''}`}>
         <InputField
           id="deviceName"
           name="deviceName"

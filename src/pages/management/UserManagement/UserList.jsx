@@ -374,19 +374,19 @@ const UserList = ({ onUserSelect, selectedUser }) => {
     <table className="w-full table-fixed text-left border-collapse">
   <thead className="sticky top-0 z-20 bg-white ">
   <tr className="bg-gray-100">
-    <th className="py-23px-2 sm:px-4 text-xs sm:text-sm font-bold text-gray-800 w-[38%] sm:w-[24%]">
+    <th className="py-3 px-2 sm:px-4 text-xs sm:text-sm font-semibold text-gray-800 w-[38%] sm:w-[24%]">
       Name
     </th>
 
-    <th className="hidden sm:table-cell py-3 px-4 text-xs sm:text-sm font-bold text-gray-800 sm:w-[28%]">
+    <th className="hidden sm:table-cell py-3 px-4 text-xs sm:text-sm font-semibold text-gray-800 sm:w-[28%]">
       Email
     </th>
 
-    <th className="py-3 px-2 sm:px-4 text-xs sm:text-sm font-bold text-gray-800 text-center w-[28%] sm:w-[20%]">
+    <th className="py-3 px-2 sm:px-4 text-xs sm:text-sm font-semibold text-gray-800 text-center w-[28%] sm:w-[20%]">
       Permission
     </th>
 
-    <th className="py-3 px-2 sm:px-4 text-xs sm:text-sm font-bold text-gray-800 text-center w-[34%] sm:w-[28%]">
+    <th className="py-3 px-2 sm:px-4 text-xs sm:text-sm font-semibold text-gray-800 text-center w-[34%] sm:w-[28%]">
       Actions
     </th>
   </tr>
