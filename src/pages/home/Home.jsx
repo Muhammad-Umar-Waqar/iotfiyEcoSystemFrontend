@@ -592,8 +592,59 @@ const PricingCTA = () => {
   );
 };
 
+
+const footerLinks = [
+  {
+    title: "Product",
+    links: [
+      {
+        label: "Features",
+        action: () =>
+          document.getElementById("features")?.scrollIntoView({
+            behavior: "smooth",
+          }),
+      },
+      {
+        label: "Pricing",
+        path: "/select-plan",
+      },
+      {
+        label: "How it works",
+        action: () =>
+          document.getElementById("how-it-works")?.scrollIntoView({
+            behavior: "smooth",
+          }),
+      },
+    ],
+  },
+  {
+    title: "Account",
+    links: [
+      {
+        label: "Sign in",
+        path: "/login",
+      },
+      {
+        label: "Register",
+        path: "/login",
+        state: { register: true },
+      },
+      {
+        label: "Select plan",
+        path: "/select-plan",
+      },
+    ],
+  },
+];
+
+
 // ─── FOOTER ────────────────────────────────────────────────────────────────────
-const Footer = () => (
+const Footer = () => {
+
+  let navigate = useNavigate();  
+
+
+return(
   <footer style={{
     background: T.slate900, color: '#94a3b8',
     padding: '48px 24px 32px',
@@ -611,7 +662,7 @@ const Footer = () => (
           </p>
         </div>
         <div style={{ display: 'flex', gap: 48, flexWrap: 'wrap' }}>
-          {[
+          {/* {[
             { title: 'Product', links: ['Features', 'Pricing', 'How it works'] },
             { title: 'Account', links: ['Sign in', 'Register', 'Select plan'] },
           ].map(col => (
@@ -624,7 +675,50 @@ const Footer = () => (
                 >{l}</div>
               ))}
             </div>
-          ))}
+          ))} */}
+
+{footerLinks.map(col => (
+  <div key={col.title}>
+    <div
+      style={{
+        color: "#fff",
+        fontWeight: 600,
+        fontSize: 13,
+        marginBottom: 14,
+      }}
+    >
+      {col.title}
+    </div>
+
+    {col.links.map(link => (
+      <div
+        key={link.label}
+        style={{
+          fontSize: 14,
+          marginBottom: 10,
+          cursor: "pointer",
+          color: "#94a3b8",
+          transition: "color .2s",
+        }}
+        onClick={() => {
+          if (link.action) {
+            link.action();
+          } else {
+            navigate(link.path, {
+              state: link.state,
+            });
+          }
+        }}
+        onMouseEnter={e => (e.currentTarget.style.color = "#fff")}
+        onMouseLeave={e => (e.currentTarget.style.color = "#94a3b8")}
+      >
+        {link.label}
+      </div>
+    ))}
+  </div>
+))}
+
+
         </div>
       </div>
       <div style={{ borderTop: '1px solid #1e293b', paddingTop: 24, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
@@ -633,7 +727,8 @@ const Footer = () => (
       </div>
     </div>
   </footer>
-);
+
+) };
 
 // ─── RESPONSIVE CSS ────────────────────────────────────────────────────────────
 const ResponsiveStyle = () => (
