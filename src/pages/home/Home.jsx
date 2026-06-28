@@ -603,7 +603,7 @@ const Footer = () => (
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 32, marginBottom: 40 }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-            <img src="/logo.png" alt="IoTify" style={{ height: 28, filter: 'brightness(10)' }} onError={e => e.target.style.display='none'} />
+            <img src="/logo.png" alt="IoTify" style={{ height: 28, filter: 'brightness(100)' }} onError={e => e.target.style.display='none'} />
             {/* <span style={{ fontWeight: 700, fontSize: 18, color: '#fff' }}>IoTify</span> */}
           </div>
           <p style={{ fontSize: 14, lineHeight: 1.6, maxWidth: 240 }}>
