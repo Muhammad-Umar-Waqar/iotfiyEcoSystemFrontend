@@ -41,6 +41,7 @@ export default function LogoutDialog({
   description = "Are you sure you want to sign out? You will need to log in again to access the system.",
 }) {
   const { user, token } = useSelector((state) => state.auth);
+  const isAdmin = user?.role === "admin";
   const [tabValue, setTabValue] = useState(0);
 
   // Email change states
@@ -192,12 +193,14 @@ export default function LogoutDialog({
     >
       <DialogTitle id="account-dialog-title">Account Settings</DialogTitle>
 
-      <Box sx={{ borderBottom: 1, borderColor: "divider", px: 3 }}>
-        <Tabs value={tabValue} onChange={handleTabChange} aria-label="account tabs">
-          <Tab label="Logout" id="account-tab-0" aria-controls="account-tabpanel-0" />
-          <Tab label="Change Email" id="account-tab-1" aria-controls="account-tabpanel-1" />
-        </Tabs>
-      </Box>
+      {!isAdmin && (
+        <Box sx={{ borderBottom: 1, borderColor: "divider", px: 3 }}>
+          <Tabs value={tabValue} onChange={handleTabChange} aria-label="account tabs">
+            <Tab label="Logout" id="account-tab-0" aria-controls="account-tabpanel-0" />
+            <Tab label="Change Email" id="account-tab-1" aria-controls="account-tabpanel-1" />
+          </Tabs>
+        </Box>
+      )}
 
       <DialogContent>
         <TabPanel value={tabValue} index={0}>
@@ -206,86 +209,88 @@ export default function LogoutDialog({
           </DialogContentText>
         </TabPanel>
 
-        <TabPanel value={tabValue} index={1}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            {error && (
-              <Alert severity="error" onClose={() => setError("")}>
-                {error}
-              </Alert>
-            )}
-
-            <TextField
-              label="Current Email"
-              value={user?.email || ""}
-              disabled
-              fullWidth
-              variant="outlined"
-            />
-
-            <TextField
-              label="New Email"
-              type="email"
-              value={newEmail}
-              onChange={(e) => setNewEmail(e.target.value)}
-              disabled={otpSent || requestLoading}
-              fullWidth
-              variant="outlined"
-              placeholder="Enter new email address"
-            />
-
-            {!otpSent ? (
-              <Button
-                variant="contained"
-                onClick={handleRequestEmailChange}
-                disabled={requestLoading || !newEmail}
-                startIcon={requestLoading ? <CircularProgress size={16} /> : null}
-                fullWidth
-              >
-                {requestLoading ? "Sending OTP..." : "Request Change"}
-              </Button>
-            ) : (
-              <>
-                <Alert severity="info">
-                  An OTP has been sent to {newEmail}. Please check your email and enter the code below.
+        {!isAdmin && (
+          <TabPanel value={tabValue} index={1}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              {error && (
+                <Alert severity="error" onClose={() => setError("")}>
+                  {error}
                 </Alert>
+              )}
 
-                <TextField
-                  label="Enter OTP"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  disabled={verifyLoading}
+              <TextField
+                label="Current Email"
+                value={user?.email || ""}
+                disabled
+                fullWidth
+                variant="outlined"
+              />
+
+              <TextField
+                label="New Email"
+                type="email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                disabled={otpSent || requestLoading}
+                fullWidth
+                variant="outlined"
+                placeholder="Enter new email address"
+              />
+
+              {!otpSent ? (
+                <Button
+                  variant="contained"
+                  onClick={handleRequestEmailChange}
+                  disabled={requestLoading || !newEmail}
+                  startIcon={requestLoading ? <CircularProgress size={16} /> : null}
                   fullWidth
-                  variant="outlined"
-                  placeholder="Enter 6-digit OTP"
-                  inputProps={{ maxLength: 6 }}
-                />
+                >
+                  {requestLoading ? "Sending OTP..." : "Request Change"}
+                </Button>
+              ) : (
+                <>
+                  <Alert severity="info">
+                    An OTP has been sent to {newEmail}. Please check your email and enter the code below.
+                  </Alert>
 
-                <Box sx={{ display: "flex", gap: 2 }}>
-                  <Button
-                    variant="outlined"
-                    onClick={() => {
-                      setOtpSent(false);
-                      setOtp("");
-                    }}
+                  <TextField
+                    label="Enter OTP"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
                     disabled={verifyLoading}
                     fullWidth
-                  >
-                    Change Email
-                  </Button>
-                  <Button
-                    variant="contained"
-                    onClick={handleVerifyEmailChange}
-                    disabled={verifyLoading || !otp}
-                    startIcon={verifyLoading ? <CircularProgress size={16} /> : null}
-                    fullWidth
-                  >
-                    {verifyLoading ? "Verifying..." : "Verify & Change"}
-                  </Button>
-                </Box>
-              </>
-            )}
-          </Box>
-        </TabPanel>
+                    variant="outlined"
+                    placeholder="Enter 6-digit OTP"
+                    inputProps={{ maxLength: 6 }}
+                  />
+
+                  <Box sx={{ display: "flex", gap: 2 }}>
+                    <Button
+                      variant="outlined"
+                      onClick={() => {
+                        setOtpSent(false);
+                        setOtp("");
+                      }}
+                      disabled={verifyLoading}
+                      fullWidth
+                    >
+                      Change Email
+                    </Button>
+                    <Button
+                      variant="contained"
+                      onClick={handleVerifyEmailChange}
+                      disabled={verifyLoading || !otp}
+                      startIcon={verifyLoading ? <CircularProgress size={16} /> : null}
+                      fullWidth
+                    >
+                      {verifyLoading ? "Verifying..." : "Verify & Change"}
+                    </Button>
+                  </Box>
+                </>
+              )}
+            </Box>
+          </TabPanel>
+        )}
       </DialogContent>
 
       <DialogActions sx={{ px: 3, py: 2 }}>
