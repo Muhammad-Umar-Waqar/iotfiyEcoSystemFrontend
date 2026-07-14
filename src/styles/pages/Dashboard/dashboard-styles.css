@@ -300,6 +300,18 @@
   background: #a8a8a8;
 }
 
+
+/* Mobile */
+@media (max-width: 767px) {
+  .custom-scrollbar {
+    -ms-overflow-style: none; /* IE & Edge */
+    scrollbar-width: none;    /* Firefox */
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    display: none;            /* Chrome, Safari, Edge */
+  }
+}
 /* Fix for icon-number alignment */
 .icon-number-align {
   display: flex;

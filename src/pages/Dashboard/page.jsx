@@ -172,7 +172,7 @@ export default function Dashboard() {
         if (!mounted) return;
 
         const data = await res.json();
-        console.log('data.>>', data)
+        console.log('data.devices>>', data)
 
         if (res.ok) {
           const devices = Array.isArray(data.devices)

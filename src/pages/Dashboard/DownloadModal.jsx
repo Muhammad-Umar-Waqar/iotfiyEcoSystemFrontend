@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from "react";
 import {
   Dialog,
@@ -50,27 +49,23 @@ export default function DownloadModal({
   deviceType = "",
 }) {
   const DEVICE_FIELDS_CONFIG = {
-    OMD: {
+    OD: {
       temperature: { label: "Temperature (°C)", unit: "°C" },
       humidity:    { label: "Humidity (%)",      unit: "%" },
       NH3:         { label: "NH₃ (ppm)",         unit: "ppm" },
       H2S:         { label: "H₂S (ppm)",         unit: "ppm" },
       odor:        { label: "Odor (%)",           unit: "%" },
     },
-    GLMD: {
+    GD: {
       leakage:     { label: "Gas Leakage",        unit: "boolean" },
       temperature: { label: "Temperature (°C)",   unit: "°C" },
       humidity:    { label: "Humidity (%)",        unit: "%" },
     },
-    TMD: {
+    TD: {
       temperature: { label: "Temperature (°C)",   unit: "°C" },
       humidity:    { label: "Humidity (%)",        unit: "%" },
     },
-    TSD: {
-      temp: { label: "Temperature (°C)", unit: "°C" },
-      humi: { label: "Humidity (%)",     unit: "%" },
-    },
-    AQIMD: {
+    AQID: {
       AQI:         { label: "Air Quality Index",  unit: "AQI" },
       temperature: { label: "Temperature (°C)",   unit: "°C" },
       humidity:    { label: "Humidity (%)",        unit: "%" },
@@ -79,14 +74,7 @@ export default function DownloadModal({
       PM10:        { label: "PM10 (ug/m³)",       unit: "ug/m³" },
       Status:      { label: "Status",             unit: "", computed: true },
     },
-    EMD: {
-      voltage:     { label: "Voltage (V)",        unit: "V" },
-      current:     { label: "Current (A)",        unit: "A" },
-      power:       { label: "Power (W)",          unit: "W",   computed: true },
-      humidity:    { label: "Humidity (%)",        unit: "%" },
-      temperature: { label: "Temperature (°C)",   unit: "°C" },
-    },
-    ESD: {
+    ED: {
       voltage:     { label: "Voltage (V)",        unit: "V" },
       current:     { label: "Current (A)",        unit: "A" },
       power:       { label: "Power (W)",          unit: "W",   computed: true },
@@ -95,7 +83,7 @@ export default function DownloadModal({
     },
   };
 
-  const isEMD = String(deviceType) === "EMD";
+  const isED = String(deviceType) === "ED";
 
   const fields = Object.keys(DEVICE_FIELDS_CONFIG[deviceType] || {});
   const influxFields = fields.filter(
@@ -263,7 +251,7 @@ from(bucket: "${bucket}")
 
       const [data, energy] = await Promise.all([
         queryInflux(startISO, endISO),
-        isEMD ? queryEnergy(startISO, endISO) : Promise.resolve(null),
+        isED ? queryEnergy(startISO, endISO) : Promise.resolve(null),
       ]);
 
       setTotalUnits(energy);
@@ -284,11 +272,11 @@ from(bucket: "${bucket}")
           }, {}),
         };
 
-        if (deviceType === "AQIMD") {
+        if (deviceType === "AQID") {
           base.Status = getAQIStatus(base.AQI);
         }
 
-        if (isEMD) {
+        if (isED) {
           const v  = Number(r.voltage);
           const c  = Number(r.current);
           const pw = Number.isFinite(v) && Number.isFinite(c) ? v * c : null;
@@ -308,9 +296,9 @@ from(bucket: "${bucket}")
     }
   };
 
-  // ── Summary (EMD footer) ───────────────────────────────────────────────────
+  // ── Summary (ED footer) ───────────────────────────────────────────────────
   const summary = useMemo(() => {
-    if (!rows.length || !isEMD) return null;
+    if (!rows.length || !isED) return null;
     const result = {};
 
     const powerVals = rows.map((r) => Number(r.power)).filter(Number.isFinite);
@@ -327,7 +315,7 @@ from(bucket: "${bucket}")
 
     result.totalUnits = totalUnits !== null ? totalUnits : "--";
     return result;
-  }, [rows, totalUnits, isEMD]);
+  }, [rows, totalUnits, isED]);
 
   // ── CSV download ───────────────────────────────────────────────────────────
   const downloadCsv = () => {
@@ -666,7 +654,7 @@ from(bucket: "${bucket}")
                 ))}
               </TableBody>
 
-              {/* EMD summary footer */}
+              {/* ED summary footer */}
               {summary && (
                 <TableHead>
                   <TableRow>
