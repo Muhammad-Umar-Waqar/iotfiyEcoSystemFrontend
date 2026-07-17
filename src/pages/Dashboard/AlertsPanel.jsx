@@ -785,8 +785,8 @@ function AllDeviceAlertsChart({ data }) {
   if (!hasData) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-gray-500 text-sm">
-        <BarChartRoundedIcon sx={{ fontSize: 40, color: "#93C5FD", mb: 1 }} />
-        No active alerts to chart
+        {/* <BarChartRoundedIcon sx={{ fontSize: 40, color: "#93C5FD", mb: 1 }} />
+        No active alerts to chart */}
       </div>
     );
   }
@@ -1177,10 +1177,13 @@ export default function AlertsPanel({
   const renderAlertsList = (scrollClassName = "") => (
     <Stack spacing={1.25}  className={`pr-1 custom-scrollbar ${scrollClassName}`}>
       {mergedVenueAlerts.length === 0 ? (
-        <Stack alignItems="center" justifyContent="center" py={5} spacing={1} color="text.secondary">
-          <CelebrationRoundedIcon sx={{ fontSize: 32, color: "#93C5FD" }} />
-          <Typography variant="body2">All devices operating normally</Typography>
-        </Stack>
+        // <Stack alignItems="center" justifyContent="center" py={5} spacing={1} color="text.secondary">
+        //   <Typography variant="body2">All devices operating normally</Typography>
+        // </Stack>
+        <div className="h-full flex items-center justify-center text-center py-4 text-[#64748B] text-sm">
+           <CelebrationRoundedIcon sx={{ fontSize: 32, color: "#93C5FD", marginRight: "10px" }} />
+          <h4 className="text-md font-semibold text-center"> All devices are operating normally.</h4>
+        </div>
       ) : (
         mergedVenueAlerts.map((device) => (
           <DeviceAlertCard key={device.deviceId} device={device} />

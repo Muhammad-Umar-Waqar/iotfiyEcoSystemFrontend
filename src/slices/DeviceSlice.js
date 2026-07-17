@@ -89,6 +89,11 @@ export const updateDevice = createAsyncThunk(
         requestPayload.interval = Number(updateData.interval);
       }
 
+      // AC: energy monitoring flag (boolean must be sent even when false)
+      if (typeof updateData.energyMonitoringIncluded === "boolean") {
+        requestPayload.energyMonitoringIncluded = updateData.energyMonitoringIncluded;
+      }
+
       // Include alert access fields if provided (for trigger devices)
       if (updateData.tempAlertAccess !== undefined) requestPayload.tempAlertAccess = updateData.tempAlertAccess;
       if (updateData.humiAlertAccess !== undefined) requestPayload.humiAlertAccess = updateData.humiAlertAccess;

@@ -15,6 +15,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import TableSkeleton from "../../../components/skeletons/TableSkeleton";
 import TruncatedText from "../../../components/TruncatedText";
 import { managementDrawerPaperProps, ManagementDrawerBody } from "../../../utils/managementDrawer";
+import '../../../styles/pages/Dashboard/dashboard-styles.css';
 
 const DEVICE_TYPE_LABEL = {
   OD: "Odour Device",
@@ -22,6 +23,16 @@ const DEVICE_TYPE_LABEL = {
   AQID: "Air Quality",
   GLD: "Gas Leakage",
   ED: "Energy Device",
+  AC: "AC Device",
+};
+
+const DEVICE_TYPE_LABEL_SHORT = {
+  OD: "Odour",
+  THD: "Temp/Hum",
+  AQID: "AQI",
+  GLD: "Gas",
+  ED: "Energy",
+  AC: "AC",
 };
 
 const DEVICE_TYPE_COLOR = {
@@ -30,6 +41,7 @@ const DEVICE_TYPE_COLOR = {
   AQID: "success",
   GLD: "error",
   ED: "secondary",
+  AC: "info",
 };
 
 const CATEGORY_LABEL = {
@@ -220,7 +232,7 @@ const DeviceList = ({ onDeviceSelect, selectedDevice }) => {
   const displayDevices = selectedVenue ? (devicesByVenue[selectedVenue] || []) : [];
 
   const renderListMarkup = () => (
-    <div className="bg-white rounded-xl shadow-sm w-full border border-[#E5E7EB] p-5 flex flex-col h-full min-h-0 overflow-hidden">
+    <div className="bg-white rounded-xl shadow-sm w-full max-w-full border border-[#E5E7EB] p-3 sm:p-5 flex flex-col h-full min-h-0 overflow-hidden">
       {isDesktop ? (
         <h1 className="organization-list-title font-semibold text-gray-800 mb-4">
           Device Management
@@ -233,8 +245,11 @@ const DeviceList = ({ onDeviceSelect, selectedDevice }) => {
         </div>
       )}
 
-      <div className="mb-4 flex items-center gap-4 justify-between">
-        <FormControl size="small" sx={{ minWidth: 200 }}>
+      {/* <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 sm:justify-between w-full min-w-0">
+        <FormControl size="small" sx={{ width: { xs: "100%", sm: "auto" }, minWidth: { xs: 0, sm: 200 } }}> */}
+          
+      <div className="mb-4 flex items-center  justify-between gap-4">
+      <FormControl size="small" sx={{ width: { xs: "90%", sm: "auto" }, minWidth: { xs: 0, sm: 160 } }}>
           <InputLabel id="org-filter-label">Organization</InputLabel>
           <Select
             labelId="org-filter-label"
@@ -261,7 +276,7 @@ const DeviceList = ({ onDeviceSelect, selectedDevice }) => {
         </FormControl>
 
         {selectedOrganization && (
-          <FormControl size="small" sx={{ minWidth: 200 }}>
+          <FormControl size="small" sx={{ width: { xs: "90%", sm: "auto" }, minWidth: { xs: 0, sm: 160 } }}>
             <InputLabel id="venue-filter-label">Venue</InputLabel>
             <Select
               labelId="venue-filter-label"
@@ -295,17 +310,17 @@ const DeviceList = ({ onDeviceSelect, selectedDevice }) => {
         </h2>
       </div>
 
-      <div className="organization-table-scroll overflow-y-auto flex-1 min-h-0 pr-1 overscroll-contain">
-        <table className="w-full table-auto text-left">
+      <div className="organization-table-scroll custom-scroll overflow-y-auto overflow-x-hidden flex-1 min-h-0 min-w-0 pr-1 overscroll-contain w-full">
+        <table className="w-full max-w-full table-fixed text-left">
           <thead className="sticky top-0 z-10 bg-white">
             <tr className="bg-gray-100">
-              <th className="text-lg py-5 px-4 font-semibold text-gray-800">
+              <th className="text-sm sm:text-lg py-3 sm:py-5 px-2 sm:px-4 font-semibold text-gray-800 w-[42%]">
                 Device Name
               </th>
-              <th className="text-lg font-semibold py-5 px-4 text-center text-gray-800" >
+              <th className="text-sm sm:text-lg font-semibold py-3 sm:py-5 px-1 sm:px-4 text-center text-gray-800 w-[38%]">
                 Type
               </th>
-              <th className="text-lg font-semibold py-5 px-4 text-center text-gray-800" >
+              <th className="text-sm sm:text-lg font-semibold py-3 sm:py-5 px-1 sm:px-4 text-center text-gray-800 w-[20%]">
                 Actions
               </th>
             </tr>
@@ -334,6 +349,9 @@ const DeviceList = ({ onDeviceSelect, selectedDevice }) => {
               const deviceName = device.deviceName || `Device ${index + 1}`;
               const deviceType = device.deviceType || "THD";
               const category = device.category || "monitoring";
+              const typeLabel = isMobile
+                ? (DEVICE_TYPE_LABEL_SHORT[deviceType] || deviceType)
+                : (DEVICE_TYPE_LABEL[deviceType] || deviceType);
 
               return (
                 <tr
@@ -343,7 +361,7 @@ const DeviceList = ({ onDeviceSelect, selectedDevice }) => {
                   }`}
                   onClick={(e) => handleRowClick(device, e)}
                 >
-                  <td className="organization-table-cell py-2 sm:py-3 px-2 sm:px-4">
+                  <td className="organization-table-cell py-2 sm:py-3 px-2 sm:px-4 max-w-0">
                     <TruncatedText
                       text={deviceName}
                       className="font-normal text-gray-900"
@@ -351,18 +369,34 @@ const DeviceList = ({ onDeviceSelect, selectedDevice }) => {
                       tooltipPlacement="top"
                     />
                   </td>
-                  <td className="organization-table-cell py-2 sm:py-3 px-2 sm:px-4 text-center">
-                    <div className="flex flex-col gap-1 items-center">
+                  <td className="organization-table-cell py-2 sm:py-3 px-1 sm:px-4 text-center max-w-0">
+                    <div className="flex flex-col gap-1 items-center min-w-0 w-full">
                       <Chip
-                        label={DEVICE_TYPE_LABEL[deviceType] || deviceType}
+                        label={typeLabel}
                         size="small"
                         color={DEVICE_TYPE_COLOR[deviceType] || "default"}
+                        title={DEVICE_TYPE_LABEL[deviceType] || deviceType}
+                        sx={{
+                          maxWidth: "100%",
+                          height: "auto",
+                          "& .MuiChip-label": {
+                            display: "block",
+                            whiteSpace: "normal",
+                            textAlign: "center",
+                            lineHeight: 1.25,
+                            py: 0.5,
+                            px: 0.75,
+                            fontSize: isMobile ? "0.7rem" : undefined,
+                          },
+                        }}
                       />
-                      <span className="text-xs text-gray-500">{CATEGORY_LABEL[category]}</span>
+                      <span className="text-[10px] sm:text-xs text-gray-500 truncate max-w-full">
+                        {CATEGORY_LABEL[category]}
+                      </span>
                     </div>
                   </td>
-                  <td className="organization-table-cell py-2 sm:py-3 px-2 sm:px-4">
-                    <div className="flex justify-center gap-2 sm:gap-3" onClick={(e) => e.stopPropagation()}>
+                  <td className="organization-table-cell py-2 sm:py-3 px-1 sm:px-4">
+                    <div className="flex justify-center gap-1.5 sm:gap-3" onClick={(e) => e.stopPropagation()}>
                       <button
                         onClick={(e) => handleEdit(device, e)}
                         disabled={!hasManagePermission || working}

@@ -6,39 +6,15 @@ import { useLocation } from "react-router-dom";
 import CloseIcon from '@mui/icons-material/Close';
 import { IconButton, Skeleton } from "@mui/material";
 import { fetchVenuesByOrganization } from "../../slices/VenueSlice";
-import { Download, Cloud, Zap, SquareActivity, Plug, Power } from "lucide-react";
+import { Download, Cloud, Zap, Plug, Power } from "lucide-react";
 import Swal from "sweetalert2";
 import DownloadModal from "./DownloadModal";
 import EventsSection from "../../components/events/EventsSection";
 import TriggerEventsSection from "../../components/events/TriggerEventsSection";
+import AcClimateDial from "../../components/AcClimateDial";
 import { useScheduler } from "../../contexts/SchedulerContext";
-
-// Convert UTC time string (HH:MM) to local time string in 12-hour format with AM/PM
-const convertUTCToLocal = (utcTimeString) => {
-  if (!utcTimeString) return utcTimeString;
-
-  try {
-    const [hours, minutes] = utcTimeString.split(':').map(Number);
-
-    // Create a UTC date with today's date + the UTC time
-    const utcDate = new Date();
-    utcDate.setUTCHours(hours, minutes, 0, 0);
-
-    // Get local hours and minutes
-    let localHours = utcDate.getHours();
-    const localMinutes = utcDate.getMinutes();
-
-    // Convert to 12-hour format
-    const period = localHours >= 12 ? 'PM' : 'AM';
-    localHours = localHours % 12 || 12; // Convert 0 to 12, and 13-23 to 1-11
-
-    // Format as H:MM AM/PM (no leading zero for hours in 12-hour format)
-    return `${localHours}:${String(localMinutes).padStart(2, '0')} ${period}`;
-  } catch (err) {
-    console.error('Error converting UTC to local:', err);
-    return utcTimeString; // Return original if conversion fails
-  }
-};
+import { useAcControl } from "../../contexts/AcControlContext";
+import { resolveAlertState } from "../../utils/triggerAlertUtils";
 
 export default function VenueDetailsPanel({
   organizationId = null,
@@ -56,8 +32,10 @@ export default function VenueDetailsPanel({
   odourAlert = false,
   temperatureAlert = false,
   humidityAlert = false,
+  voltageAlert = false,
   aqiAlert = false,
   glAlert = false,
+  triggeredAlerts = [],
   deviceId = "",
   espOdour = 0,
   espAQI = null,
@@ -71,20 +49,80 @@ export default function VenueDetailsPanel({
   scheduleData = null, // NEW: WebSocket schedule data for eventId
   pendingCreateEvent = false,
   onPendingCreateEventHandled,
+  // AC live fields (synced with AcDeviceCard via same websocket map)
+  setTemperature = 26,
+  acMode = "Cool",
+  fanSpeed = "Low",
+  acLocked = false,
+  acHealthAlert = false,
+  energyMonitoringIncluded = false,
+  espEnergy = null,
+  onScheduleRefresh,
 }) {
+
 
   const dispatch = useDispatch();
   const user  = useSelector((state) => state.auth.user);
   const orgId = organizationId || user?.organization || null;
 
   const { eventsMap, toggleMap, setEvents, bumpEventsRefresh } = useScheduler();
+  const {
+    getAc,
+    hydrateAc,
+    toggleAcPower,
+    promptDisableCurrentEvent,
+    busyMap,
+  } = useAcControl();
 
   const schedulerEvents = deviceId ? eventsMap[deviceId] ?? [] : [];
 
-  // ✅ Use WebSocket state if available, fallback to context toggleMap
+  const isAc = String(deviceType) === "AC";
+
+  // Keep shared AC map in sync with websocket / parent props (same as AcDeviceCard)
+  useEffect(() => {
+    if (!isAc || !deviceId || busyMap[deviceId]) return;
+    hydrateAc(deviceId, {
+      state: deviceState,
+      setTemperature,
+      acMode,
+      fanSpeed,
+      acLocked,
+      acHealthAlert,
+      energyMonitoringIncluded,
+      espPower,
+      espEnergy,
+      espCurrent,
+    });
+  }, [
+    isAc,
+    deviceId,
+    deviceState,
+    setTemperature,
+    acMode,
+    fanSpeed,
+    acLocked,
+    acHealthAlert,
+    energyMonitoringIncluded,
+    espPower,
+    espEnergy,
+    espCurrent,
+    busyMap,
+    hydrateAc,
+  ]);
+
+  const ac = isAc && deviceId ? getAc(deviceId) : null;
+  const acBusy = deviceId ? busyMap[deviceId] : null;
+  const acPowerLoading = acBusy === "power";
+
+  // ✅ AC: shared context state; else WebSocket / SchedulerContext toggleMap
   const resolvedToggle = useMemo(() => {
+    if (isAc) {
+      return String(ac?.state || deviceState || "OFF").toLowerCase() === "on"
+        ? "on"
+        : "off";
+    }
     return deviceState?.toLowerCase() || (deviceId ? (toggleMap?.[deviceId] ?? "off") : "off");
-  }, [deviceId, toggleMap, deviceState]);
+  }, [isAc, ac?.state, deviceId, toggleMap, deviceState]);
 
   console.log(`🔘 [VenueDetailsPanel ${deviceId}] WebSocket state: ${deviceState}, Final toggle: ${resolvedToggle}`);
 
@@ -193,58 +231,11 @@ export default function VenueDetailsPanel({
   // Handle Toggle Click (Same as Card)
   const handleSchedulerToggleClick = async () => {
     if (runningSchedulerEvent) {
-      // Convert UTC times to local 24-hour format
-      const localStartTime = convertUTCToLocal(runningSchedulerEvent.startTime);
-      const localEndTime = convertUTCToLocal(runningSchedulerEvent.endTime);
-
-      const result = await Swal.fire({
-        title: "Event Currently Running",
-        html: `
-          The <b>${runningSchedulerEvent.command || "Scheduled"}</b> event is currently active.<br/>
-          <span style="color:#64748b;font-size:13px">
-            ${localStartTime} → ${localEndTime}
-          </span>
-          <br/><br/>
-          Do you want to disable this event?
-        `,
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Yes, disable it",
-        cancelButtonText: "Keep running",
-        confirmButtonColor: "#EF4444",
-      });
-
-      if (result.isConfirmed) {
-        try {
-          setLoading(true);
-          const response = await fetch(
-            `${import.meta.env.VITE_API_URL}/event/${runningSchedulerEvent._id}/status`,
-            {
-              method: "PATCH",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-              body: JSON.stringify({ status: "INACTIVE" }),
-            }
-          );
-
-          if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || "Failed to disable event");
-          }
-
-          await response.json();
-          bumpEventsRefresh(deviceId);
-        } catch (err) {
-          Swal.fire({
-            icon: "error",
-            title: "Failed",
-            text: err.message || "Could not disable event",
-          });
-        } finally {
-          setLoading(false);
-        }
+      // AC + other scheduling: never power-toggle while CURRENT — disable first
+      const disableResult = await promptDisableCurrentEvent(runningSchedulerEvent);
+      if (disableResult?.disabled) {
+        bumpEventsRefresh(deviceId);
+        await refreshEvents();
       }
       return;
     }
@@ -264,6 +255,17 @@ export default function VenueDetailsPanel({
         confirmButtonText: "OK",
         confirmButtonColor: "#EF4444",
       });
+      return;
+    }
+
+    // AC: shared context so AcDeviceCard updates instantly
+    if (isAc) {
+      const result = await toggleAcPower(deviceId, {
+        isOnline,
+        hasCurrentEvent: false,
+        eventId: scheduleData?.event?._id,
+      });
+      if (result) await refreshEvents();
       return;
     }
 
@@ -293,8 +295,9 @@ export default function VenueDetailsPanel({
 
         await response.json();
       } else {
-        // Scheduling device API (requires eventId from WebSocket)
+        // Scheduling (non-AC): needs eventId
         const eventId = scheduleData?.event?._id;
+        const body = { deviceId, eventId };
 
         if (!eventId) {
           throw new Error("No active event found. Cannot toggle without an event.");
@@ -308,7 +311,7 @@ export default function VenueDetailsPanel({
               "Content-Type": "application/json",
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
-            body: JSON.stringify({ deviceId, eventId }),
+            body: JSON.stringify(body),
           }
         );
 
@@ -346,7 +349,7 @@ export default function VenueDetailsPanel({
   const displayOdour = toInt(espOdour);
   const displayAQI = espAQI === null || espAQI === undefined ? null : toInt(espAQI);
   const displayGL = espGL === null || espGL === undefined ? null : toInt(espGL);
-  const isEMD = String(deviceType) === "EMD";
+  const isED = String(deviceType) === "ED";
 
   const currentVenueSlice = venuesFromSlice.find((v) => sameId(v._id, venueId) || sameId(v.id, venueId)) || null;
 
@@ -383,16 +386,6 @@ export default function VenueDetailsPanel({
     });
   };
 
-  function formatPowerValue(espVoltage, espCurrent) {
-    const v = Number(espVoltage);
-    const c = Number(espCurrent);
-    if (!Number.isFinite(v) || !Number.isFinite(c)) return "--";
-    const watts = v * c;
-    if (watts >= 1_000_000) return `${(watts / 1_000_000).toFixed(3)} MW`;
-    if (watts >= 1000) return `${(watts / 1000).toFixed(3)} kW`;
-    return `${watts.toFixed(2)} W`;
-  }
-
   function formatUnitValue(espPower, espVoltage, espCurrent) {
     const power = Number(espPower);
     const fallbackWatts = Number.isFinite(Number(espVoltage)) && Number.isFinite(Number(espCurrent))
@@ -403,52 +396,150 @@ export default function VenueDetailsPanel({
   }
 
   const topMetrics = (() => {
+    const effectiveTemperatureAlert = resolveAlertState(
+      category, triggeredAlerts, "temperature", temperatureAlert
+    );
+    const effectiveHumidityAlert = resolveAlertState(
+      category, triggeredAlerts, "humidity", humidityAlert
+    );
+    const effectiveOdourAlert = resolveAlertState(
+      category, triggeredAlerts, "odour", odourAlert
+    );
+    const effectiveAqiAlert = resolveAlertState(
+      category, triggeredAlerts, "AQI", aqiAlert
+    );
+    const effectiveGlAlert = resolveAlertState(
+      category, triggeredAlerts, "gass", glAlert
+    );
+    const effectiveVoltageAlert = resolveAlertState(
+      category, triggeredAlerts, "voltage", voltageAlert
+    );
+
     const tempMetric = {
       key: "temperature", label: "Temperature", unit: "°C",
       value: displayTemp !== null ? displayTemp : "--",
       img: "/temperature-icon.svg", lucideIcon: null,
-      alertFlag: !!temperatureAlert, color: "green",
+      alertFlag: !!effectiveTemperatureAlert, color: "green",
     };
     const humMetric = {
       key: "humidity", label: "Humidity", unit: "%",
       value: displayHumidity !== null ? displayHumidity : "--",
       img: "/humidity-alert.svg", lucideIcon: null,
-      alertFlag: !!humidityAlert, color: "green",
+      alertFlag: !!effectiveHumidityAlert, color: "green",
     };
 
-    if (String(deviceType) === "EMD") {
+    if (String(deviceType) === "ED") {
+      // Alert badges for ED (same as EnergyMonitoringDeviceCard)
       return [
-        { key: "power", label: "Power", unit: "", value: formatPowerValue(espVoltage, espCurrent), img: null, lucideIcon: <Zap size={30} />, alertFlag: false, color: "green" },
-        { key: "current", label: "Current", unit: "A", value: espCurrent !== null && espCurrent !== undefined ? +Number(espCurrent).toFixed(2) : "--", img: null, lucideIcon: <SquareActivity size={30} />, alertFlag: false, color: "green" },
-        { key: "voltage", label: "Voltage", unit: "V", value: espVoltage !== null && espVoltage !== undefined ? +Number(espVoltage).toFixed(1) : "--", img: null, lucideIcon: <Plug size={30} />, alertFlag: false, color: "green" },
+        tempMetric,
+        humMetric,
+        {
+          key: "voltage",
+          label: "Voltage",
+          unit: "V",
+          value:
+            espVoltage !== null && espVoltage !== undefined
+              ? +Number(espVoltage).toFixed(1)
+              : "--",
+          img: null,
+          lucideIcon: <Plug size={24} />,
+          alertFlag: !!effectiveVoltageAlert,
+          color: "red",
+        },
       ];
     }
-    if (String(deviceType) === "OMD") {
+    if (String(deviceType) === "OD") {
       return [
-        { key: "odour", label: "Odour", unit: "%", value: displayOdour ?? 0, img: "/odour-alert.svg", lucideIcon: null, alertFlag: !!odourAlert, color: "red" },
+        { key: "odour", label: "Odour", unit: "%", value: displayOdour ?? 0, img: "/odour-alert.svg", lucideIcon: null, alertFlag: !!effectiveOdourAlert, color: "red" },
         tempMetric, humMetric,
       ];
     }
-    if (String(deviceType) === "AQIMD") {
+    if (String(deviceType) === "AQID") {
       return [
-        { key: "aqi", label: "AQI", unit: "AQI", value: displayAQI ?? "--", img: null, lucideIcon: <Cloud size={36} />, alertFlag: !!aqiAlert, color: "red" },
+        { key: "aqi", label: "AQI", unit: "AQI", value: displayAQI ?? "--", img: null, lucideIcon: <Cloud size={36} />, alertFlag: !!effectiveAqiAlert, color: "red" },
         tempMetric, humMetric,
       ];
     }
-    if (String(deviceType) === "GLMD") {
+    if (String(deviceType) === "GLD") {
       return [
-        { key: "gas", label: "Gas", unit: "%", value: displayGL ?? "--", img: null, lucideIcon: <Zap size={36} />, alertFlag: !!glAlert, color: "red" },
+        { key: "gas", label: "Gas", unit: "%", value: displayGL ?? "--", img: null, lucideIcon: <Zap size={36} />, alertFlag: !!effectiveGlAlert, color: "red" },
         tempMetric, humMetric,
+      ];
+    }
+    // AC: optional power/units only (setpoint is controlled below — not in top metrics)
+    if (isAc) {
+      const powerVal = ac?.espPower ?? espPower;
+      const energyVal = ac?.espEnergy ?? espEnergy;
+      const energyOn = ac?.energyMonitoringIncluded ?? energyMonitoringIncluded;
+      if (!energyOn) return [];
+      return [
+        {
+          key: "power",
+          label: "Power",
+          unit: "",
+          value:
+            powerVal != null && Number.isFinite(Number(powerVal))
+              ? `${Math.round(Number(powerVal))} W`
+              : "--",
+          img: null,
+          lucideIcon: <Zap size={30} />,
+          alertFlag: false,
+          color: "green",
+        },
+        {
+          key: "units",
+          label: "Units",
+          unit: "",
+          value:
+            energyVal != null && Number.isFinite(Number(energyVal))
+              ? `${Number(energyVal).toFixed(3)} kWh`
+              : "--",
+          img: null,
+          lucideIcon: <Plug size={30} />,
+          alertFlag: false,
+          color: "green",
+        },
       ];
     }
     return [tempMetric, humMetric];
   })();
+  console.log("ac", ac);
+  console.log("acHealthAlert", acHealthAlert);
 
-  const emdExtraMetrics = isEMD ? [
-    { key: "unit", label: "Unit", unit: "", value: formatUnitValue(espPower, espVoltage, espCurrent), img: null, lucideIcon: <Zap size={30} />, alertFlag: false, color: "green" },
-    { key: "temperature", label: "Temperature", unit: "°C", value: displayTemp !== null ? displayTemp : "--", img: "/temperature-icon.svg", lucideIcon: null, alertFlag: false, color: "green" },
-    { key: "humidity", label: "Humidity", unit: "%", value: displayHumidity !== null ? displayHumidity : "--", img: "/humidity-alert.svg", lucideIcon: null, alertFlag: false, color: "green" },
-  ] : [];
+  const emdExtraMetrics = isED
+    ? [
+        {
+          key: "unit",
+          label: "Unit",
+          unit: "",
+          value: formatUnitValue(espPower, espVoltage, espCurrent),
+          img: null,
+          lucideIcon: <Zap size={30} />,
+          alertFlag: false,
+          color: "green",
+        },
+        {
+          key: "temperature",
+          label: "Temperature",
+          unit: "°C",
+          value: displayTemp !== null ? displayTemp : "--",
+          img: "/temperature-icon.svg",
+          lucideIcon: null,
+          alertFlag: false,
+          color: "green",
+        },
+        {
+          key: "humidity",
+          label: "Humidity",
+          unit: "%",
+          value: displayHumidity !== null ? displayHumidity : "--",
+          img: "/humidity-alert.svg",
+          lucideIcon: null,
+          alertFlag: false,
+          color: "green",
+        },
+      ]
+    : [];
 
   const statusText = (flag) => (flag ? "Alert Det." : "Not Det.");
   const statusClass = (flag, color = "green") => {
@@ -460,14 +551,25 @@ export default function VenueDetailsPanel({
   };
 
   const renderMetricValue = (m) => {
-    const isSplitMetric = ["power", "unit"].includes(m.key);
+    // Split "123 W" / "0.065 kWh" so unit is thin + sm
+    const isSplitMetric = ["power", "unit", "units"].includes(m.key);
     if (isSplitMetric && typeof m.value === "string" && m.value !== "--") {
       const parts = m.value.split(" ");
       const num = parts[0];
-      const unit = parts[1] || "";
-      return <>{num}<span className="text-sm font-thin ml-1">{unit}</span></>;
+      const unit = parts.slice(1).join(" ") || "";
+      return (
+        <>
+          {num}
+          {unit ? <span className="text-sm font-thin ml-1">{unit}</span> : null}
+        </>
+      );
     }
-    return <>{m.value ?? "--"}{m.unit ? <span className="text-sm font-thin ml-1">{m.unit}</span> : ""}</>;
+    return (
+      <>
+        {m.value ?? "--"}
+        {m.unit ? <span className="text-sm font-thin ml-1">{m.unit}</span> : null}
+      </>
+    );
   };
 
   return (
@@ -502,21 +604,8 @@ export default function VenueDetailsPanel({
 
       {/* Metrics display */}
       <div className="relative w-full overflow-hidden mb-6 bg-[#07518D]/[0.05] rounded-xl p-3">
-        {isEMD ? (
+        {isED ? (
           <div className="space-y-4">
-           <div className="grid grid-cols-3 gap-4">
-              {topMetrics.map((m) => (
-                <div key={m.key} className="flex-1 flex flex-col items-center justify-center">
-                  <div className="mb-2">
-                    {m.img ? <img src={m.img} className="h-[30px] w-auto" alt={m.label} />
-                      : m.lucideIcon ? <div className="text-[#0D5CA4]">{m.lucideIcon}</div>
-                      : <img src="/odour-alert.svg" className="h-[66px] w-auto" alt={m.label} />}
-                  </div>
-                  <div className="text-sm text-gray-600">{m.label}</div>
-                  <div className="text-xl font-semibold">{renderMetricValue(m)}</div>
-                </div>
-              ))}
-            </div>
             <div className="grid grid-cols-3 gap-4">
               {emdExtraMetrics.map((m) => (
                 <div key={m.key} className="flex-1 flex flex-col items-center justify-center">
@@ -530,13 +619,13 @@ export default function VenueDetailsPanel({
                 </div>
               ))}
             </div>
-            {/* EMD metrics */}
-
           </div>
         ) : (
-          <div className={`flex items-center justify-between gap-4 ${topMetrics.length === 2 ? "sm:justify-around" : ""}`}>
+          <div>
+            <div className={`flex items-center justify-between gap-2 w-full ${topMetrics.length === 2 ? "sm:justify-around" : ""}`}>
+            
             {topMetrics.map((m) => (
-              <div key={m.key} className="flex-1 flex flex-col items-center justify-center">
+              <div key={m.key} className="flex flex-col items-center justify-between h-full">
                 <div className="mb-2">
                   {m.img ? <img src={m.img} className="h-[30px] w-auto" alt={m.label} />
                     : m.lucideIcon ? <div className="text-[#0D5CA4]">{m.lucideIcon}</div>
@@ -545,22 +634,23 @@ export default function VenueDetailsPanel({
                 <div className="text-sm text-gray-600">{m.label}</div>
                 <div className="text-xl font-semibold">{renderMetricValue(m)}</div>
               </div>
+            
             ))}
 
-            {/* Large Power Button for TSD */}
+            {/* Large Power Button for scheduling devices (AC included — shared context) */}
             {isSchedulerDevice && (
               <button
                 onClick={handleSchedulerToggleClick}
-                disabled={loading}
+                disabled={loading || (isAc && acPowerLoading)}
                 className={`flex flex-col justify-center items-center gap-3 px-4 py-5 rounded-xl text-sm font-semibold text-white transition shadow-sm active:scale-[.98]
-                  ${loading
+                  ${loading || (isAc && acPowerLoading)
                     ? "bg-gray-400 cursor-wait opacity-70"
                     : displayToggleState === "on" ? "bg-emerald-500 hover:bg-emerald-600 cursor-pointer"
                     : displayToggleState === "off" ? "bg-rose-500 hover:bg-rose-600 cursor-pointer"
                       : "bg-gray-400 hover:bg-gray-500 cursor-pointer"}`}
-                title={loading ? "Processing..." : displayToggleState === "gray" ? "Event running or device offline — click to disable" : displayToggleState === "on" ? "Turn Off" : "Turn On"}
+                title={loading || (isAc && acPowerLoading) ? "Processing..." : displayToggleState === "gray" ? "Event running or device offline — click to disable" : displayToggleState === "on" ? "Turn Off" : "Turn On"}
               >
-                {loading ? (
+                {loading || (isAc && acPowerLoading) ? (
                   <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -569,32 +659,59 @@ export default function VenueDetailsPanel({
                   <Power size={15} strokeWidth={2} />
                 )}
                 <span className="text-xs font-bold">
-                  {loading ? "..." : displayToggleState === "on" ? "ON" : displayToggleState === "off" ? "OFF" : ""}
+                  {loading || (isAc && acPowerLoading)
+                    ? "..."
+                    : displayToggleState === "on"
+                      ? "ON"
+                      : displayToggleState === "off"
+                        ? "OFF"
+                        : ""}
                 </span>
               </button>
             )}
+              </div>
           </div>
         )}
       </div>
 
-      {/* Status badges */}
-      {!isEMD && (
-        <div className={`grid ${topMetrics.length === 2 ? "grid-cols-2 md:grid-cols-2" : "grid-cols-2 md:grid-cols-2"} gap-2`}>
-          {topMetrics.map((m) => {
-            const flag = !!m.alertFlag;
-            const color = m.color ?? "green";
-            return (
-              <div key={m.key} className={`flex items-center gap-3 p-1 border rounded ${statusClass(flag, color)}`}>
-                {m.img ? <img src={m.img} alt={m.label} className="w-6 h-6" />
-                  : m.lucideIcon ? <div className="w-6 h-6 flex items-center justify-center">{m.lucideIcon}</div>
-                    : <img src="/alert-icon.png" alt={m.label} className="w-6 h-6" />}
-                <div>
-                  <div className="text-xs text-gray-600">{m.label}</div>
-                  <div className="text-sm font-medium">{statusText(flag)}</div>
+      {/* AC dial controls — same AcControlContext actions as before */}
+      {isAc && ac && (
+        <AcClimateDial
+          deviceId={deviceId}
+          isOnline={isOnline}
+          healthAlert={acHealthAlert}
+        />
+      )}
+
+      {/* Status badges — horizontal scroll if overflow; scrollbar hidden */}
+      {!isAc && topMetrics.length > 0 && (
+        <div className="w-full min-w-0 overflow-x-auto scrollbar-none">
+          <div className="flex flex-nowrap gap-2 pb-0.5">
+            {topMetrics.map((m) => {
+              const flag = !!m.alertFlag;
+              const color = m.color ?? "green";
+              return (
+                <div
+                  key={m.key}
+                  className={`flex items-center gap-3 p-1 border rounded shrink-0 min-w-[7.5rem] ${statusClass(flag, color)}`}
+                >
+                  {m.img ? (
+                    <img src={m.img} alt={m.label} className="w-6 h-6 shrink-0" />
+                  ) : m.lucideIcon ? (
+                    <div className="w-6 h-6 flex items-center justify-center shrink-0">
+                      {m.lucideIcon}
+                    </div>
+                  ) : (
+                    <img src="/alert-icon.png" alt={m.label} className="w-6 h-6 shrink-0" />
+                  )}
+                  <div className="min-w-0">
+                    <div className="text-xs text-gray-600 whitespace-nowrap">{m.label}</div>
+                    <div className="text-sm font-medium whitespace-nowrap">{statusText(flag)}</div>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -647,6 +764,7 @@ export default function VenueDetailsPanel({
             externalOpen={powerModalOpen}
             onExternalClose={() => setPowerModalOpen(false)}
             onToggleChange={(val) => { }}
+            onScheduleRefresh={onScheduleRefresh}
           />
         </div>
       )}

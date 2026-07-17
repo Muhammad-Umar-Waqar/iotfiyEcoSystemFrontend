@@ -216,11 +216,15 @@ dayjs.extend(utc);
 
 const daysList = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-const EventModal = ({ open, onClose, onSave }) => {
+const EventModal = ({ open, onClose, onSave, deviceType = null }) => {
   const [start, setStart] = useState(null);
   const [end, setEnd] = useState(null);
   const [days, setDays] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [command, setCommand] = useState("ON");
+  const [setTemperature, setSetTemperature] = useState(26);
+
+  const isAc = deviceType === "AC";
 
   if (!open) return null;
 
@@ -230,7 +234,12 @@ const EventModal = ({ open, onClose, onSave }) => {
     );
   };
 
-    const isSaveDisabled = isLoading || !start || !end || days.length === 0;
+  const isSaveDisabled =
+    isLoading ||
+    !start ||
+    !end ||
+    days.length === 0 ||
+    (isAc && command === "ON" && !Number.isFinite(Number(setTemperature)));
 
   // const handleSave = () => {
   //   if (!start || !end) return;
@@ -380,6 +389,12 @@ const EventModal = ({ open, onClose, onSave }) => {
       startTime: startUTC,
       endTime:   endUTC,
       days:      formattedDays,
+      ...(isAc
+        ? {
+            command,
+            setTemperature: command === "ON" ? Number(setTemperature) : undefined,
+          }
+        : {}),
     });
 
     onClose();
@@ -482,6 +497,52 @@ const EventModal = ({ open, onClose, onSave }) => {
                 ))}
               </div>
             </div>
+
+            {/* AC-only: command ON/OFF + setpoint */}
+            {isAc && (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2 block">
+                    Command
+                  </label>
+                  <div className="flex rounded-xl border border-slate-200 overflow-hidden w-fit">
+                    {["ON", "OFF"].map((cmd) => (
+                      <button
+                        key={cmd}
+                        type="button"
+                        onClick={() => setCommand(cmd)}
+                        className={`px-6 py-2 text-sm font-semibold transition-all ${
+                          command === cmd
+                            ? cmd === "ON"
+                              ? "bg-emerald-500 text-white"
+                              : "bg-rose-500 text-white"
+                            : "bg-white text-slate-400 hover:bg-slate-50"
+                        }`}
+                      >
+                        {cmd}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {command === "ON" && (
+                  <div>
+                    <label className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2 block">
+                      Set Temperature (°C)
+                    </label>
+                    <input
+                      type="number"
+                      min={16}
+                      max={30}
+                      value={setTemperature}
+                      onChange={(e) => setSetTemperature(Number(e.target.value))}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm"
+                    />
+                    <p className="text-[11px] text-slate-400 mt-1">Range 16–30°C</p>
+                  </div>
+                )}
+              </div>
+            )}
 
           </div>
 

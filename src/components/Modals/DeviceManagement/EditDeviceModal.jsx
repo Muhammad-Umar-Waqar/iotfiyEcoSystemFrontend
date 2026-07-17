@@ -15,7 +15,8 @@ import {
   CircularProgress,
   IconButton,
   Checkbox,
-  FormControlLabel
+  FormControlLabel,
+  Stack
 } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 import { Thermometer } from "lucide-react";
@@ -31,6 +32,7 @@ const DEVICE_CONDITIONS_MAP = {
   AQID: ["temperature", "humidity", "AQI"],
   GLD: ["temperature", "humidity", "gass"],
   ED: ["temperature", "humidity", "voltage", "current"],
+  AC: [],
 };
 
 const CONDITION_LABEL = {
@@ -59,6 +61,7 @@ const DEVICE_TYPE_LABEL = {
   AQID: "Air Quality Index Device (AQID)",
   GLD: "Gas Leakage Device (GLD)",
   ED: "Energy Device (ED)",
+  AC: "AC Device (AC)",
 };
 
 const CATEGORY_LABEL = {
@@ -68,7 +71,7 @@ const CATEGORY_LABEL = {
 };
 
 const makeConditionsFor = (deviceType, existingConditions = []) => {
-  const types = DEVICE_CONDITIONS_MAP[deviceType] || ["temperature", "humidity"];
+  const types = DEVICE_CONDITIONS_MAP[deviceType] || [];
   return types.map((t) => {
     // Find existing condition value if any
     const existing = existingConditions.find(c => c.type === t);
@@ -89,6 +92,7 @@ const ALERT_ACCESS_MAP = {
   AQID: ["tempAlertAccess", "humiAlertAccess", "aqiAlertAccess"],
   GLD: ["tempAlertAccess", "humiAlertAccess", "glAlertAccess"],
   ED: ["tempAlertAccess", "humiAlertAccess", "voltageAlertAccess", "currentAlertAccess"],
+  AC: [],
 };
 
 const ALERT_ACCESS_LABELS = {
@@ -120,6 +124,7 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
     deviceType: "",
     category: "",
     interval: "",
+    energyMonitoringIncluded: false,
   });
 
   const [alertAccess, setAlertAccess] = useState({
@@ -168,6 +173,7 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
         deviceType: device.deviceType || "",
         category: device.category || "",
         interval: device.interval !== undefined ? String(device.interval) : "",
+        energyMonitoringIncluded: !!device.energyMonitoringIncluded,
       });
 
       // Set alert access fields for trigger category
@@ -214,7 +220,11 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
     }
 
     if (name === "deviceType") {
-      setFormData((prev) => ({ ...prev, deviceType: value }));
+      setFormData((prev) => ({
+        ...prev,
+        deviceType: value,
+        energyMonitoringIncluded: value === "AC" ? prev.energyMonitoringIncluded : false,
+      }));
       // Update conditions when device type changes
       setConditions(makeConditionsFor(value, []));
       // Reset alert access when device type changes
@@ -294,68 +304,73 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
       }
     }
 
-    const payloadConditions = Array.isArray(conditions)
-      ? conditions.map((c) => ({
-          type: c.type,
-          operator: (c.operator || "").toString().trim(),
-          value: c.value === "" || c.value === undefined ? "" : c.value,
-        }))
-      : [];
+    const isAc = formData.deviceType === "AC";
+    let finalConditions = [];
 
-    const filtered = payloadConditions.filter((c) => c.type && c.operator && c.value !== "");
+    if (!isAc) {
+      const payloadConditions = Array.isArray(conditions)
+        ? conditions.map((c) => ({
+            type: c.type,
+            operator: (c.operator || "").toString().trim(),
+            value: c.value === "" || c.value === undefined ? "" : c.value,
+          }))
+        : [];
 
-    const requiredTypes = DEVICE_CONDITIONS_MAP[formData.deviceType] || ["temperature", "humidity"];
-    const providedTypes = filtered.map((c) => c.type);
-    for (const t of requiredTypes) {
-      if (!providedTypes.includes(t)) {
-        return Swal.fire({
-          icon: "warning",
-          title: "Missing condition",
-          text: `${DEVICE_TYPE_LABEL[formData.deviceType]} requires "${CONDITION_LABEL[t] || t}" condition.`,
-        });
+      const filtered = payloadConditions.filter((c) => c.type && c.operator && c.value !== "");
+
+      const requiredTypes = DEVICE_CONDITIONS_MAP[formData.deviceType] || [];
+      const providedTypes = filtered.map((c) => c.type);
+      for (const t of requiredTypes) {
+        if (!providedTypes.includes(t)) {
+          return Swal.fire({
+            icon: "warning",
+            title: "Missing condition",
+            text: `${DEVICE_TYPE_LABEL[formData.deviceType]} requires "${CONDITION_LABEL[t] || t}" condition.`,
+          });
+        }
       }
+
+      const validTypes = ["temperature", "humidity", "odour", "AQI", "gass", "voltage", "current"];
+      const validOps = [">", "<", "="];
+
+      for (const c of filtered) {
+        if ((c.type === "voltage" || c.type === "current") && c.operator !== "=") {
+          return Swal.fire({
+            icon: "warning",
+            title: "Invalid operator",
+            text: `${CONDITION_LABEL[c.type]} condition only supports '=' operator.`,
+          });
+        }
+
+        if (!validTypes.includes(c.type)) {
+          return Swal.fire({
+            icon: "warning",
+            title: "Invalid condition type",
+            text: `Type "${c.type}" not allowed`,
+          });
+        }
+
+        if (!validOps.includes(c.operator)) {
+          return Swal.fire({
+            icon: "warning",
+            title: "Invalid operator",
+            text: `Operator "${c.operator}" not allowed. Use >, <, or =`,
+          });
+        }
+
+        const num = Number(c.value);
+        if (!Number.isFinite(num)) {
+          return Swal.fire({
+            icon: "warning",
+            title: "Invalid condition value",
+            text: `Value for ${CONDITION_LABEL[c.type] || c.type} must be a number.`,
+          });
+        }
+        c.value = num;
+      }
+
+      finalConditions = filtered;
     }
-
-    const validTypes = ["temperature", "humidity", "odour", "AQI", "gass", "voltage", "current"];
-    const validOps = [">", "<", "="];
-
-    for (const c of filtered) {
-      if ((c.type === "voltage" || c.type === "current") && c.operator !== "=") {
-        return Swal.fire({
-          icon: "warning",
-          title: "Invalid operator",
-          text: `${CONDITION_LABEL[c.type]} condition only supports '=' operator.`,
-        });
-      }
-
-      if (!validTypes.includes(c.type)) {
-        return Swal.fire({
-          icon: "warning",
-          title: "Invalid condition type",
-          text: `Type "${c.type}" not allowed`,
-        });
-      }
-
-      if (!validOps.includes(c.operator)) {
-        return Swal.fire({
-          icon: "warning",
-          title: "Invalid operator",
-          text: `Operator "${c.operator}" not allowed. Use >, <, or =`,
-        });
-      }
-
-      const num = Number(c.value);
-      if (!Number.isFinite(num)) {
-        return Swal.fire({
-          icon: "warning",
-          title: "Invalid condition value",
-          text: `Value for ${CONDITION_LABEL[c.type] || c.type} must be a number.`,
-        });
-      }
-      c.value = num;
-    }
-
-    const finalConditions = filtered;
 
     const payload = {
       id: deviceId,
@@ -366,6 +381,10 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
       conditions: finalConditions,
       interval: formData.category === "trigger" ? formData.interval : undefined,
     };
+
+    if (isAc) {
+      payload.energyMonitoringIncluded = !!formData.energyMonitoringIncluded;
+    }
 
     // Add alert access fields for trigger category
     if (formData.category === "trigger") {
@@ -406,7 +425,7 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
 
   return (
     <>
-      <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <Dialog open={open} onClose={onClose} maxWidth="sm" >
         <DialogTitle className="flex items-center justify-between">
           <span>Edit Device</span>
           <IconButton onClick={onClose} size="small" disabled={saving}>
@@ -420,7 +439,7 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
               <CircularProgress />
             </div>
           ) : (
-            <div className="space-y-3">
+            <Stack spacing={2} >
               <TextField
                 fullWidth
                 label="Device Name"
@@ -478,6 +497,7 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
                   <MenuItem value="AQID">{DEVICE_TYPE_LABEL.AQID}</MenuItem>
                   <MenuItem value="GLD">{DEVICE_TYPE_LABEL.GLD}</MenuItem>
                   <MenuItem value="ED">{DEVICE_TYPE_LABEL.ED}</MenuItem>
+                  <MenuItem value="AC">{DEVICE_TYPE_LABEL.AC}</MenuItem>
                 </Select>
               </FormControl>
 
@@ -494,6 +514,29 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
                   <MenuItem value="trigger">{CATEGORY_LABEL.trigger}</MenuItem>
                 </Select>
               </FormControl>
+
+              {formData.deviceType === "AC" && (
+                <div className="p-3 rounded-md border border-gray-200 bg-gray-50">
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={!!formData.energyMonitoringIncluded}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            energyMonitoringIncluded: e.target.checked,
+                          }))
+                        }
+                        sx={{
+                          color: "#1E64D9",
+                          "&.Mui-checked": { color: "#1E64D9" },
+                        }}
+                      />
+                    }
+                    label="Energy Monitoring Sensor Included"
+                  />
+                </div>
+              )}
 
               {formData.category === "trigger" && (
                 <TextField
@@ -534,15 +577,17 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
                 </div>
               )}
 
-              <Button
-                variant="outlined"
-                fullWidth
-                onClick={() => setCondModalOpen(true)}
-                disabled={!formData.deviceType}
-              >
-                Configure Conditions
-              </Button>
-            </div>
+              {formData.deviceType !== "AC" && (
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  onClick={() => setCondModalOpen(true)}
+                  disabled={!formData.deviceType}
+                >
+                  Configure Conditions
+                </Button>
+              )}
+            </Stack>
           )}
         </DialogContent>
 

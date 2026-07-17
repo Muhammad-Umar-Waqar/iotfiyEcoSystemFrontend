@@ -9,6 +9,7 @@ import PowerToggle from "../../components/PowerToggle";
 import TruncatedText from "../../components/TruncatedText";
 import { resolveAlertState } from "../../utils/triggerAlertUtils";
 import { handleCreateEventPlusClick } from "../../utils/schedulingCardUtils";
+import { fetchCurrentOrNextSchedule } from "../../utils/fetchCurrentOrNextSchedule";
 
 // ── Helpers ─────────────────────────────────────────────────────
 function formatDuration(duration) {
@@ -173,41 +174,26 @@ const SchedulerAndTriggerTempHumiDeviceCard = React.memo(function SchedulerDevic
 
   console.log(`🔘 [SchedulerDeviceCard ${deviceId}] WebSocket state: ${deviceState}, Final toggleState: ${toggleState}`);
 
-  // ✅ Fetch schedule data from API as fallback when WebSocket data is not available
+  // Soft API fallback when WebSocket schedule is empty (404 / missing route → silent)
   useEffect(() => {
+    let cancelled = false;
+
     const fetchScheduleDataFromAPI = async () => {
-      // Only fetch if WebSocket data is not available
       if (scheduleData) {
-        console.log(`✅ [SchedulerDeviceCard ${deviceId}] WebSocket schedule data available, skipping API fetch`);
         return;
       }
 
-      try {
-        console.log(`🔄 [SchedulerDeviceCard ${deviceId}] Fetching schedule data from API fallback...`);
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/event/current-next/${deviceId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch schedule data");
-        }
-
-        const data = await response.json();
-        console.log(`✅ [SchedulerDeviceCard ${deviceId}] API fallback data:`, data);
+      const data = await fetchCurrentOrNextSchedule(deviceId);
+      if (!cancelled) {
         setApiScheduleData(data);
-      } catch (err) {
-        console.error(`❌ [SchedulerDeviceCard ${deviceId}] API fallback error:`, err);
-        setApiScheduleData(null);
       }
     };
 
     fetchScheduleDataFromAPI();
-  }, [deviceId, scheduleData]); // Re-fetch when deviceId changes or when scheduleData changes
+    return () => {
+      cancelled = true;
+    };
+  }, [deviceId, scheduleData]);
 
   // ✅ Read events from global context instead of props
   const contextEvents = eventsMap?.[deviceId] ?? [];

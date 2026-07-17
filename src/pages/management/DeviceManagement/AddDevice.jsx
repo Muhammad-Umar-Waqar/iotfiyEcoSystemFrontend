@@ -20,6 +20,7 @@ const DEVICE_CONDITIONS_MAP = {
   AQID: ["temperature", "humidity", "AQI"],
   GLD: ["temperature", "humidity", "gass"],
   ED: ["temperature", "humidity", "voltage", "current"],
+  AC: [],
 };
 
 const CONDITION_LABEL = {
@@ -48,6 +49,7 @@ const DEVICE_TYPE_LABEL = {
   AQID: "Air Quality Index Device (AQID)",
   GLD: "Gas Leakage Device (GLD)",
   ED: "Energy Device (ED)",
+  AC: "AC Device (AC)",
 };
 
 const CATEGORY_LABEL = {
@@ -73,7 +75,7 @@ const menuProps = {
 };
 
 const makeConditionsFor = (deviceType) => {
-  const types = DEVICE_CONDITIONS_MAP[deviceType] || ["temperature", "humidity"];
+  const types = DEVICE_CONDITIONS_MAP[deviceType] || [];
   return types.map((t) => ({
     id: t,
     type: t,
@@ -90,6 +92,7 @@ const ALERT_ACCESS_MAP = {
   AQID: ["tempAlertAccess", "humiAlertAccess", "aqiAlertAccess"],
   GLD: ["tempAlertAccess", "humiAlertAccess", "glAlertAccess"],
   ED: ["tempAlertAccess", "humiAlertAccess", "voltageAlertAccess", "currentAlertAccess"],
+  AC: [],
 };
 
 const ALERT_ACCESS_LABELS = {
@@ -115,6 +118,7 @@ const AddDevice = () => {
     venue: "",
     deviceType: "",
     category: "",
+    energyMonitoringIncluded: false,
   });
 
   const [alertAccess, setAlertAccess] = useState({
@@ -192,15 +196,21 @@ const AddDevice = () => {
         voltageAlertAccess: false,
         currentAlertAccess: false,
       });
+      if (formData.deviceType !== "AC") {
+        setFormData((prev) => ({ ...prev, energyMonitoringIncluded: false }));
+      }
     } else {
-      setConditions(makeConditionsFor("THD"));
+      setConditions([]);
     }
   }, [formData.deviceType]);
 
   const [condModalOpen, setCondModalOpen] = useState(false);
   useEffect(() => {
-    if (formData.deviceType) {
+    // AC has no threshold conditions — skip configure dialog
+    if (formData.deviceType && formData.deviceType !== "AC") {
       setCondModalOpen(true);
+    } else {
+      setCondModalOpen(false);
     }
   }, [formData.deviceType]);
 
@@ -252,68 +262,74 @@ const AddDevice = () => {
       return Swal.fire({ icon: "warning", title: "Select Category" });
     }
 
-    const payloadConditions = Array.isArray(conditions)
-      ? conditions.map((c) => ({
-          type: c.type,
-          operator: (c.operator || "").toString().trim(),
-          value: c.value === "" || c.value === undefined ? "" : c.value,
-        }))
-      : [];
+    const isAc = formData.deviceType === "AC";
 
-    const filtered = payloadConditions.filter((c) => c.type && c.operator && c.value !== "");
+    let finalConditions = [];
 
-    const requiredTypes = DEVICE_CONDITIONS_MAP[formData.deviceType] || ["temperature", "humidity"];
-    const providedTypes = filtered.map((c) => c.type);
-    for (const t of requiredTypes) {
-      if (!providedTypes.includes(t)) {
-        return Swal.fire({
-          icon: "warning",
-          title: "Missing condition",
-          text: `${DEVICE_TYPE_LABEL[formData.deviceType]} requires "${CONDITION_LABEL[t] || t}" condition.`,
-        });
+    if (!isAc) {
+      const payloadConditions = Array.isArray(conditions)
+        ? conditions.map((c) => ({
+            type: c.type,
+            operator: (c.operator || "").toString().trim(),
+            value: c.value === "" || c.value === undefined ? "" : c.value,
+          }))
+        : [];
+
+      const filtered = payloadConditions.filter((c) => c.type && c.operator && c.value !== "");
+
+      const requiredTypes = DEVICE_CONDITIONS_MAP[formData.deviceType] || [];
+      const providedTypes = filtered.map((c) => c.type);
+      for (const t of requiredTypes) {
+        if (!providedTypes.includes(t)) {
+          return Swal.fire({
+            icon: "warning",
+            title: "Missing condition",
+            text: `${DEVICE_TYPE_LABEL[formData.deviceType]} requires "${CONDITION_LABEL[t] || t}" condition.`,
+          });
+        }
       }
+
+      const validTypes = ["temperature", "humidity", "odour", "AQI", "gass", "voltage", "current"];
+      const validOps = [">", "<", "="];
+
+      for (const c of filtered) {
+        if ((c.type === "voltage" || c.type === "current") && c.operator !== "=") {
+          return Swal.fire({
+            icon: "warning",
+            title: "Invalid operator",
+            text: `${CONDITION_LABEL[c.type]} condition only supports '=' operator.`,
+          });
+        }
+
+        if (!validTypes.includes(c.type)) {
+          return Swal.fire({
+            icon: "warning",
+            title: "Invalid condition type",
+            text: `Type "${c.type}" not allowed`,
+          });
+        }
+
+        if (!validOps.includes(c.operator)) {
+          return Swal.fire({
+            icon: "warning",
+            title: "Invalid operator",
+            text: `Operator "${c.operator}" not allowed. Use >, <, or =`,
+          });
+        }
+
+        const num = Number(c.value);
+        if (!Number.isFinite(num)) {
+          return Swal.fire({
+            icon: "warning",
+            title: "Invalid condition value",
+            text: `Value for ${CONDITION_LABEL[c.type] || c.type} must be a number.`,
+          });
+        }
+        c.value = num;
+      }
+
+      finalConditions = filtered;
     }
-
-    const validTypes = ["temperature", "humidity", "odour", "AQI", "gass", "voltage", "current"];
-    const validOps = [">", "<", "="];
-
-    for (const c of filtered) {
-      if ((c.type === "voltage" || c.type === "current") && c.operator !== "=") {
-        return Swal.fire({
-          icon: "warning",
-          title: "Invalid operator",
-          text: `${CONDITION_LABEL[c.type]} condition only supports '=' operator.`,
-        });
-      }
-
-      if (!validTypes.includes(c.type)) {
-        return Swal.fire({
-          icon: "warning",
-          title: "Invalid condition type",
-          text: `Type "${c.type}" not allowed`,
-        });
-      }
-
-      if (!validOps.includes(c.operator)) {
-        return Swal.fire({
-          icon: "warning",
-          title: "Invalid operator",
-          text: `Operator "${c.operator}" not allowed. Use >, <, or =`,
-        });
-      }
-
-      const num = Number(c.value);
-      if (!Number.isFinite(num)) {
-        return Swal.fire({
-          icon: "warning",
-          title: "Invalid condition value",
-          text: `Value for ${CONDITION_LABEL[c.type] || c.type} must be a number.`,
-        });
-      }
-      c.value = num;
-    }
-
-    const finalConditions = filtered;
 
     const payload = {
       deviceName: formData.deviceName.trim(),
@@ -322,6 +338,10 @@ const AddDevice = () => {
       category: formData.category,
       conditions: finalConditions,
     };
+
+    if (isAc) {
+      payload.energyMonitoringIncluded = !!formData.energyMonitoringIncluded;
+    }
 
     // Add alert access fields for trigger category
     if (formData.category === "trigger") {
@@ -345,11 +365,7 @@ const AddDevice = () => {
 
       setCreatedDevice(device);
       Swal.fire({ icon: "success", title: "Device Created" });
-      // console.log('payload:<>', Devi);
     
-      // Only refresh device list if created device belongs to currently filtered venue
-      // Compare formData.venue (created device's venue._id) with selectedVenueIdFromDeviceFilter (filter's venue._id)
-      
       console.log("Created device venue:", formData.venue);
       console.log("Currently filtered venue:", selectedVenueIdFromDeviceFilter);
       
@@ -357,8 +373,15 @@ const AddDevice = () => {
         dispatch(fetchDevicesByVenue(formData.venue));
       }
 
-      setFormData({ deviceName: "", organization: "", venue: "", deviceType: "", category: "" });
-      setConditions(makeConditionsFor("THD"));
+      setFormData({
+        deviceName: "",
+        organization: "",
+        venue: "",
+        deviceType: "",
+        category: "",
+        energyMonitoringIncluded: false,
+      });
+      setConditions([]);
       setAlertAccess({
         tempAlertAccess: false,
         humiAlertAccess: false,
@@ -520,6 +543,7 @@ const AddDevice = () => {
                   <MenuItem value="AQID">{DEVICE_TYPE_LABEL.AQID}</MenuItem>
                   <MenuItem value="GLD">{DEVICE_TYPE_LABEL.GLD}</MenuItem>
                   <MenuItem value="ED">{DEVICE_TYPE_LABEL.ED}</MenuItem>
+                  <MenuItem value="AC">{DEVICE_TYPE_LABEL.AC}</MenuItem>
                 </Select>
               </FormControl>
             </div>
@@ -545,7 +569,34 @@ const AddDevice = () => {
               </FormControl>
             </div>
 
-            {formData.category === "trigger" && formData.deviceType && (
+            {formData.deviceType === "AC" && (
+              <div className="mt-2 p-4 bg-white rounded-md border border-gray-200">
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={!!formData.energyMonitoringIncluded}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          energyMonitoringIncluded: e.target.checked,
+                        }))
+                      }
+                      disabled={!hasManagePermission}
+                      sx={{
+                        color: "#1E64D9",
+                        "&.Mui-checked": { color: "#1E64D9" },
+                      }}
+                    />
+                  }
+                  label="Energy Monitoring Sensor Included"
+                />
+                <p className="text-xs text-gray-500 ml-8 -mt-1">
+                  Enable if this AC has an energy module for consumption display.
+                </p>
+              </div>
+            )}
+
+            {formData.category === "trigger" && formData.deviceType && ALERT_ACCESS_MAP[formData.deviceType]?.length > 0 && (
               <div className="mt-4 p-4 bg-white rounded-md border border-gray-200">
                 <h3 className="text-sm font-semibold text-gray-700 mb-3">Alert Access Configuration</h3>
                 <div className="space-y-2">

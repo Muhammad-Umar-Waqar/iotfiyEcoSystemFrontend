@@ -49,7 +49,11 @@ const TriggerEventsSection = ({
       );
 
       console.log(`✅ [TriggerEventsSection] Events fetched for ${deviceId}:`, res.data);
-      const fetchedEvents = res.data.schedules || [];
+      const fetchedEvents =
+        res.data?.schedules ||
+        res.data?.events ||
+        (Array.isArray(res.data) ? res.data : []) ||
+        [];
       console.log(`📋 [TriggerEventsSection] Fetched ${fetchedEvents.length} trigger events`);
       setEvents(fetchedEvents);
     } catch (err) {
@@ -106,14 +110,26 @@ const TriggerEventsSection = ({
     }
   };
 
+  const eventKey = (event) => String(event?._id ?? event?.id ?? "");
+
   const handleDeleteClick = (id) => {
     setDeleteTarget(id);
     setDeleteOpen(true);
   };
 
   const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+
+    const previousEvents = events;
+
     try {
       setWorking(true);
+
+      // Optimistic UI update — remove immediately so the list doesn't wait on refetch
+      setEvents((prev) =>
+        prev.filter((e) => eventKey(e) !== String(deleteTarget))
+      );
+      setDeleteOpen(false);
 
       await axios.delete(
         `${import.meta.env.VITE_API_URL}/trigger/delete/${deleteTarget}`,
@@ -125,7 +141,6 @@ const TriggerEventsSection = ({
         }
       );
 
-      setDeleteOpen(false);
       setDeleteTarget(null);
 
       Swal.fire({
@@ -136,10 +151,36 @@ const TriggerEventsSection = ({
         showConfirmButton: false,
       });
 
-      await fetchEvents();
-
+      // Sync from API, but keep the deleted id out if the list is briefly stale
+      const deviceId = selectedDevice?.deviceId;
+      if (deviceId) {
+        try {
+          const res = await axios.get(
+            `${import.meta.env.VITE_API_URL}/trigger/events/${deviceId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
+          );
+          const fetchedEvents =
+            res.data?.schedules ||
+            res.data?.events ||
+            (Array.isArray(res.data) ? res.data : []) ||
+            [];
+          setEvents(
+            fetchedEvents.filter((e) => eventKey(e) !== String(deleteTarget))
+          );
+        } catch (fetchErr) {
+          console.error("Failed to refresh trigger events after delete:", fetchErr);
+        }
+      }
     } catch (err) {
       console.error(err);
+      // Restore list if delete failed
+      setEvents(previousEvents);
+      setDeleteOpen(false);
+      setDeleteTarget(null);
 
       Swal.fire({
         icon: "error",
@@ -161,7 +202,7 @@ const TriggerEventsSection = ({
       const nextStatus = event.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
 
       const res = await axios.patch(
-        `${import.meta.env.VITE_API_URL}/trigger/${event._id}/status`,
+        `${import.meta.env.VITE_API_URL}/trigger/${event._id || event.id}/status`,
         {
           status: nextStatus,
         },
@@ -238,10 +279,10 @@ const TriggerEventsSection = ({
           >
             {events.map((event) => (
               <EventCard
-                key={event.id || event._id}
+                key={eventKey(event) || `${event.startTime}-${event.status}`}
                 event={event}
                 onToggle={() => toggleEventStatus(event)}
-                onDelete={() => handleDeleteClick(event._id)}
+                onDelete={() => handleDeleteClick(event._id || event.id)}
                 isTriggerEvent={true}
               />
             ))}

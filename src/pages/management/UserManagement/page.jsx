@@ -99,8 +99,6 @@ const UserManagement = () => {
       <UserList onUserSelect={handleUserSelect} selectedUser={selectedUser} />
     </div>
 
-    <div className="hidden lg:block w-px bg-[#E5E7EB] mx-3"></div>
-
     <div className="w-full md:w-1/2 md:h-full min-h-0 min-w-0 overflow-hidden">
       <AddUser selectedUser={selectedUser} />
     </div>

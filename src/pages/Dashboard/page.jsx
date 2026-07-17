@@ -21,6 +21,7 @@ import OdourDeviceCard from "./OdourDeviceCard";
 import GasLeakageDeviceCard from "./GasLeakageDeviceCard";
 import EnergyMonitoringDeviceCard from "./EnergyMonitoringDeviceCard";
 import SchedulerAndTriggerTempHumiDeviceCard from "./SchedulerAndTriggerTempHumiDeviceCard";
+import AcDeviceCard from "./AcDeviceCard";
 import { useOrgVenue } from "../../contexts/OrgVenueContext";
 import { useScheduler } from "../../contexts/SchedulerContext";
 import { useDeviceWebSocket } from "../../hooks/useDeviceWebSocket";
@@ -66,7 +67,7 @@ export default function Dashboard() {
   const autoSelectedRef  = React.useRef({});       // tracks auto-selection per venue
 
   // ── WebSocket Integration for Real-time Data ──────────────────────────────
-  const { deviceDataMap, deviceOnlineMap, deviceScheduleMap, isConnected } = useDeviceWebSocket(freezerDevices);
+  const { deviceDataMap, deviceOnlineMap, deviceScheduleMap, isConnected, refreshDeviceSchedule } = useDeviceWebSocket(freezerDevices);
 
   console.log('🔌 WebSocket Status:', isConnected ? 'Connected' : 'Disconnected');
   console.log('📊 Device Data Map:', deviceDataMap);
@@ -244,6 +245,10 @@ export default function Dashboard() {
 
           setEvents(deviceKey, allEvents);
           bumpEventsRefresh(deviceKey);
+        } else if (eventsRes.status === 404) {
+          // Legacy: empty list used to be 404
+          setEvents(deviceKey, []);
+          bumpEventsRefresh(deviceKey);
         }
       } catch (err) {
         console.warn(`Scheduler fetch error for ${deviceKey}:`, err);
@@ -408,6 +413,7 @@ export default function Dashboard() {
                   const liveData = deviceDataMap[deviceKey] || {};
                   const isOnline = deviceOnlineMap[deviceKey] || false;
 
+                  console.log('liveData', liveData);
                   // console.log(`Rendering device ${deviceKey} with live data:`, liveData, `Online: ${isOnline}`);
                   // console.log(`Rendering`, device);
 
@@ -447,6 +453,38 @@ export default function Dashboard() {
                   };
 
                   // ── Category-based rendering ──
+
+                  // AC scheduling card
+                  if (device.deviceType === "AC") {
+                    return (
+                      <AcDeviceCard
+                        key={idKey}
+                        {...commonProps}
+                        setTemperature={
+                          liveData.setTemperature ?? device?.setTemperature ?? 26
+                        }
+                        acMode={liveData.acMode ?? device?.acMode ?? "Cool"}
+                        fanSpeed={liveData.fanSpeed ?? device?.fanSpeed ?? "Low"}
+                        acLocked={liveData.acLocked ?? device?.acLocked ?? false}
+                        acHealthAlert={
+                          liveData.acHealthAlert ?? device?.acHealthAlert ?? false
+                        }
+                        energyMonitoringIncluded={
+                          liveData.energyMonitoringIncluded ??
+                          device?.energyMonitoringIncluded ??
+                          false
+                        }
+                        espPower={liveData.espPower ?? device?.espPower}
+                        espEnergy={liveData.espEnergy ?? device?.espEnergy}
+                        espCurrent={
+                          liveData.espCurrent ?? liveData.current ?? device?.espCurrent
+                        }
+                        alerts={liveData.alerts ?? []}
+                        onRefreshScheduler={fetchSchedulerData}
+                        scheduleData={deviceScheduleMap[deviceKey]}
+                      />
+                    );
+                  }
 
                   // THD with scheduling or trigger → use SchedulerAndTriggerTempHumiDeviceCard
                   if (device.deviceType === "THD" && (category === "scheduling" || category === "trigger")) {
@@ -630,13 +668,16 @@ export default function Dashboard() {
           espAQI: liveData.AQI ?? selectedDevice?.espAQI,
           espGL: liveData.gass ?? selectedDevice?.espGL,
           espVoltage: liveData.voltage ?? selectedDevice?.espVoltage,
-          espCurrent: liveData.current ?? selectedDevice?.espCurrent,
-          espPower: selectedDevice?.espPower,
+          espCurrent: liveData.espCurrent ?? liveData.current ?? selectedDevice?.espCurrent,
+          espPower: liveData.espPower ?? selectedDevice?.espPower,
+          espEnergy: liveData.espEnergy ?? selectedDevice?.espEnergy,
           odourAlert: liveData.alerts?.some(a => a.type === 'odour') ?? selectedDevice?.odourAlert,
           temperatureAlert: liveData.alerts?.some(a => a.type === 'temperature') ?? selectedDevice?.temperatureAlert,
           humidityAlert: liveData.alerts?.some(a => a.type === 'humidity') ?? selectedDevice?.humidityAlert,
+          voltageAlert: liveData.alerts?.some(a => a.type === 'voltage') ?? selectedDevice?.voltageAlert,
           aqiAlert: liveData.alerts?.some(a => a.type === 'AQI') ?? selectedDevice?.aqiAlert,
           glAlert: liveData.alerts?.some(a => a.type === 'gass') ?? selectedDevice?.glAlert,
+          triggeredAlerts: liveData.triggeredAlerts ?? [],
           batteryLow: selectedDevice?.batteryLow ?? selectedDevice?.batteryAlert ?? false,
           needMaintenance: selectedDevice?.needMaintenance ?? false,
           apiKey: selectedDevice?.apiKey,
@@ -646,6 +687,17 @@ export default function Dashboard() {
           isOnline: isOnline,
           deviceState: liveData.state ?? "OFF", // NEW: WebSocket state for toggle
           scheduleData: deviceScheduleMap[deviceKey], // NEW: WebSocket schedule data
+          // AC fields — same live map as AcDeviceCard
+          setTemperature: liveData.setTemperature ?? selectedDevice?.setTemperature ?? 26,
+          acMode: liveData.acMode ?? selectedDevice?.acMode ?? "Cool",
+          fanSpeed: liveData.fanSpeed ?? selectedDevice?.fanSpeed ?? "Low",
+          acLocked: liveData.acLocked ?? selectedDevice?.acLocked ?? false,
+          acHealthAlert: liveData.acHealthAlert ?? selectedDevice?.acHealthAlert ?? false,
+          energyMonitoringIncluded:
+            liveData.energyMonitoringIncluded ??
+            selectedDevice?.energyMonitoringIncluded ??
+            false,
+          onScheduleRefresh: refreshDeviceSchedule,
         };
 
         const panelContent = isDesktop ? (

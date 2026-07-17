@@ -196,11 +196,11 @@ const UserDashboard = () => {
           </div>
         ) : (
           <div className="bg-white rounded-lg shadow p-12 text-center">
-            <div className="text-6xl mb-4">📟</div>
+            {/* <div className="text-6xl mb-4">📟</div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">No Devices Assigned</h3>
             <p className="text-gray-600">
               You don't have any devices assigned to you yet. Please contact your manager.
-            </p>
+            </p> */}
           </div>
         )}
 

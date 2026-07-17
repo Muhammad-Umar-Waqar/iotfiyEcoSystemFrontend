@@ -21,6 +21,7 @@ const EventsSection = ({
   onExternalClose,
   onEventsChange,
   onToggleChange,
+  onScheduleRefresh,
 }) => {
   const [openModal, setOpenModal] = useState(false);
   const scrollContainerRef = useRef(null);
@@ -94,21 +95,23 @@ const EventsSection = ({
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
+          // 404 used to mean "no events" — treat as empty list
+          validateStatus: (status) =>
+            (status >= 200 && status < 300) || status === 404,
         }
       );
 
-      console.log(`✅ [EventsSection] Events fetched for ${deviceId}:`, res);
-      const fetchedEvents = res.data.events || [];
+      const fetchedEvents =
+        res.status === 404 ? [] : res.data?.events || [];
       console.log(`📋 [EventsSection] Fetched ${fetchedEvents.length} events`);
       setEvents(fetchedEvents);
 
-      // ✅ Fetch current/next status and mark events with type
-      const markedEvents = await fetchAndMarkEvents(deviceId, fetchedEvents);
+      const markedEvents =
+        fetchedEvents.length > 0
+          ? await fetchAndMarkEvents(deviceId, fetchedEvents)
+          : [];
 
-      // ✅ Sync marked events to global context so SchedulerDeviceCard sees the changes
-      console.log(`🔄 [EventsSection] Syncing ${markedEvents.length} marked events to context`);
       setContextEvents(deviceId, markedEvents);
-
       console.log(`✅ [EventsSection] fetchEvents completed for ${deviceId}`);
     } catch (err) {
       console.error("Failed to fetch events:", err);
@@ -118,55 +121,6 @@ const EventsSection = ({
   useEffect(() => {
     fetchEvents();
   }, [selectedDevice?.deviceId, eventsRefreshMap?.[selectedDevice?.deviceId]]);
-
-  // const addEvent = (newEvent) => {
-  //   const collision = hasCollision(events, newEvent);
-
-  //   if (collision) {
-  //     Swal.fire({
-  //       icon: "warning",
-  //       title: "Time Conflict",
-  //       text: "An event already exists within this time range. Please choose a different time slot.",
-  //       confirmButtonText: "Got it",
-  //       confirmButtonColor: "#3B82F6",
-  //       background: "#ffffff",
-  //       color: "#1e293b",
-  //       customClass: {
-  //         popup: "rounded-2xl shadow-xl",
-  //         title: "text-base font-semibold",
-  //         htmlContainer: "text-sm text-slate-500",
-  //         confirmButton: "rounded-lg text-sm font-semibold px-5 py-2",
-  //       },
-  //       buttonsStyling: true,
-  //     });
-  //     return;
-  //   }
-
-  //   const updated = [newEvent, ...events];
-  //   onEventsChange?.(updated);
-
-  //   setTimeout(() => {
-  //     scrollContainerRef.current?.scrollTo({ left: 0, behavior: "smooth" });
-  //   }, 50);
-
-  //   Swal.fire({
-  //     icon: "success",
-  //     title: "Event Created",
-  //     text: `Scheduled ${newEvent.command} from ${newEvent.start} to ${newEvent.end}.`,
-  //     timer: 2000,
-  //     timerProgressBar: true,
-  //     showConfirmButton: false,
-  //     toast: true,
-  //     position: "bottom-end",
-  //     background: "#ffffff",
-  //     color: "#1e293b",
-  //     customClass: {
-  //       popup: "rounded-xl shadow-lg border border-slate-100",
-  //       title: "text-sm font-semibold",
-  //       htmlContainer: "text-xs text-slate-400",
-  //     },
-  //   });
-  // };
 
   const addEvent = async (newEvent) => {
     try {
@@ -180,6 +134,12 @@ const EventsSection = ({
           startTime: newEvent.startTime,
           endTime: newEvent.endTime,
           days: newEvent.days,
+          ...(selectedDevice?.deviceType === "AC"
+            ? {
+                command: newEvent.command || "ON",
+                setTemperature: newEvent.setTemperature,
+              }
+            : {}),
         },
         {
           headers: {
@@ -198,6 +158,7 @@ const EventsSection = ({
 
       // ✅ Refresh events from backend
       await fetchEvents();
+      onScheduleRefresh?.(deviceId);
 
     } catch (err) {
       console.error(err);
@@ -216,8 +177,21 @@ const EventsSection = ({
   };
 
   const handleDeleteConfirm = async () => {
+    const deviceId = selectedDevice?.deviceId;
+    const targetId = String(deleteTarget);
+    const previousEvents = events;
+
     try {
       setWorking(true);
+
+      // Optimistic UI — remove immediately (dashboard + context)
+      const updated = events.filter((e) => String(e._id) !== targetId);
+      setEvents(updated);
+      if (deviceId) setContextEvents(deviceId, updated);
+      onEventsChange?.(updated);
+
+      setDeleteOpen(false);
+      setDeleteTarget(null);
 
       await axios.delete(
         `${import.meta.env.VITE_API_URL}/event/delete/${deleteTarget}`,
@@ -229,12 +203,6 @@ const EventsSection = ({
         }
       );
 
-      const updated = events.filter((e) => e._id !== deleteTarget);
-      onEventsChange?.(updated);
-
-      setDeleteOpen(false);
-      setDeleteTarget(null);
-
       Swal.fire({
         icon: "success",
         title: "Deleted",
@@ -242,17 +210,19 @@ const EventsSection = ({
         timer: 1500,
         showConfirmButton: false,
       });
-      
+
       await fetchEvents();
-      
-      
+      onScheduleRefresh?.(deviceId);
     } catch (err) {
       console.error(err);
+      // Rollback if API failed
+      setEvents(previousEvents);
+      if (deviceId) setContextEvents(deviceId, previousEvents);
 
       Swal.fire({
         icon: "error",
         title: "Failed",
-        text: "Could not delete event",
+        text: err.response?.data?.message || "Could not delete event",
       });
     } finally {
       setWorking(false);
@@ -264,28 +234,6 @@ const EventsSection = ({
     setDeleteTarget(null);
   };
 
-  //   const toggleEvent = (id) => {
-  //   const target = events.find((e) => e.id === id);
-  //   if (!target) return;
-
-  //   const updated = events.map((e) =>
-  //     e.id === id ? { ...e, enabled: !e.enabled } : e
-  //   );
-  //   onEventsChange?.(updated);
-
-  //   // If we just disabled a currently-running event, move toggle to OFF
-  //   if (target.enabled) {
-  //     const now = new Date();
-  //     const nowM = now.getHours() * 60 + now.getMinutes();
-  //     const s = toMinutes(target.start);
-  //     const en = toMinutes(target.end);
-  //     const wasRunning = en > s ? nowM >= s && nowM < en : nowM >= s || nowM < en;
-  //     if (wasRunning) onToggleChange?.("off");
-  //   }
-
-  //   // ... Swal toast unchanged
-  // };
-
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
   const toMinutes = (t = "") => {
@@ -294,43 +242,6 @@ const EventsSection = ({
   };
 
 
-
-  // const toggleEvent = (id) => {
-  //   const target = events.find((e) => e.id === id);
-  //   if (!target) return;
-
-  //   const updated = events.map((e) =>
-  //     e.id === id ? { ...e, enabled: !e.enabled } : e
-  //   );
-  //   onEventsChange?.(updated);
-
-
-  //   // If we just disabled a currently-running event, move toggle to OFF
-  //   if (target.enabled) {
-  //     const now = new Date();
-  //     const nowM = now.getHours() * 60 + now.getMinutes();
-  //     const s = toMinutes(target.start);
-  //     const en = toMinutes(target.end);
-  //     const wasRunning = en > s ? nowM >= s && nowM < en : nowM >= s || nowM < en;
-  //     if (wasRunning) onToggleChange?.("off");
-  //   }
-
-  //   Swal.fire({
-  //     toast: true,
-  //     position: "bottom-end",
-  //     icon: !target.enabled ? "success" : "info",
-  //     title: !target.enabled ? "Event Activated" : "Event Deactivated",
-  //     timer: 1500,
-  //     timerProgressBar: true,
-  //     showConfirmButton: false,
-  //     background: "#ffffff",
-  //     color: "#1e293b",
-  //     customClass: {
-  //       popup: "rounded-xl shadow-lg border border-slate-100",
-  //       title: "text-sm font-semibold",
-  //     },
-  //   });
-  // };
 
   const toggleEventStatus = async (event) => {
     try {
@@ -381,11 +292,11 @@ const EventsSection = ({
           <h2 className="text-sm font-semibold text-slate-600 uppercase tracking-widest">
             Events
           </h2>
-          {events.length > 0 && (
+          {/* {events.length > 0 && (
             <span className="text-[11px] font-semibold bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">
               {events.length}
             </span>
-          )}
+          )} */}
         </div>
 
         <button
@@ -429,6 +340,7 @@ const EventsSection = ({
         open={isModalOpen}
         onClose={handleModalClose}
         onSave={addEvent}
+        deviceType={selectedDevice?.deviceType}
       />
 
 

@@ -30,8 +30,8 @@ export default function AlertList({ title = "Alert", iconSrc = null, items = [] 
       {/* List */}
       <div className="space-y-0.5 max-h-[30vh] md:max-h-[10vh] 2xl:min-h-[16vh] 3xl:min-h-[20vh] overflow-y-auto custom-scrollbar pr-2 pb-2">
         {items.length === 0 ? (
-          <div className="text-center py-4 text-[#64748B] text-sm">
-            🎉 All devices are operating normally.
+          <div className="flex items-center justify-center text-center py-4 text-[#64748B] text-sm">
+            {/* <h4>🎉 All devices are operating normally.</h4> */}
           </div>
         ) : (
           items.map((item) => {

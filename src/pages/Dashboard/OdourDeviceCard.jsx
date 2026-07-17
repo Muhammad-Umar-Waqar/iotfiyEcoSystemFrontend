@@ -354,11 +354,11 @@ export default function OdourDeviceCard({
             <div className="flex items-center gap-2">
               <div className="flex flex-col">
                 <p className="text-xs font-normal">No Event Found!</p>
-                <p className="text-xs font-thin text-gray-500">Schedule your upcoming event.</p>
+                <p className="text-xs font-thin text-gray-500">Schedule your upcoming event</p>
               </div>
               <CirclePlus
                 size={24}
-                className="text-gray-600 cursor-pointer"
+                className="text-gray-600 cursor-pointer hover:rotate-[180deg]"
                 onClick={(e) => handleCreateEventPlusClick(e, onCardSelect, onCreateEventClick)}
               />
             </div>

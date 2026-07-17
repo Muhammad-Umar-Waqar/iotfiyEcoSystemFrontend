@@ -1,174 +1,3 @@
-// import Tooltip from "@mui/material/Tooltip";
-// import { Clock, Power, Trash2 } from "lucide-react";
-
-// const cardClip = {
-//   clipPath:
-//     'path("M 20,0 L 200,0 A 20,20 0,0,1 220,20 L 220,90 A 20,20 0,0,1 200,110 L 150,110 A 20,20 0,0,0 140,120 L 140,130 L 140,140 A 20,20 0,0,1 130,150 L 20,150 A 20,20 0,0,1 0,130 L 0,20 A 20,20 0,0,1 20,0 Z")',
-//   WebkitClipPath:
-//     'path("M 20,0 L 200,0 A 20,20 0,0,1 220,20 L 220,90 A 20,20 0,0,1 200,110 L 150,110 A 20,20 0,0,0 140,120 L 140,130 L 140,140 A 20,20 0,0,1 130,150 L 20,150 A 20,20 0,0,1 0,130 L 0,20 A 20,20 0,0,1 20,0 Z")',
-// };
-
-// const EventCard = ({ event, onToggle, onDelete }) => {
-
-//   console.log("event in the event card", event)
-//   const formatDays = (days = []) => {
-//     if (days.length <= 2) return { display: days, tooltip: null };
-//     return {
-//       display: [days[0], "…", days[days.length - 1]],
-//       tooltip: days.join(", "),
-//     };
-//   };
-
-//   // const formatTime = (time) => {
-//   //   if (!time) return "--:--";
-
-//   //   const [hours, minutes] = time.split(":");
-
-//   //   const date = new Date();
-//   //   date.setHours(Number(hours));
-//   //   date.setMinutes(Number(minutes));
-//   //   date.setSeconds(0);
-
-//   //   return date.toLocaleTimeString([], {
-//   //     hour: "2-digit",
-//   //     minute: "2-digit",
-//   //     hour12: false,
-//   //   });
-//   // };
-
-//   const formatTime = (time) => {
-//     if (!time) return "--:--";
-
-//     const [hours, minutes] = time.split(":").map(Number);
-
-//     // ✅ Create UTC date
-//     const date = new Date();
-//     date.setUTCHours(hours);
-//     date.setUTCMinutes(minutes);
-//     date.setUTCSeconds(0);
-
-//     // ✅ Convert to LOCAL 12-hour format with AM/PM
-//     let h = date.getHours();
-//     const period = h >= 12 ? 'PM' : 'AM';
-//     h = h % 12 || 12; // Convert 0 to 12, and 13-23 to 1-11
-
-//     const m = String(date.getMinutes()).padStart(2, "0");
-
-//     return `${h}:${m} ${period}`;
-//   };
-
-//   const shortDay = (day) => {
-//     if (!day) return "";
-//     return day.slice(0, 3);
-//   };
-
-//   return (
-//     <div className="relative flex-shrink-0 w-[min(92vw,220px)] h-[150px] overflow-visible">
-//       {/* Main clipped card */}
-//       <div style={cardClip} className="absolute inset-0 bg-white">
-//         <div className="relative h-full p-3 flex flex-col justify-between">
-
-//           {/* Top row */}
-//           <div className="flex items-center justify-between">
-//             <div className="flex items-center gap-2 text-slate-400">
-//               <Clock size={14} strokeWidth={2} />
-//               <span className="text-xs font-medium tracking-wide">Schedule</span>
-//             </div>
-
-//             {/* Command badge — ON=emerald, OFF=rose */}
-//             {/* <span
-//               className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-[0.18em] ${event.command === "ON"
-//                   ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
-//                   : "bg-rose-50 text-rose-600 border border-rose-200"
-//                 }`}
-//             >
-//               {event.command}
-//             </span> */}
-//             <button
-//               type="button"
-//               onClick={onDelete}
-//               className="p-1.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 transition cursor-pointer "
-//             >
-//               <Trash2 size={14} />
-//             </button>
-//           </div>
-
-//           {/* Time */}
-//           <div className="flex flex-wrap items-center justify-center gap-x-3">
-//             <div className="flex flex-col items-center gap-0.5">
-//               <span className="text-md font-extrabold tracking-tight text-slate-900 tabular-nums leading-none">
-//                 {/* {event.startTime || "--:--"} */}
-//                 {formatTime(event.startTime)}
-//               </span>
-//               <span className="text-xs font-semibold text-gray-500">Start Time</span>
-//             </div>
-//             <span className="text-2xl font-semibold text-slate-400 leading-none">-</span>
-//             <div className="flex flex-col items-center gap-0.5">
-//               <span className="text-md font-extrabold tracking-tight text-slate-900 tabular-nums leading-none">
-//                 {/* {event.endTime || "--:--"} */}
-//                 {formatTime(event.endTime)}
-//               </span>
-//               <span className="text-xs font-semibold text-gray-500">End Time</span>
-//             </div>
-//           </div>
-
-//           {/* Days */}
-//           <div>
-//             {event.days?.length ? (
-//               (() => {
-//                 const { display, tooltip } = formatDays(event.days);
-//                 const content = (
-//                   <div className="flex flex-wrap gap-1.5">
-//                     {display.map((d, i) =>
-//                       // d === "…" ? (
-//                       //   <span key={i} className="px-2.5 py-0.5 rounded-md bg-slate-50 text-slate-400 text-[11px] font-semibold">…</span>
-//                       // ) : (
-//                       //   <span key={d} className="px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[11px] font-semibold">{d}</span>
-//                       // )
-//                       <span className="px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[11px] font-semibold">
-//                         {d === "…" ? "…" : shortDay(d)}
-//                       </span>
-//                     )}
-//                   </div>
-//                 );
-//                 return tooltip ? (
-//                   <Tooltip title={tooltip} arrow enterTouchDelay={0} leaveTouchDelay={3000}>
-//                     <div className="cursor-default">{content}</div>
-//                   </Tooltip>
-//                 ) : content;
-//               })()
-//             ) : (
-//               <span className="text-xs italic text-slate-300">No repeat days selected</span>
-//             )}
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* Enable / Disable button — indigo when enabled (action = disable), emerald when disabled (action = enable) */}
-//       <button
-//         type="button"
-//         onClick={onToggle}
-//         aria-pressed={!!event.status === "ACTIVE"}
-//         className={`absolute -right-0 bottom-0 z-20 inline-flex items-center gap-1 px-2 py-2 rounded-xl text-xs font-semibold shadow-lg transition-all duration-200 active:scale-[0.98] ${event.status === "ACTIVE"
-//           ? "bg-indigo-500 text-white hover:bg-indigo-600"
-//           : "bg-emerald-500 text-white hover:bg-emerald-600"
-//           }`}
-//       >
-//         <Power size={14} strokeWidth={2} />
-//         {/* {event.enabled ? "Disable" : "Enable"} */}
-//         {event.status === "ACTIVE" ? "Disable" : "Enable"}
-//       </button>
-//     </div>
-//   );
-// };
-
-
-
-// export default EventCard;
-
-
-
-
 // EventCard.jsx
 import Tooltip from "@mui/material/Tooltip";
 import { Clock, Power, Trash2 } from "lucide-react";
@@ -195,13 +24,6 @@ const formatTime = (utcTime) => {
   return `${h}:${m} ${period}`;
 };
 
-// ─── UTC day names → local day names ──────────────────────────────────────
-// Backend stores days in UTC. If the UTC time crosses midnight when
-// converted to local, each day name must shift by ±1.
-//
-// Example (PKT = UTC+5):
-//   stored: { startTime: "22:00", days: ["wednesday"] }
-//   display: 03:00 AM Thursday  →  days must show "thursday"
 const DAY_ORDER = [
   "sunday", "monday", "tuesday", "wednesday",
   "thursday", "friday", "saturday",
@@ -279,13 +101,29 @@ const EventCard = ({ event, onToggle, onDelete, isTriggerEvent = false }) => {
                 {isTriggerEvent ? "Trigger" : "Schedule"}
               </span>
             </div>
-            <button
-              type="button"
-              onClick={onDelete}
-              className="p-1.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 transition cursor-pointer"
-            >
-              <Trash2 size={14} />
-            </button>
+            <div className="flex items-center gap-1.5">
+              {event.command && (
+                <span
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                    event.command === "ON"
+                      ? "bg-emerald-50 text-emerald-700"
+                      : "bg-rose-50 text-rose-700"
+                  }`}
+                >
+                  {event.command}
+                  {event.command === "ON" && event.setTemperature != null
+                    ? ` ${event.setTemperature}°`
+                    : ""}
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={onDelete}
+                className="p-1.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 transition cursor-pointer"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
           </div>
 
           {/* Time */}

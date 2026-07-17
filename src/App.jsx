@@ -22,6 +22,7 @@ import Plans from './pages/admin/Plans';
 import './styles/global/fonts.css';
 import { OrgVenueProvider } from './contexts/OrgVenueContext';
 import { SchedulerProvider } from "./contexts/SchedulerContext";
+import { AcControlProvider } from "./contexts/AcControlContext";
 import OTAManagement from './pages/management/OTAManagement/page';
 import AdminDashboard from './pages/AdminDashboard/page';
 import NotFound from './pages/NotFound';
@@ -47,6 +48,7 @@ function App() {
     <SessionRestoration>
        <OrgVenueProvider>
         <SchedulerProvider>
+          <AcControlProvider>
       <Router>
         <Routes>
           {/* Guest-only routes (redirect to dashboard if already logged in) */}
@@ -116,6 +118,7 @@ function App() {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Router>
+          </AcControlProvider>
           </SchedulerProvider>
       </OrgVenueProvider>
       </SessionRestoration>

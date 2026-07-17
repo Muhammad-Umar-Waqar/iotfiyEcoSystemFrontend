@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { io } from 'socket.io-client';
 import { mergeTriggeredAlerts } from '../utils/triggerAlertUtils';
+import { fetchCurrentOrNextSchedule } from '../utils/fetchCurrentOrNextSchedule';
 
 const SOCKET_URL = import.meta.env.VITE_WS_URL || 'http://localhost:5054';
 
@@ -11,6 +12,7 @@ export const useDeviceWebSocket = (devices = []) => {
   const [deviceOnlineMap, setDeviceOnlineMap] = useState({});
   const [deviceScheduleMap, setDeviceScheduleMap] = useState({}); // NEW: Store schedule data
   const [isConnected, setIsConnected] = useState(false);
+  const scheduleFallbackTriedRef = useRef(new Set());
 
   // Initialize Socket.io connection
   useEffect(() => {
@@ -108,10 +110,23 @@ export const useDeviceWebSocket = (devices = []) => {
               ...previous,
               ...data.data, // Sensor values: temperature, humidity, odour, AQI, voltage, current
               state: data.state ?? previous.state, // ON/OFF for scheduling devices
-              alerts:
-                Array.isArray(data.alerts) && data.alerts.length > 0
-                  ? data.alerts
-                  : previous.alerts || [],
+              // AC fields (top-level from schedulingProcessor / ac-settings emit)
+              setTemperature: data.setTemperature ?? previous.setTemperature,
+              acMode: data.acMode ?? previous.acMode,
+              fanSpeed: data.fanSpeed ?? previous.fanSpeed,
+              acLocked: data.acLocked ?? previous.acLocked,
+              acHealthAlert: data.acHealthAlert ?? previous.acHealthAlert,
+              energyMonitoringIncluded:
+                data.energyMonitoringIncluded ?? previous.energyMonitoringIncluded,
+              espCurrent: data.espCurrent ?? data.current ?? previous.espCurrent,
+              espVoltage: data.espVoltage ?? previous.espVoltage,
+              espPower: data.espPower ?? previous.espPower,
+              espEnergy: data.espEnergy ?? previous.espEnergy,
+              // An empty array is meaningful: it clears alerts resolved by
+              // the latest MQTT packet (e.g. AC becomes healthy again).
+              alerts: Array.isArray(data.alerts)
+                ? data.alerts
+                : previous.alerts || [],
               triggeredAlerts: isTrigger
                 ? mergeTriggeredAlerts(previous.triggeredAlerts, data.triggeredAlerts)
                 : data.triggeredAlerts || [],
@@ -145,6 +160,23 @@ export const useDeviceWebSocket = (devices = []) => {
       });
 
       console.log(`🔔 Subscribed to: ${channel}, ${scheduleChannel}`);
+    });
+
+    // Soft REST fallback: fill schedule when socket has not emitted yet (404 silent)
+    devices.forEach((device) => {
+      const deviceId = device.deviceId || device.deviceName;
+      if (!deviceId || scheduleFallbackTriedRef.current.has(deviceId)) return;
+
+      scheduleFallbackTriedRef.current.add(deviceId);
+
+      fetchCurrentOrNextSchedule(deviceId).then((scheduleData) => {
+        if (!scheduleData) return;
+        setDeviceScheduleMap((prev) => {
+          // Socket already filled this device — keep websocket as source of truth
+          if (prev[deviceId]) return prev;
+          return { ...prev, [deviceId]: scheduleData };
+        });
+      });
     });
 
     // Cleanup listeners when devices change
@@ -188,6 +220,16 @@ export const useDeviceWebSocket = (devices = []) => {
     return deviceOnlineMap[deviceId] || false;
   }, [deviceOnlineMap]);
 
+  /** Re-fetch CURRENT/NEXT after event create/delete so device cards update without full page refresh */
+  const refreshDeviceSchedule = useCallback(async (deviceId) => {
+    if (!deviceId) return;
+    const scheduleData = await fetchCurrentOrNextSchedule(deviceId);
+    setDeviceScheduleMap((prev) => ({
+      ...prev,
+      [deviceId]: scheduleData || { type: "NO_EVENT", event: null },
+    }));
+  }, []);
+
   return {
     deviceDataMap,
     deviceOnlineMap,
@@ -195,6 +237,7 @@ export const useDeviceWebSocket = (devices = []) => {
     isConnected,
     getDeviceData,
     isDeviceOnline,
+    refreshDeviceSchedule,
     socket: socketRef.current
   };
 };

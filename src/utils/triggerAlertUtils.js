@@ -22,11 +22,16 @@ export function isTriggeredAlert(triggeredAlerts, type) {
 }
 
 /**
- * For trigger devices use triggeredAlerts; otherwise use the monitoring alert flag.
+ * For trigger devices prefer live `triggeredAlerts`; if none yet (API / offline),
+ * fall back to the same monitoring boolean flags used by VenueDetailsPanel.
+ * Monitoring (and other categories) always use the boolean flag.
  */
 export function resolveAlertState(category, triggeredAlerts, type, monitoringAlert = false) {
   if (category === "trigger") {
-    return isTriggeredAlert(triggeredAlerts, type);
+    if (Array.isArray(triggeredAlerts) && triggeredAlerts.length > 0) {
+      return isTriggeredAlert(triggeredAlerts, type);
+    }
+    return Boolean(monitoringAlert);
   }
   return Boolean(monitoringAlert);
 }
