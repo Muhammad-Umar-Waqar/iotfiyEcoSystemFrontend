@@ -3,10 +3,18 @@ import { useDispatch, useSelector } from "react-redux";
 import { useMemo, useEffect, useState } from "react";
 import QRCode from "./QrCode";
 import { useLocation } from "react-router-dom";
-import CloseIcon from '@mui/icons-material/Close';
+import CloseIcon from "@mui/icons-material/Close";
+import DeviceThermostatIcon from "@mui/icons-material/DeviceThermostat";
+import WaterDropIcon from "@mui/icons-material/WaterDrop";
+import BoltIcon from "@mui/icons-material/Bolt";
+import SpeedIcon from "@mui/icons-material/Speed";
+import PowerIcon from "@mui/icons-material/Power";
+import AirIcon from "@mui/icons-material/Air";
+import CloudIcon from "@mui/icons-material/Cloud";
+import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
 import { IconButton, Skeleton } from "@mui/material";
 import { fetchVenuesByOrganization } from "../../slices/VenueSlice";
-import { Download, Cloud, Zap, Plug, Power } from "lucide-react";
+import { Download, Power } from "lucide-react";
 import Swal from "sweetalert2";
 import DownloadModal from "./DownloadModal";
 import EventsSection from "../../components/events/EventsSection";
@@ -15,6 +23,34 @@ import AcClimateDial from "../../components/AcClimateDial";
 import { useScheduler } from "../../contexts/SchedulerContext";
 import { useAcControl } from "../../contexts/AcControlContext";
 import { resolveAlertState } from "../../utils/triggerAlertUtils";
+
+/** Soft filled icon chip — consistent look across metrics / alerts */
+const MetricIcon = ({ Icon, tone = "blue", size = "md" }) => {
+  const tones = {
+    blue: { color: "#0D5CA4", bg: "rgba(13, 92, 164, 0.12)" },
+    teal: { color: "#0F766E", bg: "rgba(15, 118, 110, 0.12)" },
+    amber: { color: "#D97706", bg: "rgba(217, 119, 6, 0.14)" },
+    rose: { color: "#E11D48", bg: "rgba(225, 29, 72, 0.12)" },
+    violet: { color: "#7C3AED", bg: "rgba(124, 58, 237, 0.12)" },
+  };
+  const t = tones[tone] || tones.blue;
+  const box = size === "sm" ? 32 : 44;
+  const font = size === "sm" ? 18 : 26;
+
+  return (
+    <span
+      className="inline-flex items-center justify-center rounded-full shrink-0"
+      style={{
+        width: box,
+        height: box,
+        background: t.bg,
+        color: t.color,
+      }}
+    >
+      <Icon sx={{ fontSize: font }} />
+    </span>
+  );
+};
 
 export default function VenueDetailsPanel({
   organizationId = null,
@@ -418,13 +454,15 @@ export default function VenueDetailsPanel({
     const tempMetric = {
       key: "temperature", label: "Temperature", unit: "°C",
       value: displayTemp !== null ? displayTemp : "--",
-      img: "/temperature-icon.svg", lucideIcon: null,
+      img: null,
+      lucideIcon: <MetricIcon Icon={DeviceThermostatIcon} tone="amber" size="sm" />,
       alertFlag: !!effectiveTemperatureAlert, color: "green",
     };
     const humMetric = {
       key: "humidity", label: "Humidity", unit: "%",
       value: displayHumidity !== null ? displayHumidity : "--",
-      img: "/humidity-alert.svg", lucideIcon: null,
+      img: null,
+      lucideIcon: <MetricIcon Icon={WaterDropIcon} tone="teal" size="sm" />,
       alertFlag: !!effectiveHumidityAlert, color: "green",
     };
 
@@ -442,7 +480,7 @@ export default function VenueDetailsPanel({
               ? +Number(espVoltage).toFixed(1)
               : "--",
           img: null,
-          lucideIcon: <Plug size={24} />,
+          lucideIcon: <MetricIcon Icon={PowerIcon} tone="violet" size="sm" />,
           alertFlag: !!effectiveVoltageAlert,
           color: "red",
         },
@@ -450,20 +488,50 @@ export default function VenueDetailsPanel({
     }
     if (String(deviceType) === "OD") {
       return [
-        { key: "odour", label: "Odour", unit: "%", value: displayOdour ?? 0, img: "/odour-alert.svg", lucideIcon: null, alertFlag: !!effectiveOdourAlert, color: "red" },
-        tempMetric, humMetric,
+        {
+          key: "odour",
+          label: "Odour",
+          unit: "%",
+          value: displayOdour ?? 0,
+          img: null,
+          lucideIcon: <MetricIcon Icon={AirIcon} tone="rose" size="sm" />,
+          alertFlag: !!effectiveOdourAlert,
+          color: "red",
+        },
+        tempMetric,
+        humMetric,
       ];
     }
     if (String(deviceType) === "AQID") {
       return [
-        { key: "aqi", label: "AQI", unit: "AQI", value: displayAQI ?? "--", img: null, lucideIcon: <Cloud size={36} />, alertFlag: !!effectiveAqiAlert, color: "red" },
-        tempMetric, humMetric,
+        {
+          key: "aqi",
+          label: "AQI",
+          unit: "",
+          value: displayAQI ?? "--",
+          img: null,
+          lucideIcon: <MetricIcon Icon={CloudIcon} tone="violet" size="sm" />,
+          alertFlag: !!effectiveAqiAlert,
+          color: "red",
+        },
+        tempMetric,
+        humMetric,
       ];
     }
     if (String(deviceType) === "GLD") {
       return [
-        { key: "gas", label: "Gas", unit: "%", value: displayGL ?? "--", img: null, lucideIcon: <Zap size={36} />, alertFlag: !!effectiveGlAlert, color: "red" },
-        tempMetric, humMetric,
+        {
+          key: "gas",
+          label: "Gas",
+          unit: "%",
+          value: displayGL ?? "--",
+          img: null,
+          lucideIcon: <MetricIcon Icon={LocalFireDepartmentIcon} tone="rose" size="sm" />,
+          alertFlag: !!effectiveGlAlert,
+          color: "red",
+        },
+        tempMetric,
+        humMetric,
       ];
     }
     // AC: optional power/units only (setpoint is controlled below — not in top metrics)
@@ -482,7 +550,7 @@ export default function VenueDetailsPanel({
               ? `${Math.round(Number(powerVal))} W`
               : "--",
           img: null,
-          lucideIcon: <Zap size={30} />,
+          lucideIcon: <MetricIcon Icon={BoltIcon} tone="amber" />,
           alertFlag: false,
           color: "green",
         },
@@ -495,7 +563,7 @@ export default function VenueDetailsPanel({
               ? `${Number(energyVal).toFixed(3)} kWh`
               : "--",
           img: null,
-          lucideIcon: <Plug size={30} />,
+          lucideIcon: <MetricIcon Icon={SpeedIcon} tone="blue" />,
           alertFlag: false,
           color: "green",
         },
@@ -514,7 +582,7 @@ export default function VenueDetailsPanel({
           unit: "",
           value: formatUnitValue(espPower, espVoltage, espCurrent),
           img: null,
-          lucideIcon: <Zap size={30} />,
+          lucideIcon: <MetricIcon Icon={SpeedIcon} tone="blue" />,
           alertFlag: false,
           color: "green",
         },
@@ -523,8 +591,8 @@ export default function VenueDetailsPanel({
           label: "Temperature",
           unit: "°C",
           value: displayTemp !== null ? displayTemp : "--",
-          img: "/temperature-icon.svg",
-          lucideIcon: null,
+          img: null,
+          lucideIcon: <MetricIcon Icon={DeviceThermostatIcon} tone="amber" />,
           alertFlag: false,
           color: "green",
         },
@@ -533,8 +601,8 @@ export default function VenueDetailsPanel({
           label: "Humidity",
           unit: "%",
           value: displayHumidity !== null ? displayHumidity : "--",
-          img: "/humidity-alert.svg",
-          lucideIcon: null,
+          img: null,
+          lucideIcon: <MetricIcon Icon={WaterDropIcon} tone="teal" />,
           alertFlag: false,
           color: "green",
         },
@@ -698,7 +766,7 @@ export default function VenueDetailsPanel({
                   {m.img ? (
                     <img src={m.img} alt={m.label} className="w-6 h-6 shrink-0" />
                   ) : m.lucideIcon ? (
-                    <div className="w-6 h-6 flex items-center justify-center shrink-0">
+                    <div className="shrink-0 flex items-center justify-center">
                       {m.lucideIcon}
                     </div>
                   ) : (
