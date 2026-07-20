@@ -133,7 +133,13 @@ export const useDeviceWebSocket = (devices = []) => {
               interval: data.interval ?? previous.interval,
               category: data.category ?? previous.category,
               deviceType: data.deviceType ?? previous.deviceType,
-              lastUpdateISO: data.timestamp ?? previous.lastUpdateISO,
+              lastUpdateISO: (() => {
+                if (data.timestamp != null) {
+                  const d = new Date(data.timestamp);
+                  if (!Number.isNaN(d.getTime())) return d.toISOString();
+                }
+                return previous.lastUpdateISO || new Date().toISOString();
+              })(),
               receivedAt: Date.now()
             }
           };

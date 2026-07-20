@@ -393,7 +393,7 @@ const AcDeviceCard = ({
               {onCreateEventClick && (
                 <CirclePlus
                   size={24}
-                  className="text-gray-600 cursor-pointer hover:rotate-[180deg] transition-transform"
+                  className="text-gray-600 cursor-pointer hover:rotate-180 transition-transform duration-500 ease-in-out"
                   onClick={(e) =>
                     handleCreateEventPlusClick(
                       e,

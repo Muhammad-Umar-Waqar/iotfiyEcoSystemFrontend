@@ -408,7 +408,8 @@ const EnergyMonitoringDeviceCard = React.memo(function EnergyMonitoringDeviceCar
               <span className="text-2xl font-bold">
                 {espVoltage ?? "--"}<span className="font-normal">V</span>
               </span>
-              <p className="h-2 w-[3rem] rounded-full bg-[#BAEACC]" />
+              <AlertIndicator hasAlert={effectiveVoltageAlert} />
+              {/* <p className="h-2 w-[3rem] rounded-full bg-[#BAEACC]" /> */}
             </div>
           </div>
 

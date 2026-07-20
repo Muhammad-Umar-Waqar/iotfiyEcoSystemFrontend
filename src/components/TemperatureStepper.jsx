@@ -51,7 +51,7 @@ const TemperatureStepper = ({
           "&.Mui-disabled": { opacity: 0.4 },
         }}
       >
-        <Remove />
+        <Remove sx={{ fontSize: 15, color: "#0D5CA4", }}/>
       </IconButton>
 
       {/* <Typography
@@ -84,7 +84,9 @@ const TemperatureStepper = ({
     justifyContent: "center",
     fontWeight: 600,
     userSelect: "none",
-    minWidth: 40,
+    minWidth: 44,
+    paddingX: 0.5,
+    paddingY: 0.2,
     lineHeight: 1,
   }}
 >
@@ -126,7 +128,7 @@ const TemperatureStepper = ({
           "&.Mui-disabled": { opacity: 0.4 },
         }}
       >
-        <Add />
+        <Add sx={{ fontSize: 15, color: "#0D5CA4" }}/>
       </IconButton>
     </Box>
   );

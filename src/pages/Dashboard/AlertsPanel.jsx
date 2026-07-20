@@ -1218,7 +1218,7 @@ export default function AlertsPanel({
             sx={{
               width: isMobile ? "fit-content" : "100%",
               backgroundColor: "white",
-              borderRadius: "8px",
+              borderRadius: "32px",
               "& .MuiOutlinedInput-notchedOutline": { borderColor: "#E5E7EB" },
               "& .MuiSelect-select": {
                 py: 1,

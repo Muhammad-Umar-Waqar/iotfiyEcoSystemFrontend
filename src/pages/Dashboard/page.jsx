@@ -683,7 +683,12 @@ export default function Dashboard() {
           apiKey: selectedDevice?.apiKey,
           organizationId: selectedOrgId,
           deviceId: selectedDevice?.deviceId,
-          lastUpdateTime: liveData.lastUpdateISO ?? selectedDevice?.lastUpdateTime,
+          lastUpdateTime:
+            liveData.lastUpdateISO ??
+            selectedDevice?.lastUpdateTime ??
+            (liveData.receivedAt
+              ? new Date(liveData.receivedAt).toISOString()
+              : null),
           isOnline: isOnline,
           deviceState: liveData.state ?? "OFF", // NEW: WebSocket state for toggle
           scheduleData: deviceScheduleMap[deviceKey], // NEW: WebSocket schedule data

@@ -14,7 +14,7 @@ import CloudIcon from "@mui/icons-material/Cloud";
 import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
 import { IconButton, Skeleton } from "@mui/material";
 import { fetchVenuesByOrganization } from "../../slices/VenueSlice";
-import { Download, Power } from "lucide-react";
+import { Download, Power, Copy, Check } from "lucide-react";
 import Swal from "sweetalert2";
 import DownloadModal from "./DownloadModal";
 import EventsSection from "../../components/events/EventsSection";
@@ -168,6 +168,7 @@ export default function VenueDetailsPanel({
   const [downloadOpen, setDownloadOpen] = useState(false);
   const [powerModalOpen, setPowerModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [apiKeyCopied, setApiKeyCopied] = useState(false);
 
   useEffect(() => {
     if (!pendingCreateEvent) return;
@@ -394,33 +395,29 @@ export default function VenueDetailsPanel({
   const handleDownload = () => setDownloadOpen(true);
 
   const formatLastUpdate = (time) => {
-    console.log('VenueDetailsPanel - lastUpdateTime received:', time, 'Type:', typeof time);
+    if (!time || time === "null" || time === "undefined") return null;
 
-    // Handle string "null" or actual null/undefined
-    if (!time || time === 'null' || time === 'undefined') return null;
-
-    // Handle different timestamp formats
     let date;
     if (time instanceof Date) {
       date = time;
-    } else if (typeof time === 'string' || typeof time === 'number') {
+    } else if (typeof time === "string" || typeof time === "number") {
       date = new Date(time);
     } else {
-      console.warn('Invalid lastUpdateTime format:', time);
-      return 'Invalid Date';
+      return null;
     }
 
-    // Check if date is valid
-    if (isNaN(date.getTime())) {
-      console.warn('Invalid date created from:', time);
-      return 'Invalid Date';
-    }
+    if (Number.isNaN(date.getTime())) return null;
 
     return date.toLocaleString(undefined, {
-      year: "numeric", month: "short", day: "numeric",
-      hour: "2-digit", minute: "2-digit",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
+
+  const lastUpdateDisplay = formatLastUpdate(lastUpdateTime);
 
   function formatUnitValue(espPower, espVoltage, espCurrent) {
     const power = Number(espPower);
@@ -662,10 +659,10 @@ export default function VenueDetailsPanel({
         </div>
         <button
           onClick={handleDownload}
-          className="inline-flex items-center gap-2 px-3 py-2 bg-[#0D5CA4] text-white rounded-full text-xs font-semibold hover:bg-[#0b4e8a] active:scale-[.98] transition shadow-sm cursor-pointer"
+          className="inline-flex items-center gap-2 px-3 py-2 bg-[#0D5CA4] text-white rounded-2xl text-xs font-semibold hover:bg-[#0b4e8a] active:scale-[.98] transition shadow-sm cursor-pointer"
           aria-label="Download"
         >
-          <span className="leading-none">Download</span>
+          <span className="leading-none py-1 px-3">Download</span>
           <Download className="w-3.5 h-3.5" />
         </button>
       </div>
@@ -716,7 +713,7 @@ export default function VenueDetailsPanel({
                     : displayToggleState === "on" ? "bg-emerald-500 hover:bg-emerald-600 cursor-pointer"
                     : displayToggleState === "off" ? "bg-rose-500 hover:bg-rose-600 cursor-pointer"
                       : "bg-gray-400 hover:bg-gray-500 cursor-pointer"}`}
-                title={loading || (isAc && acPowerLoading) ? "Processing..." : displayToggleState === "gray" ? "Event running or device offline — click to disable" : displayToggleState === "on" ? "Turn Off" : "Turn On"}
+                title={loading || (isAc && acPowerLoading) ? "Processing..." : displayToggleState === "gray" ? "Either Device is Offline or Event is Running" : displayToggleState === "on" ? "Turn Off" : "Turn On"}
               >
                 {loading || (isAc && acPowerLoading) ? (
                   <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -726,14 +723,14 @@ export default function VenueDetailsPanel({
                 ) : (
                   <Power size={15} strokeWidth={2} />
                 )}
-                <span className="text-xs font-bold">
+                <span className="text-xs font-bold h-4">
                   {loading || (isAc && acPowerLoading)
                     ? "..."
                     : displayToggleState === "on"
                       ? "ON"
                       : displayToggleState === "off"
                         ? "OFF"
-                        : ""}
+                        : "--"}
                 </span>
               </button>
             )}
@@ -787,14 +784,37 @@ export default function VenueDetailsPanel({
       <div>
         {apiKey ? (
           <div className="mt-3 p-2 rounded-md bg-white border border-gray-200 text-sm text-gray-700 break-words px-2">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
                 <strong>API Key:</strong>
-                <div className="mt-2 text-sm" title={apiKey}>
-                  {apiKey ? `${apiKey.slice(0, 15)}...` : ""}
+                <div className="mt-2 flex items-center justify-around gap-3 min-w-0">
+                  <span className="text-sm truncate" title={apiKey}>
+                    {`${apiKey}`}
+                  </span>
+                  <button
+                    type="button"
+                    title={apiKeyCopied ? "Copied" : "Copy API key"}
+                    aria-label="Copy API key"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(apiKey);
+                        setApiKeyCopied(true);
+                        setTimeout(() => setApiKeyCopied(false), 1500);
+                      } catch {
+                        window.prompt("Copy API key:", apiKey);
+                      }
+                    }}
+                    className="shrink-0 p-1.5 rounded-md text-gray-600 hover:bg-gray-50 hover:text-[#0D5CA4] transition"
+                  >
+                    {apiKeyCopied ? (
+                      <Check size={14} className="text-emerald-600" />
+                    ) : (
+                      <Copy size={14} />
+                    )}
+                  </button>
                 </div>
               </div>
-              <QRCode apiKey={apiKey} baseUrl={import.meta.env.VITE_REACT_URI || "http://localhost:5173"} />
+              <QRCode apiKey={apiKey} />
             </div>
           </div>
         ) : (
@@ -809,11 +829,9 @@ export default function VenueDetailsPanel({
           </div>
         )}
 
-        {lastUpdateTime && (
-          <div className="text-center mt-3 p-2 rounded-xl bg-[#07518D]/[0.05] font-thin text-xs sm:text-md">
-            Last Update: {formatLastUpdate(lastUpdateTime)}
-          </div>
-        )}
+        <div className="text-center mt-3 p-2 rounded-xl bg-[#07518D]/[0.05] font-thin text-xs sm:text-md">
+          Last Update: {lastUpdateDisplay ?? "-- -- --"}
+        </div>
       </div>
 
       <DownloadModal

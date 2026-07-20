@@ -349,21 +349,21 @@ const EventModal = ({ open, onClose, onSave, deviceType = null }) => {
   }
 
   try {
+    // Clone first — dayjs .utc() mutates mode; local day must be read before that.
+    const startLocal = start.clone();
+    const endLocal = end.clone();
+
+    const localDayIndex = startLocal.day(); // local weekday (0=Sun…6=Sat)
+    const utcDayIndex = startLocal.clone().utc().day();
+
     // ── 1. Convert HH:mm to UTC ──────────────────────────────────────────
-    const startUTC = start.utc().format("HH:mm");
-    const endUTC   = end.utc().format("HH:mm");
+    const startUTC = startLocal.clone().utc().format("HH:mm");
+    const endUTC = endLocal.clone().utc().format("HH:mm");
 
-    // ── 2. Calculate day shift caused by UTC conversion ───────────────────
-    // Compare local weekday vs UTC weekday for the start time.
-    // dayjs .day() returns 0 (Sun) … 6 (Sat).
-    const localDayIndex = start.day();       // e.g. Thursday = 4
-    const utcDayIndex   = start.utc().day(); // e.g. Wednesday = 3 (PKT +5, 3am → 10pm prev day)
-
-    // Raw difference: -1 means UTC rolled back one day, +1 means rolled forward.
-    // Handle the Sun(0) ↔ Sat(6) wraparound with modular arithmetic.
-    let dayShift = utcDayIndex - localDayIndex; // e.g. 3 - 4 = -1
-    if (dayShift > 1)  dayShift = -1; // e.g. Sat(6) local → Sun(0) UTC
-    if (dayShift < -1) dayShift = 1;  // e.g. Sun(0) local → Sat(6) UTC
+    // ── 2. Day shift from LOCAL → UTC (e.g. PKT 02:00 Tue → UTC 21:00 Mon = -1)
+    let dayShift = utcDayIndex - localDayIndex;
+    if (dayShift > 1) dayShift = -1; // Sat local → Sun UTC wrap
+    if (dayShift < -1) dayShift = 1; // Sun local → Sat UTC wrap
 
     // ── 3. Full day name maps ─────────────────────────────────────────────
     const shortToIndex = {
@@ -374,21 +374,21 @@ const EventModal = ({ open, onClose, onSave, deviceType = null }) => {
       4: "thursday", 5: "friday", 6: "saturday",
     };
 
-    // ── 4. Shift each selected day ────────────────────────────────────────
+    // ── 4. Shift each selected day into UTC weekday names ─────────────────
     const formattedDays = days.map((d) => {
       const shifted = (shortToIndex[d] + dayShift + 7) % 7; // +7 prevents negative modulo
       return indexToFull[shifted];
     });
 
-    console.log("Local start :", start.format("ddd HH:mm"));
-    console.log("UTC start   :", start.utc().format("ddd HH:mm"));
+    console.log("Local start :", startLocal.format("ddd HH:mm"));
+    console.log("UTC start   :", startLocal.clone().utc().format("ddd HH:mm"));
     console.log("Day shift   :", dayShift);
     console.log("Payload     :", { startUTC, endUTC, days: formattedDays });
 
     await onSave({
       startTime: startUTC,
-      endTime:   endUTC,
-      days:      formattedDays,
+      endTime: endUTC,
+      days: formattedDays,
       ...(isAc
         ? {
             command,
