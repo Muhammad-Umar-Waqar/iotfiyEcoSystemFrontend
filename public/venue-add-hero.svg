@@ -1,0 +1,24 @@
+<svg width="160" height="140" viewBox="0 0 160 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="80" cy="118" rx="54" ry="10" fill="#0D5CA4" fill-opacity="0.08"/>
+
+  <!-- map pin body -->
+  <path d="M80 22C62.3 22 48 36.3 48 54C48 74.5 80 112 80 112C80 112 112 74.5 112 54C112 36.3 97.7 22 80 22Z" fill="#0D5CA4"/>
+  <path d="M80 22C62.3 22 48 36.3 48 54C48 58 48.8 61.8 50.2 65.3C53.8 48.2 69.2 36 86.5 36C95.2 36 103.1 39.2 109 44.5C107.2 31.7 95.1 22 80 22Z" fill="#1E64D9"/>
+
+  <!-- inner circle -->
+  <circle cx="80" cy="52" r="16" fill="#EEF3F9"/>
+  <circle cx="80" cy="52" r="9" fill="#07518D" fill-opacity="0.35"/>
+
+  <!-- small building in pin -->
+  <rect x="74" y="46" width="12" height="14" rx="2" fill="#0D5CA4"/>
+  <rect x="76" y="49" width="3" height="3" rx="0.5" fill="#EEF3F9"/>
+  <rect x="81" y="49" width="3" height="3" rx="0.5" fill="#EEF3F9"/>
+  <rect x="76" y="54" width="3" height="3" rx="0.5" fill="#EEF3F9"/>
+  <rect x="81" y="54" width="3" height="3" rx="0.5" fill="#EEF3F9"/>
+
+  <!-- badge -->
+  <circle cx="118" cy="42" r="18" fill="#FFFFFF"/>
+  <circle cx="118" cy="42" r="18" fill="#0D5CA4" fill-opacity="0.12"/>
+  <circle cx="118" cy="42" r="14" fill="#0D5CA4"/>
+  <path d="M111.5 42.5L116 47L125.5 37.5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

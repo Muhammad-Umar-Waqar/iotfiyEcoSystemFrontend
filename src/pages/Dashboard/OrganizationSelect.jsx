@@ -81,8 +81,9 @@ export default function OrganizationSelect({
             onKeyDown={(e) => e.key === "Enter" && setDropdownOpen((s) => !s)}
             onClick={() => !orgLoading && setDropdownOpen((s) => !s)}
             className={`sm:rounded-full flex items-center justify-between px-4 py-2 border cursor-pointer bg-white select-none ${selectedOrg ? "rounded-full" : "rounded-xl"}`}
+            style={{ borderColor: "color-mix(in srgb, var(--eco-primary) 45%, #E2E8F0)" }}
           >
-            <span className="text-gray-600 text-sm truncate w-[90%] sm:max-w-[70%]">{selectedLabel}</span>
+            <span className="text-sm truncate w-[90%] sm:max-w-[70%] font-medium font-bold" style={{ color: "var(--eco-primary)" }}>{selectedLabel}</span>
             <svg className={`w-4 h-4 text-gray-500 ml-2 transform ${dropdownOpen ? "rotate-180" : "rotate-0"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
             </svg>

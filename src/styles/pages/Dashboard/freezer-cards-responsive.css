@@ -28,17 +28,79 @@
 .freezer-cards-grid {
   display: grid;
   gap: 1rem;
-  padding: 1rem;
+  padding: 1rem; /* py same, px tight */
   width: 100%;
   transition: all 0.3s ease-in-out;
 }
 
-/* ===== CONTAINER HEIGHT FOR EXACTLY 2 ROWS ===== */
+/* ===== CONTAINER HEIGHT FOR EXACTLY 2 ROWS (mobile / < md) ===== */
 .freezer-cards-container {
   height: calc((var(--card-height, 200px) * 2) + var(--gap, 1rem) + (var(--padding, 1rem) * 2));
   overflow-y: auto;
-  background-color: #07518D12;
+  /* background-color: #07518D12; */
   border-radius: 20px;
+  
+}
+
+@media (max-width: 639px) {
+  .freezer-cards-container{
+    background-color: #07518d0d;
+  }
+}
+
+
+/*
+ * md → 2xl (768px–1535px) ONLY: SINGLE ROW + horizontal scroll (scrollbar hidden).
+ * FIXED card width — ek hi jagah defined (--single-row-card-w), har card file
+ * me alag width dene ki zaroorat nahi. Extras horizontal scroll me chale jate hain.
+ * ≥1536px (2xl and up): OLD grid / 2-row approach (unchanged below).
+ */
+@media (min-width: 768px) and (max-width: 1535px) {
+  :root {
+    --single-row-card-w: 300px; 
+    --single-row-card-h: 210px;
+    /* --single-row-card-w: 340px; 
+    --single-row-card-h: 210px; */
+  }
+
+  .freezer-cards-container {
+    height: auto;
+    min-height: calc(var(--single-row-card-h) + 2rem);
+    overflow-x: auto;
+    overflow-y: hidden;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .freezer-cards-container::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+
+  .freezer-cards-grid {
+    display: flex !important;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    gap: 1rem;
+  }
+  .freezer-cards-grid::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+
+  /* FIXED width per card; shrink disabled so extras scroll horizontally */
+  .freezer-cards-grid > .freezer-card-container {
+    flex: 0 0 var(--single-row-card-w);
+    width: var(--single-row-card-w);
+    max-width: none;
+    height: var(--single-row-card-h);
+  }
 }
 
 /* Desktop-only - Mobile/Tablet styles removed */
@@ -48,23 +110,21 @@
   .freezer-cards-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 1.25rem;
-    padding: 1.5rem;
+    /* padding: 1.5rem; */
   }
   
   .freezer-card-container {
     aspect-ratio: 1.6;
     height: 210px; /* Reduced height for 14" laptops */
   }
-  
-  
 }
 
-/* ===== 15-17 INCH LAPTOPS (1366px to 1599px) ===== */
-@media (min-width: 1366px) and (max-width: 1599px) {
+/* ===== 15-17 INCH LAPTOPS (was 1366px; starts at 1536px — 2xl — since single-row covers below) ===== */
+@media (min-width: 1536px) and (max-width: 1599px) {
   .freezer-cards-grid {
     grid-template-columns: repeat(3, 1fr);
     gap: 1.5rem;
-    padding: 1.5rem;
+    padding: 1.5rem 0.35rem; /* py same, px tight */
   }
   
   .freezer-card-container {
@@ -82,7 +142,7 @@
   .freezer-cards-grid {
     grid-template-columns: repeat(3, 1fr);
     gap: 1.75rem;
-    padding: 1.75rem;
+    padding: 1.75rem 0.4rem; /* py same, px tight */
   }
   
   .freezer-card-container {
@@ -100,7 +160,7 @@
   .freezer-cards-grid {
     grid-template-columns: repeat(4, 1fr);
     gap: 2rem;
-    padding: 2rem;
+    padding: 2rem 0.45rem; /* py same, px tight */
   }
   
   .freezer-card-container {
@@ -118,7 +178,7 @@
   .freezer-cards-grid {
     grid-template-columns: repeat(5, 1fr);
     gap: 2.25rem;
-    padding: 2.25rem;
+    padding: 2.25rem 0.5rem; /* py same, px tight */
   }
   
   .freezer-card-container {
@@ -136,7 +196,7 @@
   .freezer-cards-grid {
     grid-template-columns: repeat(6, 1fr);
     gap: 2.5rem;
-    padding: 2.5rem;
+    padding: 2.5rem 0.5rem; /* py same, px tight */
   }
   
   .freezer-card-container {

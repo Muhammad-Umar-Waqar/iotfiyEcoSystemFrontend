@@ -1,62 +1,31 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-@import "tailwindcss";
 
-/* Global body and html styling */
-html, body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  background-color: #f3f4f6;
-  overflow: hidden;
-  font-family: 'Poppins', sans-serif;
-}
+/*
+ * NOTE: Theme CSS variables live in src/index.css (imported by main.jsx).
+ * Edit tokens THERE — this file is not the app entry stylesheet.
+ */
 
-/* Add custom scrollbar styles */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 8px; /* width of the scrollbar */
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: #f1f1f1af; /* color of the tracking area */
-  border-radius: 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #88888880; /* color of the scroll thumb */
-  border-radius: 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #5555559b; /* color of the scroll thumb on hover */
-}
-
-/* For Firefox compatibility (less customization) */
-.custom-scrollbar {
-  scrollbar-width: thin; /* "auto" or "thin" */
-  scrollbar-color: #8888884a #f1f1f134; /* thumb and track color */
-}
-
-/* Horizontal scroll without visible scrollbar (alerts rows, etc.) */
-.scrollbar-none {
+/*
+ * Scrollbars always hidden — content remains scrollable
+ */
+.dashboard-main-content,
+.custom-scrollbar,
+.scrollbar-none,
+.freezer-cards-container,
+.eco-rpanel-scroll {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-.scrollbar-none::-webkit-scrollbar {
+.dashboard-main-content::-webkit-scrollbar,
+.custom-scrollbar::-webkit-scrollbar,
+.scrollbar-none::-webkit-scrollbar,
+.freezer-cards-container::-webkit-scrollbar,
+.eco-rpanel-scroll::-webkit-scrollbar {
   display: none;
   width: 0;
   height: 0;
 }
 
-
-
-
-/* body {
-  @apply font-sans;
-} */
-
-
-/* make SweetAlert appear above MUI Drawer/Modal (MUI drawer z-index ~1200) */
 .swal2-container,
 .my-swal-container {
   z-index: 20000 !important;
@@ -66,8 +35,3 @@ html, body {
 .my-swal-popup {
   z-index: 20001 !important;
 }
-
-
-
-
-

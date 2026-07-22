@@ -150,7 +150,7 @@ const AcDeviceCard = ({
   };
 
   const cardSelectedClass = isSelected
-    ? "shadow-lg ring-1 ring-[#0D5CA4]/15"
+    ? "shadow-lg ring-1 ring-[color-mix(in_srgb,var(--eco-primary)_18%,transparent)]"
     : "";
 
   const scheduleEvent = effectiveSchedule?.event;

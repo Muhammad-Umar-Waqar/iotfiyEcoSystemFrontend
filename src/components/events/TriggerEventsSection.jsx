@@ -242,8 +242,8 @@ const TriggerEventsSection = ({
     <div className="mt-2">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <CalendarClock size={16} className="text-slate-400" strokeWidth={2} />
-          <h2 className="text-sm font-semibold text-slate-600 uppercase tracking-widest">
+          <CalendarClock size={16} style={{ color: "var(--eco-primary)" }} strokeWidth={2} />
+          <h2 className="text-sm font-semibold uppercase tracking-widest" style={{ color: "var(--eco-primary)" }}>
             Trigger Events
           </h2>
           {events.length > 0 && (
@@ -255,7 +255,7 @@ const TriggerEventsSection = ({
 
         <button
           onClick={() => setOpenModal(true)}
-          className="cursor-pointer flex items-center gap-1.5 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-all duration-150"
+          className="cursor-pointer flex items-center gap-1.5 px-3 py-1.5 text-white text-xs font-semibold rounded-lg shadow-sm transition-all duration-150 eco-btn-primary"
         >
           <Plus size={13} strokeWidth={2.5} />
           Add Event
@@ -274,8 +274,8 @@ const TriggerEventsSection = ({
         <div className="mt-2 min-w-0 w-full overflow-hidden">
           <div
             ref={scrollContainerRef}
-            className="flex gap-3 overflow-x-auto pb-2 min-w-0"
-            style={{ scrollbarWidth: "thin" }}
+            className="flex gap-3 overflow-x-auto pb-2 min-w-0 scrollbar-none"
+            style={{ scrollbarWidth: "none" }}
           >
             {events.map((event) => (
               <EventCard

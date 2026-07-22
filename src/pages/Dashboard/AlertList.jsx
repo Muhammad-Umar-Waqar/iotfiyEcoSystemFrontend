@@ -19,18 +19,19 @@ export default function AlertList({ title = "Alert", iconSrc = null, items = [] 
       <div className="flex items-center justify-center mb-3 gap-2">
         {iconSrc && <img src={iconSrc} alt="Alert" className="w-6 h-6 rounded-full" />}
         <h3
-          className=" font-semibold text-[#1E40AF] text-center"
+          className="font-semibold text-center"
+          style={{ color: "var(--eco-primary)" }}
         >
           {title}
         </h3>
       </div>
 
-      <div className="h-0.5 w-full mb-3" style={{ backgroundColor: "#07518D" }} />
+      <div className="h-0.5 w-full mb-3" style={{ backgroundColor: "var(--eco-primary)" }} />
 
       {/* List */}
-      <div className="space-y-0.5 max-h-[30vh] md:max-h-[10vh] 2xl:min-h-[16vh] 3xl:min-h-[20vh] overflow-y-auto custom-scrollbar pr-2 pb-2">
+      <div className="space-y-0.5 max-h-[30vh] md:max-h-[10vh] 2xl:min-h-[16vh] 3xl:min-h-[20vh] overflow-y-auto scrollbar-none pr-2 pb-2">
         {items.length === 0 ? (
-          <div className="flex items-center justify-center text-center py-4 text-[#64748B] text-sm">
+          <div className="flex items-center justify-center text-center py-4 text-sm" style={{ color: "var(--eco-text-muted)" }}>
             {/* <h4>🎉 All devices are operating normally.</h4> */}
           </div>
         ) : (
@@ -67,12 +68,12 @@ export default function AlertList({ title = "Alert", iconSrc = null, items = [] 
                       <span className="w-5 h-4 inline-block mr-2" />
                     )}
 
-                    <span className="text-[#1E293B] font-medium text-sm">{item.name}</span>
+                    <span className="font-medium text-sm" style={{ color: "var(--eco-text)" }}>{item.name}</span>
                   </div>
 
                   <div className="icon-number-align">
                     <img src="/alert-icon.png" alt="Alert" className="w-4 h-4 mr-1" />
-                    <span className="text-[#1E293B] text-sm font-medium">{item.devices}</span>
+                    <span className="text-sm font-medium" style={{ color: "var(--eco-text)" }}>{item.devices}</span>
                   </div>
                 </div>
 
@@ -82,10 +83,10 @@ export default function AlertList({ title = "Alert", iconSrc = null, items = [] 
                       <div key={nestedItem.id} className="flex items-center justify-between py-0.5">
                         <div className="flex items-center">
                           <img src="/alert-icon.png" alt="Alert" className="w-4 h-4 mr-2" />
-                          <span className="text-[#1E293B] text-sm font-medium">{nestedItem.name}</span>
+                          <span className="text-sm font-medium" style={{ color: "var(--eco-text)" }}>{nestedItem.name}</span>
                         </div>
                         {nestedItem.date && (
-                          <span className="text-[#64748B] text-sm">{nestedItem.date}</span>
+                          <span className="text-sm" style={{ color: "var(--eco-text-muted)" }}>{nestedItem.date}</span>
                         )}
                       </div>
                     ))}

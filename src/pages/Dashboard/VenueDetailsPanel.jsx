@@ -1,6 +1,6 @@
 import AlertsChart from "./AlertsChart";
 import { useDispatch, useSelector } from "react-redux";
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect, useState, useRef } from "react";
 import QRCode from "./QrCode";
 import { useLocation } from "react-router-dom";
 import CloseIcon from "@mui/icons-material/Close";
@@ -14,7 +14,7 @@ import CloudIcon from "@mui/icons-material/Cloud";
 import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
 import { IconButton, Skeleton } from "@mui/material";
 import { fetchVenuesByOrganization } from "../../slices/VenueSlice";
-import { Download, Power, Copy, Check } from "lucide-react";
+import { Download, Power, Copy, Check, Clock, Shield } from "lucide-react";
 import Swal from "sweetalert2";
 import DownloadModal from "./DownloadModal";
 import EventsSection from "../../components/events/EventsSection";
@@ -24,18 +24,99 @@ import { useScheduler } from "../../contexts/SchedulerContext";
 import { useAcControl } from "../../contexts/AcControlContext";
 import { resolveAlertState } from "../../utils/triggerAlertUtils";
 
+const SPARK_MAX = 16;
+
+/** Mini line chart from saved previous values — line + soft area fill */
+const Sparkline = ({ points = [], color = "var(--eco-primary)" }) => {
+  const w = 100;
+  const h = 25;
+  const gradId = `ecoSparkFill-${String(color).replace(/[^a-zA-Z0-9]/g, "") || "p"}`;
+
+  // No / insufficient history — flat line near bottom (same visual weight as equal-value charts)
+  if (!points || points.length < 2) {
+    const y = h - 4;
+    return (
+      <svg
+        width="100%"
+        height={h}
+        viewBox={`0 0 ${w} ${h}`}
+        preserveAspectRatio="none"
+        className="mt-auto block w-full"
+        aria-hidden
+      >
+        <defs>
+          <linearGradient id={`${gradId}-empty`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity="0.16" />
+            <stop offset="100%" stopColor={color} stopOpacity="0.02" />
+          </linearGradient>
+        </defs>
+        <path d={`M 0 ${h} L 0 ${y} L ${w} ${y} L ${w} ${h} Z`} fill={`url(#${gradId}-empty)`} />
+        <polyline
+          fill="none"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          points={`0,${y} ${w},${y}`}
+        />
+      </svg>
+    );
+  }
+  const min = Math.min(...points);
+  const max = Math.max(...points);
+  const range = max - min || 1;
+  const pts = points.map((p, i) => {
+    const x = (i / (points.length - 1)) * w;
+    const y = h - ((p - min) / range) * (h - 8) - 4;
+    return [x, y];
+  });
+  const line = pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+  const area = [
+    `M ${pts[0][0].toFixed(1)} ${h}`,
+    ...pts.map(([x, y]) => `L ${x.toFixed(1)} ${y.toFixed(1)}`),
+    `L ${pts[pts.length - 1][0].toFixed(1)} ${h}`,
+    "Z",
+  ].join(" ");
+
+  return (
+    <svg
+      width="100%"
+      height={h}
+      viewBox={`0 0 ${w} ${h}`}
+      preserveAspectRatio="none"
+      className="mt-auto block w-full"
+      aria-hidden
+    >
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.28" />
+          <stop offset="100%" stopColor={color} stopOpacity="0.02" />
+        </linearGradient>
+      </defs>
+      <path d={area} fill={`url(#${gradId})`} />
+      <polyline
+        fill="none"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        points={line}
+      />
+    </svg>
+  );
+};
+
 /** Soft filled icon chip — consistent look across metrics / alerts */
 const MetricIcon = ({ Icon, tone = "blue", size = "md" }) => {
   const tones = {
-    blue: { color: "#0D5CA4", bg: "rgba(13, 92, 164, 0.12)" },
-    teal: { color: "#0F766E", bg: "rgba(15, 118, 110, 0.12)" },
-    amber: { color: "#D97706", bg: "rgba(217, 119, 6, 0.14)" },
+    blue: { color: "var(--eco-primary)", bg: "var(--eco-primary-soft)" },
+    teal: { color: "var(--eco-primary)", bg: "var(--eco-primary-soft)" },
+    amber: { color: "var(--eco-primary)", bg: "var(--eco-primary-soft)" },
     rose: { color: "#E11D48", bg: "rgba(225, 29, 72, 0.12)" },
     violet: { color: "#7C3AED", bg: "rgba(124, 58, 237, 0.12)" },
   };
   const t = tones[tone] || tones.blue;
-  const box = size === "sm" ? 32 : 44;
-  const font = size === "sm" ? 18 : 26;
+  const box = size === "sm" ? 32 : 40;
+  const font = size === "sm" ? 18 : 22;
 
   return (
     <span
@@ -169,6 +250,8 @@ export default function VenueDetailsPanel({
   const [powerModalOpen, setPowerModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [apiKeyCopied, setApiKeyCopied] = useState(false);
+  const [metricHistory, setMetricHistory] = useState({});
+  const lastSparkSnapRef = useRef({});
 
   useEffect(() => {
     if (!pendingCreateEvent) return;
@@ -424,8 +507,16 @@ export default function VenueDetailsPanel({
     const fallbackWatts = Number.isFinite(Number(espVoltage)) && Number.isFinite(Number(espCurrent))
       ? Number(espVoltage) * Number(espCurrent) : null;
     const watts = Number.isFinite(power) ? power : fallbackWatts;
-    if (!Number.isFinite(watts)) return "--";
-    return `${(watts / 1000).toFixed(3)} kWh`;
+    // Default / empty → "--" (avoid "0.00 kWh" clutter)
+    if (!Number.isFinite(watts) || watts <= 0) return "--";
+    return `${(watts / 1000).toFixed(2)} kWh`;
+  }
+
+  function formatEnergyKwh(energyVal) {
+    if (energyVal == null || !Number.isFinite(Number(energyVal)) || Number(energyVal) <= 0) {
+      return "--";
+    }
+    return `${Number(energyVal).toFixed(2)} kWh`;
   }
 
   const topMetrics = (() => {
@@ -452,14 +543,14 @@ export default function VenueDetailsPanel({
       key: "temperature", label: "Temperature", unit: "°C",
       value: displayTemp !== null ? displayTemp : "--",
       img: null,
-      lucideIcon: <MetricIcon Icon={DeviceThermostatIcon} tone="amber" size="sm" />,
+      lucideIcon: <MetricIcon Icon={DeviceThermostatIcon} tone="blue" size="sm" />,
       alertFlag: !!effectiveTemperatureAlert, color: "green",
     };
     const humMetric = {
       key: "humidity", label: "Humidity", unit: "%",
       value: displayHumidity !== null ? displayHumidity : "--",
       img: null,
-      lucideIcon: <MetricIcon Icon={WaterDropIcon} tone="teal" size="sm" />,
+      lucideIcon: <MetricIcon Icon={WaterDropIcon} tone="blue" size="sm" />,
       alertFlag: !!effectiveHumidityAlert, color: "green",
     };
 
@@ -555,10 +646,7 @@ export default function VenueDetailsPanel({
           key: "units",
           label: "Units",
           unit: "",
-          value:
-            energyVal != null && Number.isFinite(Number(energyVal))
-              ? `${Number(energyVal).toFixed(3)} kWh`
-              : "--",
+          value: formatEnergyKwh(energyVal),
           img: null,
           lucideIcon: <MetricIcon Icon={SpeedIcon} tone="blue" />,
           alertFlag: false,
@@ -579,7 +667,7 @@ export default function VenueDetailsPanel({
           unit: "",
           value: formatUnitValue(espPower, espVoltage, espCurrent),
           img: null,
-          lucideIcon: <MetricIcon Icon={SpeedIcon} tone="blue" />,
+          lucideIcon: <MetricIcon Icon={SpeedIcon} tone="blue"  />,
           alertFlag: false,
           color: "green",
         },
@@ -589,7 +677,7 @@ export default function VenueDetailsPanel({
           unit: "°C",
           value: displayTemp !== null ? displayTemp : "--",
           img: null,
-          lucideIcon: <MetricIcon Icon={DeviceThermostatIcon} tone="amber" />,
+          lucideIcon: <MetricIcon Icon={DeviceThermostatIcon} tone="blue" />,
           alertFlag: false,
           color: "green",
         },
@@ -599,7 +687,7 @@ export default function VenueDetailsPanel({
           unit: "%",
           value: displayHumidity !== null ? displayHumidity : "--",
           img: null,
-          lucideIcon: <MetricIcon Icon={WaterDropIcon} tone="teal" />,
+          lucideIcon: <MetricIcon Icon={WaterDropIcon} tone="blue"  />,
           alertFlag: false,
           color: "green",
         },
@@ -607,13 +695,81 @@ export default function VenueDetailsPanel({
     : [];
 
   const statusText = (flag) => (flag ? "Alert Det." : "Not Det.");
-  const statusClass = (flag, color = "green") => {
+  const alertChipClass = (m) => {
+    const flag = !!m.alertFlag;
+    const base = "flex items-center gap-2.5 p-2 rounded-xl shrink-0 min-w-[7.5rem] border";
+    // Alert → soft red only; otherwise white
     if (flag) {
-      if (color === "red") return "border-red-500";
-      return "border-green-500";
+      return `${base} border-rose-200 bg-[var(--eco-temp-alert-bg)]`;
     }
-    return "border-gray-300";
+    return `${base} border-slate-200 bg-white`;
   };
+
+  // Persist previous metric values for sparklines (per device)
+  useEffect(() => {
+    if (!deviceId) return;
+    try {
+      const raw = sessionStorage.getItem(`eco-spark-${deviceId}`);
+      setMetricHistory(raw ? JSON.parse(raw) : {});
+    } catch {
+      setMetricHistory({});
+    }
+    lastSparkSnapRef.current = {};
+  }, [deviceId]);
+
+  useEffect(() => {
+    if (!deviceId) return;
+    const snapshot = {};
+    if (displayTemp !== null && displayTemp !== undefined) snapshot.temperature = Number(displayTemp);
+    if (displayHumidity !== null && displayHumidity !== undefined) snapshot.humidity = Number(displayHumidity);
+    if (displayOdour !== null && displayOdour !== undefined) snapshot.odour = Number(displayOdour);
+    if (displayAQI !== null && displayAQI !== undefined) snapshot.aqi = Number(displayAQI);
+    if (displayGL !== null && displayGL !== undefined) snapshot.gas = Number(displayGL);
+    if (espVoltage !== null && espVoltage !== undefined && Number.isFinite(Number(espVoltage))) {
+      snapshot.voltage = Number(espVoltage);
+    }
+    const powerVal = isAc ? (ac?.espPower ?? espPower) : espPower;
+    if (powerVal != null && Number.isFinite(Number(powerVal))) snapshot.power = Number(powerVal);
+    const energyVal = isAc ? (ac?.espEnergy ?? espEnergy) : espEnergy;
+    if (energyVal != null && Number.isFinite(Number(energyVal))) {
+      snapshot.units = Number(energyVal);
+      snapshot.unit = Number(energyVal);
+    }
+
+    setMetricHistory((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      for (const [key, num] of Object.entries(snapshot)) {
+        if (!Number.isFinite(num)) continue;
+        if (lastSparkSnapRef.current[key] === num) continue;
+        lastSparkSnapRef.current[key] = num;
+        next[key] = [...(next[key] || []), num].slice(-SPARK_MAX);
+        changed = true;
+      }
+      if (!changed) return prev;
+      try {
+        sessionStorage.setItem(`eco-spark-${deviceId}`, JSON.stringify(next));
+      } catch {
+        /* ignore quota */
+      }
+      return next;
+    });
+  }, [
+    deviceId,
+    displayTemp,
+    displayHumidity,
+    displayOdour,
+    displayAQI,
+    displayGL,
+    espVoltage,
+    espPower,
+    espEnergy,
+    isAc,
+    ac?.espPower,
+    ac?.espEnergy,
+  ]);
+
+  const liveMetrics = isED ? emdExtraMetrics : topMetrics;
 
   const renderMetricValue = (m) => {
     // Split "123 W" / "0.065 kWh" so unit is thin + sm
@@ -637,10 +793,68 @@ export default function VenueDetailsPanel({
     );
   };
 
+  const powerBusy = loading || (isAc && acPowerLoading);
+  const powerShadow =
+    powerBusy || displayToggleState === "gray"
+      ? "0 4px 12px rgba(148, 163, 184, 0.45)"
+      : displayToggleState === "on"
+        ? "0 4px 14px rgba(16, 185, 129, 0.45)"
+        : displayToggleState === "off"
+          ? "0 4px 14px rgba(244, 63, 94, 0.45)"
+          : "0 4px 12px rgba(148, 163, 184, 0.45)";
+
+  const powerToggleButton = isSchedulerDevice ? (
+    <div className="shrink-0 self-center flex flex-col items-center justify-center gap-1 w-14 min-w-[3.5rem]">
+      <button
+        type="button"
+        onClick={handleSchedulerToggleClick}
+        disabled={powerBusy}
+        className={`w-11 h-11 rounded-full flex items-center justify-center text-white transition active:scale-[.96]
+          ${powerBusy
+            ? "bg-gray-400 cursor-wait opacity-70"
+            : displayToggleState === "on" ? "bg-emerald-500 hover:bg-emerald-600 cursor-pointer"
+            : displayToggleState === "off" ? "bg-rose-500 hover:bg-rose-600 cursor-pointer"
+              : "bg-gray-400 hover:bg-gray-500 cursor-pointer"}`}
+        style={{ boxShadow: powerShadow }}
+        title={powerBusy ? "Processing..." : displayToggleState === "gray" ? "Either Device is Offline or Event is Running" : displayToggleState === "on" ? "Turn Off" : "Turn On"}
+        aria-label={displayToggleState === "on" ? "Turn Off" : displayToggleState === "off" ? "Turn On" : "Power"}
+      >
+        {powerBusy ? (
+          <svg className="animate-spin text-white" width={18} height={18} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        ) : (
+          <Power size={18} strokeWidth={2.25} />
+        )}
+      </button>
+      <span className="text-[10px] font-bold leading-none" style={{ color: "var(--eco-text-muted)" }}>
+        {powerBusy
+          ? "..."
+          : displayToggleState === "on"
+            ? "ON"
+            : displayToggleState === "off"
+              ? "OFF"
+              : "--"}
+      </span>
+    </div>
+  ) : null;
+
   return (
-    <div className={`dashboard-right-panel shadow-sm flex flex-col h-full overflow-y-auto custom-scrollbar p-4 lg:p-6 border-l border-[#E5E7EB]/40 bg-white max-w-[95vw] min-w-0 `}>
-  
-    <div className="w-full rounded-lg p-6 shadow-sm space-y-6" style={{ backgroundColor: "#07518D12" }}>
+    <div
+      className="dashboard-right-panel eco-rpanel-shell flex flex-col h-full max-w-[95vw] min-w-0"
+    >
+      <div className="eco-rpanel-scroll scrollbar-none flex flex-col h-full p-4 lg:p-3">
+        <div
+          className="w-full rounded-2xl p-3 space-y-6"
+          style={{
+            background: "var(--eco-live-metric-bg)",
+            border: "1px solid var(--eco-panel-border)",
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7), 0 2px 16px rgba(7, 81, 141, 0.06)",
+            backdropFilter: "blur(12px) saturate(1.3)",
+            WebkitBackdropFilter: "blur(12px) saturate(1.3)",
+          }}
+        >
       {closeIcon && (
         <div className="flex justify-between items-center">
           <img src="/iotfiy_logo_rpanel.svg" alt="IOTFIY LOGO" className="h-[30px] w-auto" />
@@ -655,11 +869,11 @@ export default function VenueDetailsPanel({
         <div>
           <p className="text-sm text-[#64748B] font-medium">Device ID</p>
           <h2 className="text-sm text-[#1E293B] font-bold">{deviceId || <Skeleton variant="text" width={70} />}</h2>
-          <div className="text-xs text-gray-600">{displayVenueName}</div>
+          <div className="text-xs font-medium" style={{ color: "var(--eco-primary)" }}>{displayVenueName}</div>
         </div>
         <button
           onClick={handleDownload}
-          className="inline-flex items-center gap-2 px-3 py-2 bg-[#0D5CA4] text-white rounded-2xl text-xs font-semibold hover:bg-[#0b4e8a] active:scale-[.98] transition shadow-sm cursor-pointer"
+          className="eco-btn-primary inline-flex items-center gap-2 px-3 py-2 rounded-2xl text-xs font-semibold active:scale-[.98] transition shadow-sm cursor-pointer"
           aria-label="Download"
         >
           <span className="leading-none py-1 px-3">Download</span>
@@ -667,76 +881,90 @@ export default function VenueDetailsPanel({
         </button>
       </div>
 
-      {/* Metrics display */}
-      <div className="relative w-full overflow-hidden mb-6 bg-[#07518D]/[0.05] rounded-xl p-3">
-        {isED ? (
-          <div className="space-y-4">
-            <div className="grid grid-cols-3 gap-4">
-              {emdExtraMetrics.map((m) => (
-                <div key={m.key} className="flex-1 flex flex-col items-center justify-center">
-                  <div className="mb-2">
-                    {m.img ? <img src={m.img} className="h-[30px] w-auto" alt={m.label} />
-                      : m.lucideIcon ? <div className="text-[#0D5CA4]">{m.lucideIcon}</div>
-                      : <img src="/odour-alert.svg" className="h-[66px] w-auto" alt={m.label} />}
-                  </div>
-                  <div className="text-sm text-gray-600">{m.label}</div>
-                  <div className="text-xl font-semibold">{renderMetricValue(m)}</div>
-                </div>
-              ))}
-            </div>
+      {/* Live Status — scrollable metric cards + fixed power column */}
+      <div className="mb-5 bg-white rounded-2xl p-2 border border-slate-200 shadow-sm">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold" style={{ color: "var(--eco-primary)" }}>
+            Live Status
+          </h3>
+          <div className="flex items-center gap-1.5 text-xs font-medium" style={{ color: "var(--eco-text-muted)" }}>
+            <span
+              className="inline-block w-2 h-2 rounded-full"
+              style={{ background: isOnline ? "var(--eco-online)" : "#94A3B8" }}
+            />
+            {isOnline ? "Online" : "Offline"}
           </div>
-        ) : (
-          <div>
-            <div className={`flex items-center justify-between gap-2 w-full ${topMetrics.length === 2 ? "sm:justify-around" : ""}`}>
-            
-            {topMetrics.map((m) => (
-              <div key={m.key} className="flex flex-col items-center justify-between h-full">
-                <div className="mb-2">
-                  {m.img ? <img src={m.img} className="h-[30px] w-auto" alt={m.label} />
-                    : m.lucideIcon ? <div className="text-[#0D5CA4]">{m.lucideIcon}</div>
-                      : <img src="/odour-alert.svg" className="h-[66px] w-auto" alt={m.label} />}
-                </div>
-                <div className="text-sm text-gray-600">{m.label}</div>
-                <div className="text-xl font-semibold">{renderMetricValue(m)}</div>
-              </div>
-            
-            ))}
+        </div>
 
-            {/* Large Power Button for scheduling devices (AC included — shared context) */}
-            {isSchedulerDevice && (
-              <button
-                onClick={handleSchedulerToggleClick}
-                disabled={loading || (isAc && acPowerLoading)}
-                className={`flex flex-col justify-center items-center gap-3 px-4 py-5 rounded-xl text-sm font-semibold text-white transition shadow-sm active:scale-[.98]
-                  ${loading || (isAc && acPowerLoading)
-                    ? "bg-gray-400 cursor-wait opacity-70"
-                    : displayToggleState === "on" ? "bg-emerald-500 hover:bg-emerald-600 cursor-pointer"
-                    : displayToggleState === "off" ? "bg-rose-500 hover:bg-rose-600 cursor-pointer"
-                      : "bg-gray-400 hover:bg-gray-500 cursor-pointer"}`}
-                title={loading || (isAc && acPowerLoading) ? "Processing..." : displayToggleState === "gray" ? "Either Device is Offline or Event is Running" : displayToggleState === "on" ? "Turn Off" : "Turn On"}
+        <div className="flex items-stretch gap-1.5 min-w-0">
+          {/* With power: each card = half of visible area → 2 always fully visible */}
+          <div
+            className={`flex-1 min-w-0 overflow-x-auto scrollbar-none flex flex-nowrap gap-2 pb-0.5 ${
+              isSchedulerDevice ? "" : ""
+            }`}
+          >
+            {liveMetrics.length === 0 ? (
+              <div
+                className="text-xs px-3 py-4 rounded-xl"
+                style={{ color: "var(--eco-text-muted)", background: "rgba(255,255,255,0.45)" }}
               >
-                {loading || (isAc && acPowerLoading) ? (
-                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                ) : (
-                  <Power size={15} strokeWidth={2} />
-                )}
-                <span className="text-xs font-bold h-4">
-                  {loading || (isAc && acPowerLoading)
-                    ? "..."
-                    : displayToggleState === "on"
-                      ? "ON"
-                      : displayToggleState === "off"
-                        ? "OFF"
-                        : "--"}
-                </span>
-              </button>
-            )}
+                No live metrics
               </div>
+            ) : (
+              liveMetrics.map((m) => (
+                <div
+                  key={m.key}
+                  className={`rounded-xl flex flex-col overflow-hidden shrink-0 ${
+                    isSchedulerDevice
+                      ? "w-[calc(50%-0.25rem)] min-w-[5.5rem]"
+                      : "w-[7rem]"
+                  }`}
+                  style={{
+                    background: "rgba(255, 255, 255, 0.91)",
+                    border: "1px solid var(--eco-metric-card-border)",
+                    boxShadow: "var(--eco-metric-card-shadow)",
+                    backdropFilter: "blur(10px)",
+                    WebkitBackdropFilter: "blur(10px)",
+                  }}
+                >
+                  {/* Icon | label+value */}
+                  <div className="flex items-center justify-center gap-1.5 px-2 pt-2.5 pb-1 min-w-0">
+                    <div className="shrink-0">
+                      {m.img ? (
+                        <img src={m.img} className="h-7 w-auto" alt="" />
+                      ) : m.lucideIcon ? (
+                        m.lucideIcon
+                      ) : (
+                        <img src="/odour-alert.svg" className="h-7 w-auto" alt="" />
+                      )}
+                    </div>
+                    <div className="flex flex-col items-start min-w-0">
+                      <span
+                        className="text-[11px] font-semibold truncate leading-tight w-full"
+                        style={{ color: "var(--eco-text-label)" }}
+                        title={m.label}
+                      >
+                        {m.label}
+                      </span>
+                      <div
+                        className="text-xl font-bold leading-tight tracking-tight"
+                        style={{ color: "var(--eco-text)" }}
+                      >
+                        {renderMetricValue(m)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="px-1.5 pb-1 mt-auto">
+                    <Sparkline points={metricHistory[m.key] || []} />
+                  </div>
+                </div>
+              ))
+            )}
           </div>
-        )}
+
+          {powerToggleButton}
+        </div>
       </div>
 
       {/* AC dial controls — same AcControlContext actions as before */}
@@ -748,30 +976,30 @@ export default function VenueDetailsPanel({
         />
       )}
 
-      {/* Status badges — horizontal scroll if overflow; scrollbar hidden */}
-      {!isAc && topMetrics.length > 0 && (
-        <div className="w-full min-w-0 overflow-x-auto scrollbar-none">
+      {/* Alert chips — soft semantic colors (not brand blue) */}
+      {!isAc && liveMetrics.length > 0 && (
+        <div className="w-full min-w-0 overflow-x-auto scrollbar-none mb-4">
           <div className="flex flex-nowrap gap-2 pb-0.5">
-            {topMetrics.map((m) => {
+            {liveMetrics.map((m) => {
               const flag = !!m.alertFlag;
-              const color = m.color ?? "green";
               return (
-                <div
-                  key={m.key}
-                  className={`flex items-center gap-3 p-1 border rounded shrink-0 min-w-[7.5rem] ${statusClass(flag, color)}`}
-                >
+                <div key={m.key} className={alertChipClass(m)}>
                   {m.img ? (
                     <img src={m.img} alt={m.label} className="w-6 h-6 shrink-0" />
                   ) : m.lucideIcon ? (
-                    <div className="shrink-0 flex items-center justify-center">
+                    <div className="shrink-0 flex items-center justify-center scale-90">
                       {m.lucideIcon}
                     </div>
                   ) : (
                     <img src="/alert-icon.png" alt={m.label} className="w-6 h-6 shrink-0" />
                   )}
                   <div className="min-w-0">
-                    <div className="text-xs text-gray-600 whitespace-nowrap">{m.label}</div>
-                    <div className="text-sm font-medium whitespace-nowrap">{statusText(flag)}</div>
+                    <div className="text-[10px] whitespace-nowrap" style={{ color: "var(--eco-text-muted)" }}>
+                      {m.label}
+                    </div>
+                    <div className="text-sm font-medium whitespace-nowrap" style={{ color: "var(--eco-text-label)" }}>
+                      {statusText(flag)}
+                    </div>
                   </div>
                 </div>
               );
@@ -780,16 +1008,20 @@ export default function VenueDetailsPanel({
         </div>
       )}
 
-      {/* API key / QR + Last Update */}
+      {/* API Access + Last Update (plain under API — not boxed) */}
       <div>
         {apiKey ? (
-          <div className="mt-3 p-2 rounded-md bg-white border border-gray-200 text-sm text-gray-700 break-words px-2">
+          <div className="eco-api-card mt-1 p-3 text-sm break-words">
             <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <strong>API Key:</strong>
-                <div className="mt-2 flex items-center justify-around gap-3 min-w-0">
-                  <span className="text-sm truncate" title={apiKey}>
-                    {`${apiKey}`}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 mb-2 text-white/95">
+                  <Shield size={16} strokeWidth={2.2} />
+                  <strong className="text-sm font-semibold">API Access</strong>
+                </div>
+                <div className="text-[11px] text-white/70 mb-1">API Key</div>
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-sm truncate text-white" title={apiKey}>
+                    {apiKey.length > 12 ? `${apiKey.slice(0, 8)}…` : apiKey}
                   </span>
                   <button
                     type="button"
@@ -804,33 +1036,39 @@ export default function VenueDetailsPanel({
                         window.prompt("Copy API key:", apiKey);
                       }
                     }}
-                    className="shrink-0 p-1.5 rounded-md text-gray-600 hover:bg-gray-50 hover:text-[#0D5CA4] transition"
+                    className="shrink-0 p-1.5 rounded-md text-white/85 hover:bg-white/10 hover:text-white transition"
                   >
                     {apiKeyCopied ? (
-                      <Check size={14} className="text-emerald-600" />
+                      <Check size={14} className="text-emerald-300" />
                     ) : (
                       <Copy size={14} />
                     )}
                   </button>
                 </div>
               </div>
-              <QRCode apiKey={apiKey} />
+              <div className="rounded-lg bg-white p-1.5 shrink-0">
+                <QRCode apiKey={apiKey} />
+              </div>
             </div>
           </div>
         ) : (
-          <div className="mt-3 p-2 rounded-md bg-white border border-gray-200 text-sm text-gray-700 break-words px-2">
+          <div className="eco-api-card mt-1 p-3 text-sm break-words opacity-85">
             <div className="flex items-center justify-between">
               <div>
-                <Skeleton variant="text" width={50} height={20} className="mb-2" />
-                <Skeleton variant="text" width={120} height={20} className="mb-2" />
+                <Skeleton variant="text" width={50} height={20} className="mb-2" sx={{ bgcolor: "rgba(255,255,255,0.2)" }} />
+                <Skeleton variant="text" width={120} height={20} className="mb-2" sx={{ bgcolor: "rgba(255,255,255,0.2)" }} />
               </div>
-              <Skeleton variant="rectangular" width={80} height={80} sx={{ borderRadius: "10%" }} />
+              <Skeleton variant="rectangular" width={80} height={80} sx={{ borderRadius: "10%", bgcolor: "rgba(255,255,255,0.15)" }} />
             </div>
           </div>
         )}
 
-        <div className="text-center mt-3 p-2 rounded-xl bg-[#07518D]/[0.05] font-thin text-xs sm:text-md">
-          Last Update: {lastUpdateDisplay ?? "-- -- --"}
+        <div
+          className="mt-3 flex items-center justify-start gap-1.5 text-xs sm:text-sm font-medium"
+          style={{ color: "var(--eco-primary)" }}
+        >
+          <Clock size={13} strokeWidth={2.2} />
+          <span>Last Update: {lastUpdateDisplay ?? "-- -- --"}</span>
         </div>
       </div>
 
@@ -864,8 +1102,8 @@ export default function VenueDetailsPanel({
           />
         </div>
       )}
-    </div>
-
+        </div>
+      </div>
     </div>
   );
 }

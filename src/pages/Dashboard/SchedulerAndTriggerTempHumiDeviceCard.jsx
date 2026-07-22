@@ -622,7 +622,7 @@ const SchedulerAndTriggerTempHumiDeviceCard = React.memo(function SchedulerDevic
   return (
     <div
       onClick={onCardSelect}
-      className={`freezer-card-container rounded-4xl bg-white ${isSelected ? "shadow-lg ring-1 ring-[#0D5CA4]/15" : ""} min-h-[175px] cursor-pointer transition hover:shadow-md px-4 py-2 flex flex-col justify-around`}
+      className={`freezer-card-container rounded-4xl bg-white ${isSelected ? "shadow-lg ring-1 ring-[color-mix(in_srgb,var(--eco-primary)_18%,transparent)]" : ""} min-h-[175px] cursor-pointer transition hover:shadow-md px-4 py-2 flex flex-col justify-around`}
     >
       <div className="flex items-center justify-between">
         <div className="flex flex-col items-start flex-1 min-w-0">

@@ -15,7 +15,10 @@ const ManagementLayout = () => {
   const isAdmin = user?.role === 'admin';
 
   return (
-    <div className={`h-screen w-screen overflow-hidden flex ${isAdmin && isMobile ? 'flex-col' : 'flex-row'} bg-[#F5F6FA] font-sans`}>
+    <div
+      className={`h-screen w-screen overflow-hidden flex ${isAdmin && isMobile ? 'flex-col' : 'flex-row'} font-sans`}
+      style={{ background: "var(--eco-page-bg)" }}
+    >
       {/* Conditional Sidebar - AdminSidebar for admin, regular Sidebar for manager/user */}
       {isAdmin ? (
         <AdminSidebar activeTab={adminActiveTab} onTabChange={setAdminActiveTab} />
@@ -23,9 +26,8 @@ const ManagementLayout = () => {
         <Sidebar />
       )}
 
-      {/* Main area */}
-      {/* <main className={`z-10 flex-1 overflow-auto ${!isAdmin && "md:pr-6" } bg-white`}> */}
-      <main className={`z-10 flex-1 overflow-auto bg-white`}>
+      {/* Main area — transparent so page gradient shows through */}
+      <main className="z-10 flex-1 overflow-auto bg-transparent">
         <div className="MainContentArea h-full">
           <Outlet context={{ adminActiveTab, setAdminActiveTab }} />
         </div>

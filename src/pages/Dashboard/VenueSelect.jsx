@@ -187,11 +187,15 @@ export default function VenueSelect({ organizationId, value, onChange, className
             tabIndex={0}
             onKeyDown={handleKeyboard}
             onClick={() => !loading && organizationId && setDropdownOpen((s) => !s)}
-            className={`sm:rounded-full flex items-center justify-between pr-2 pl-3 py-2 border cursor-pointer bg-[#0D5CA4] text-white select-none  rounded-full`}
+            className={`sm:rounded-full flex items-center justify-between pr-2 pl-3 py-2 border cursor-pointer text-white select-none rounded-full`}
+            style={{
+              background: "var(--eco-primary)",
+              borderColor: "var(--eco-primary)",
+            }}
           >
             <span className="text-white truncate w-[90%] sm:max-w-[70%]">{label}</span>
-            <svg className={`w-6 h-6 ml-2 bg-white rounded-full p-[2px] transform ${dropdownOpen ? "rotate-180" : "rotate-0"}`} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path d="M7 10c-.7 0-1 .8-.5 1.3l4.3 4.3c.7.7 1.9.7 2.6 0l4.3-4.3c.5-.5.2-1.3-.5-1.3H7z" fill="#0D5CA4" stroke="#0D5CA4" strokeWidth="1.3" strokeLinejoin="round" strokeLinecap="round" />
+            <svg className={`w-4 h-auto ml-2 bg-white rounded-full  transform ${dropdownOpen ? "rotate-180" : "rotate-0"}`} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7 10c-.7 0-1 .8-.5 1.3l4.3 4.3c.7.7 1.9.7 2.6 0l4.3-4.3c.5-.5.2-1.3-.5-1.3H7z" fill="var(--eco-primary)" stroke="var(--eco-primary)" strokeWidth="1.3" strokeLinejoin="round" strokeLinecap="round" />
             </svg>
           </div>
 

@@ -785,7 +785,7 @@ function AllDeviceAlertsChart({ data }) {
   if (!hasData) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-gray-500 text-sm">
-        {/* <BarChartRoundedIcon sx={{ fontSize: 40, color: "#93C5FD", mb: 1 }} />
+        {/* <BarChartRoundedIcon sx={{ fontSize: 40, color: "var(--eco-primary)", mb: 1 }} />
         No active alerts to chart */}
       </div>
     );
@@ -857,10 +857,12 @@ function DeviceAlertCard({ device }) {
 
   return (
     <div
-      className="
-        w-full min-w-0 rounded-2xl border border-gray-100 bg-white p-4
-        transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md
-      "
+      className="w-full min-w-0 rounded-xl p-4 transition-all duration-200 hover:-translate-y-0.5"
+      style={{
+        background: "var(--eco-metric-card-bg, #fff)",
+        border: "1px solid var(--eco-metric-card-border)",
+        boxShadow: "var(--eco-metric-card-shadow)",
+      }}
     >
       {/* Header row */}
       <div className="flex min-w-0 items-center gap-3 mb-3">
@@ -868,8 +870,13 @@ function DeviceAlertCard({ device }) {
         <div
           className={`
             flex h-9 w-9 shrink-0 items-center justify-center rounded-full
-            ${isLive ? "bg-[#07518D] text-white" : "bg-slate-100 text-slate-500"}
+            ${isLive ? "text-white" : ""}
           `}
+          style={
+            isLive
+              ? { background: "var(--eco-primary)" }
+              : { background: "var(--eco-primary-soft)", color: "var(--eco-primary)" }
+          }
         >
           <SensorsRoundedIcon sx={{ fontSize: 18 }} />
         </div>
@@ -878,20 +885,23 @@ function DeviceAlertCard({ device }) {
             of pushing the card wider when the name is long */}
         <div className="min-w-0 flex-1">
           <p
-            className="truncate text-sm font-bold text-gray-800 leading-tight"
+            className="truncate text-sm font-bold leading-tight"
+            style={{ color: "var(--eco-text)" }}
             title={device.deviceName || device.deviceId}
           >
             {device.deviceName || device.deviceId}
           </p>
-          <p className="truncate text-xs text-gray-500">{device.deviceType}</p>
+          <p className="truncate text-xs" style={{ color: "var(--eco-text-muted)" }}>{device.deviceType}</p>
         </div>
 
         {/* Live / API status pill */}
         <span
-          className={`
-            flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold
-            ${isLive ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-500"}
-          `}
+          className="flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold"
+          style={
+            isLive
+              ? { background: "rgba(34, 197, 94, 0.12)", color: "#16A34A" }
+              : { background: "var(--eco-primary-soft)", color: "var(--eco-primary)" }
+          }
         >
           {isLive ? (
             <WifiTetheringRoundedIcon sx={{ fontSize: 13 }} />
@@ -902,7 +912,7 @@ function DeviceAlertCard({ device }) {
         </span>
       </div>
 
-      {/* Alert chips */}
+      {/* Alert chips — keep semantic ALERT_TYPES colors */}
       <div className="flex min-w-0 flex-wrap gap-2">
         {device.activeAlerts?.map((alert, idx) => {
           const alertType = ALERT_TYPES.find((t) => t.key === alert.type);
@@ -1181,7 +1191,7 @@ export default function AlertsPanel({
         //   <Typography variant="body2">All devices operating normally</Typography>
         // </Stack>
         <div className="h-full flex items-center justify-center text-center py-4 text-[#64748B] text-sm">
-           <CelebrationRoundedIcon sx={{ fontSize: 32, color: "#93C5FD", marginRight: "10px" }} />
+           <CelebrationRoundedIcon sx={{ fontSize: 32, color: "var(--eco-primary)", marginRight: "10px" }} />
           <h4 className="text-md font-semibold text-center"> All devices are operating normally.</h4>
         </div>
       ) : (
@@ -1193,7 +1203,14 @@ export default function AlertsPanel({
   );
 
   const alertsChartContent = (
-    <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100 h-full flex items-center">
+    <div
+      className="rounded-xl p-3 sm:p-4 h-full flex items-center"
+      style={{
+        background: "var(--eco-metric-card-bg, #fff)",
+        border: "1px solid var(--eco-metric-card-border)",
+        boxShadow: "var(--eco-metric-card-shadow)",
+      }}
+    >
       <AllDeviceAlertsChart data={alertCountByType} />
     </div>
   );
@@ -1219,12 +1236,23 @@ export default function AlertsPanel({
               width: isMobile ? "fit-content" : "100%",
               backgroundColor: "white",
               borderRadius: "32px",
-              "& .MuiOutlinedInput-notchedOutline": { borderColor: "#E5E7EB" },
+              color: "var(--eco-primary)",
+              fontWeight: 600,
+              "& .MuiOutlinedInput-notchedOutline": {
+                borderColor: "color-mix(in srgb, var(--eco-primary) 35%, #E2E8F0)",
+              },
+              "&:hover .MuiOutlinedInput-notchedOutline": {
+                borderColor: "var(--eco-primary)",
+              },
+              "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                borderColor: "var(--eco-primary)",
+              },
               "& .MuiSelect-select": {
                 py: 1,
                 pr: "32px !important",
                 whiteSpace: "nowrap",
               },
+              "& .MuiSvgIcon-root": { color: "var(--eco-primary)" },
             }}
           >
             <MenuItem value="all">All Device Alerts</MenuItem>
@@ -1241,15 +1269,15 @@ export default function AlertsPanel({
                 width: 40,
                 height: 40,
                 borderRadius: "10px",
-                backgroundColor: displayMode === "chart" ? "#07518D" : "white",
-                color: displayMode === "chart" ? "white" : "#07518D",
+                backgroundColor: displayMode === "chart" ? "var(--eco-primary)" : "white",
+                color: displayMode === "chart" ? "white" : "var(--eco-primary)",
                 border: "1px solid",
-                borderColor: displayMode === "chart" ? "#07518D" : "#E5E7EB",
+                borderColor: displayMode === "chart" ? "var(--eco-primary)" : "#E5E7EB",
                 boxShadow: "0 2px 8px rgba(7, 81, 141, 0.12)",
                 transition: "all 0.25s ease",
                 "&:hover": {
-                  backgroundColor: displayMode === "chart" ? "#064575" : "#F0F7FC",
-                  borderColor: "#07518D",
+                  backgroundColor: displayMode === "chart" ? "var(--eco-primary-hover)" : "#F0F7FC",
+                  borderColor: "var(--eco-primary)",
                 },
               }}
             >
@@ -1266,15 +1294,15 @@ export default function AlertsPanel({
       {viewMode === "all" ? (
         isMobile ? (
           /* Mobile: toggle between list and chart */
-          <div className="p-6 rounded-2xl" style={{ backgroundColor: "#07518D12" }}>
+          <div className="p-6 rounded-2xl" style={{ backgroundColor: "#FFFFFF" }}>
             <div className="flex items-center justify-center mb-4 gap-2">
               <img src="/alert-icon.png" alt="Alerts" className="w-6 h-6" />
-              <h3 className="font-semibold text-[#1E40AF] text-lg">
+              <h3 className="font-semibold text-lg" style={{ color: "var(--eco-primary)" }}>
                 {displayMode === "chart" ? "Alert Overview" : "All Device Alerts"}
               </h3>
             </div>
 
-            <div className="h-0.5 w-full mb-4" style={{ backgroundColor: "#07518D" }} />
+            <div className="h-0.5 w-full mb-4" style={{ backgroundColor: "var(--eco-primary)" }} />
 
             <Box
               sx={{
@@ -1299,25 +1327,25 @@ export default function AlertsPanel({
           <div className="flex flex-row gap-5 items-stretch">
             <div
               className="w-[40%] p-6 rounded-2xl flex flex-col h-[450px] overflow-hidden"
-              style={{ backgroundColor: "#07518D12" }}
+              style={{ backgroundColor: "#FFFFFF" }}
             >
               <div className="flex items-center justify-center mb-4 gap-2 shrink-0">
                 <img src="/alert-icon.png" alt="Alerts" className="w-6 h-6" />
-                <h3 className="font-semibold text-[#1E40AF] text-lg">All Device Alerts</h3>
+                <h3 className="font-semibold text-lg" style={{ color: "var(--eco-primary)" }}>All Device Alerts</h3>
               </div>
-              <div className="h-0.5 w-full mb-4 shrink-0" style={{ backgroundColor: "#07518D" }} />
+              <div className="h-0.5 w-full mb-4 shrink-0" style={{ backgroundColor: "var(--eco-primary)" }} />
               {renderAlertsList("flex-1 min-h-0 overflow-y-auto")}
             </div>
 
             <div
               className="w-[60%] p-6 rounded-2xl flex flex-col h-[450px] overflow-hidden"
-              style={{ backgroundColor: "#07518D12" }}
+              style={{ backgroundColor: "#FFFFFF" }}
             >
               <div className="flex items-center justify-center mb-4 gap-2 shrink-0">
-                <BarChartRoundedIcon sx={{ color: "#1E40AF" }} />
-                <h3 className="font-semibold text-[#1E40AF] text-lg">Alert Overview</h3>
+                <BarChartRoundedIcon sx={{ color: "var(--eco-primary)" }} />
+                <h3 className="font-semibold text-lg" style={{ color: "var(--eco-primary)" }}>Alert Overview</h3>
               </div>
-              <div className="h-0.5 w-full mb-4 shrink-0" style={{ backgroundColor: "#07518D" }} />
+              <div className="h-0.5 w-full mb-4 shrink-0" style={{ backgroundColor: "var(--eco-primary)" }} />
               <div className="flex-1 min-h-0">{alertsChartContent}</div>
             </div>
           </div>
@@ -1326,10 +1354,10 @@ export default function AlertsPanel({
         <div className="flex-shrink-0 mb-16 md:mb-auto">
           {!isMobile && (
             <Box display="flex" alignItems="center" justifyContent="flex-end" gap={1} mb={2}>
-              <IconButton size="small" onClick={prev} disabled={!canNavigate}>
+              <IconButton size="small" onClick={prev} disabled={!canNavigate} sx={{ color: "var(--eco-primary)" }}>
                 <ArrowBackIosNewIcon fontSize="small" />
               </IconButton>
-              <IconButton size="small" onClick={next} disabled={!canNavigate}>
+              <IconButton size="small" onClick={next} disabled={!canNavigate} sx={{ color: "var(--eco-primary)" }}>
                 <ArrowForwardIosIcon fontSize="small" />
               </IconButton>
             </Box>
@@ -1357,11 +1385,12 @@ export default function AlertsPanel({
                     flex: "0 0 calc(100% - 32px)",
                     maxWidth: "calc(100% - 32px)",
                     scrollSnapAlign: "center",
-                    backgroundColor: "#07518D12",
-                    borderRadius: "20px",
+                    backgroundColor: "#FFFFFF",
+                    borderRadius: "14px",
                     p: 2,
                     boxSizing: "border-box",
-                    boxShadow: "0 6px 18px rgba(2,6,23,0.06)",
+                    border: "1px solid var(--eco-metric-card-border)",
+                    boxShadow: "var(--eco-metric-card-shadow)",
                     "& > .alert-list-wrapper": {
                       width: "100%",
                       minWidth: 0,
@@ -1387,9 +1416,11 @@ export default function AlertsPanel({
                 <Box
                   key={card.key}
                   sx={{
-                    backgroundColor: "#07518D12",
-                    borderRadius: "20px",
+                    backgroundColor: "#FFFFFF",
+                    borderRadius: "14px",
                     padding: { xs: "8px", md: "16px" },
+                    border: "1px solid var(--eco-metric-card-border)",
+                    boxShadow: "var(--eco-metric-card-shadow)",
                   }}
                 >
                   <AlertList title={card.title} iconSrc={card.icon} items={card.items} />

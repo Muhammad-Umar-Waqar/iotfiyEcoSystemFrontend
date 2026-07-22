@@ -425,6 +425,13 @@ const AddDevice = () => {
   return (
     <div className="min-h-[60vh] flex items-center justify-center bg-[#EEF3F9] rounded-xl shadow-sm w-full md:flex flex-col justify-center border border-[#E5E7EB]">
       <div className="AddingPage device-add-container w-full">
+      <div className="hidden md:flex justify-center mb-4" aria-hidden="true">
+        <img
+          src="/device-add-hero.svg"
+          alt=""
+          className="h-[120px] w-auto select-none pointer-events-none"
+        />
+      </div>
       <h2 className="device-add-title font-semibold mb-1 text-center">Add Device</h2>
       <p className="device-add-subtitle text-gray-500 mb-6 text-center">
         {hasManagePermission

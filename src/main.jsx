@@ -5,6 +5,7 @@ import { PersistGate } from 'redux-persist/integration/react';
 import { store, persistor } from './store/store';
 import App from './App.jsx';
 import './index.css';
+import './styles/global/index.css'; // scrollbars, swal z-index, etc.
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

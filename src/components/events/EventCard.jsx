@@ -176,9 +176,14 @@ const EventCard = ({ event, onToggle, onDelete, isTriggerEvent = false }) => {
         aria-pressed={event.status === "ACTIVE"}
         className={`absolute -right-0 bottom-0 z-20 inline-flex items-center gap-1 px-2 py-2 rounded-xl text-xs font-semibold shadow-lg transition-all duration-200 active:scale-[0.98] ${
           event.status === "ACTIVE"
-            ? "bg-indigo-500 text-white hover:bg-indigo-600"
+            ? "text-white hover:opacity-90"
             : "bg-emerald-500 text-white hover:bg-emerald-600"
         }`}
+        style={
+          event.status === "ACTIVE"
+            ? { background: "var(--eco-primary)" }
+            : undefined
+        }
       >
         <Power size={14} strokeWidth={2} />
         {event.status === "ACTIVE" ? "Disable" : "Enable"}

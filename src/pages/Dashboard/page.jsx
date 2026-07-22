@@ -336,10 +336,19 @@ export default function Dashboard() {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="flex w-full flex-row h-full font-inter rounded-md bg-[#F5F6FA]">
+    <div
+      className="flex w-full flex-row h-full font-inter rounded-md"
+      style={{ background: "var(--eco-page-bg)" }}
+    >
 
       {/* ── Main content column ──────────────────────────────────────────── */}
-      <div className="flex-1 min-w-0 space-y-6 overflow-y-auto custom-scrollbar dashboard-main-content bg-white shadow-sm border border-[#E5E7EB]/30 p-4 lg:p-6">
+      <div
+        className="flex-1 min-w-0 space-y-6 overflow-y-auto dashboard-main-content scrollbar-none shadow-sm p-2 lg:p-2"
+        style={{
+          background: "transparent",
+          border: "1px solid var(--eco-border)",
+        }}
+      >
 
         {/* Header row: logo · org selector · venue selector */}
         <div className="flex justify-between items-center mb-6">
@@ -728,7 +737,13 @@ export default function Dashboard() {
             open={drawerOpen}
             onClose={() => setDrawerOpen(false)}
             anchor="right"
-            PaperProps={{ sx: { width: "100%", maxWidth: "100vw" } }}
+            PaperProps={{
+              sx: {
+                width: "100%",
+                maxWidth: "100vw",
+                background: "var(--eco-page-bg)",
+              },
+            }}
           >
             {panelContent}
           </Drawer>

@@ -95,6 +95,15 @@ const AddOrganization = () => {
     <div className="min-h-[60vh] flex items-center justify-center bg-[#EEF3F9] rounded-xl shadow-sm w-full md:flex flex-col justify-center  border border-[#E5E7EB]">
       
     <div className="  AddingPage organization-add-container w-full">
+      {/* Desktop only (≥768px) — theme illustration above title */}
+      <div className="hidden md:flex justify-center mb-4" aria-hidden="true">
+        <img
+          src="/organization-add-hero.svg"
+          alt=""
+          className="h-[120px] w-auto select-none pointer-events-none"
+        />
+      </div>
+
       <h2 className="organization-add-title font-semibold mb-1 text-center">Add Organization</h2>
       <p className="organization-add-subtitle text-gray-500 mb-6 text-center">
         {hasManagePermission

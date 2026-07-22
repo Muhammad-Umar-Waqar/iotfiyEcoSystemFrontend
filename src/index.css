@@ -1,1 +1,136 @@
 @import "tailwindcss";
+
+/* ── EcoSystem theme tokens (single source — edit here) ── */
+:root {
+  /* Page */
+  --eco-page-bg: linear-gradient(
+    135deg,
+    #E3F1FA 0%,
+    #F0F7FC 40%,
+    #EAF4FB 70%,
+    #DCEEF8 100%
+  );
+  --eco-page-bg-solid: #E8F4FC;
+
+  /* Primary chrome (buttons, active nav, VenueSelect) — NOT alerts */
+  --eco-primary: #0292FF;
+  --eco-primary-hover: #007AE0;
+  --eco-primary-soft: rgba(2, 146, 255, 0.12);
+  --eco-primary-softer: rgba(2, 146, 255, 0.06);
+
+  /* Surfaces / glass */
+  --eco-card: #FFFFFF;
+  --eco-sidebar: #FFFFFF;
+  --eco-sidebar-track: #E8EDF2;
+  /* Frosted overlay (works even when backdrop-filter is limited by overflow) */
+  --eco-panel-glass: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.62) 0%,
+    rgba(255, 255, 255, 0.32) 48%,
+    rgba(220, 238, 248, 0.45) 100%
+  );
+  --eco-panel-blur: 24px;
+  --eco-panel-saturate: 1.55;
+  --eco-panel-border: rgba(255, 255, 255, 0.72);
+  --eco-panel-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    0 8px 28px rgba(7, 81, 141, 0.08);
+  --eco-live-metric-bg: rgba(255, 255, 255, 0.28);
+  --eco-metric-card-bg: #FFFFFF;
+  --eco-metric-card-border: rgba(148, 186, 220, 0.55);
+  --eco-metric-card-shadow: 0 4px 14px rgba(7, 81, 141, 0.1);
+
+  /* API / dark blocks */
+  --eco-api-navy: #064995;
+  --eco-api-navy-text: #FFFFFF;
+
+  /* Alerts chips (panel) — keep semantic, not brand-blue */
+  --eco-temp-alert-bg: #FFF1F3;
+  --eco-hum-alert-bg: #EAF5FC;
+
+  /* Text */
+  --eco-text: #0B1F33;
+  --eco-text-muted: #64748B;
+  --eco-text-label: #334155;
+
+  /* Status */
+  --eco-online: #22C55E;
+  --eco-border: rgba(148, 163, 184, 0.25);
+
+  /* Scrollbar */
+  --eco-scroll-thumb: rgba(2, 146, 255, 0.28);
+  --eco-scroll-thumb-hover: rgba(2, 146, 255, 0.45);
+  --eco-scroll-track: transparent;
+}
+
+/* Utilities */
+.eco-btn-primary {
+  background: var(--eco-primary) !important;
+  color: #fff !important;
+}
+.eco-btn-primary:hover {
+  background: var(--eco-primary-hover) !important;
+}
+.eco-panel-glass {
+  background: var(--eco-panel-glass) !important;
+  backdrop-filter: blur(var(--eco-panel-blur)) saturate(var(--eco-panel-saturate, 1.55));
+  -webkit-backdrop-filter: blur(var(--eco-panel-blur)) saturate(var(--eco-panel-saturate, 1.55));
+  border: 1px solid var(--eco-panel-border);
+  box-shadow: var(--eco-panel-shadow);
+}
+
+/* Right panel: page gradient + frosted glass overlay (scroll is on child) */
+.eco-rpanel-shell {
+  position: relative;
+  background: var(--eco-page-bg) !important;
+  overflow: hidden !important;
+  border-left: 1px solid var(--eco-border);
+}
+.eco-rpanel-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--eco-panel-glass);
+  backdrop-filter: blur(var(--eco-panel-blur)) saturate(var(--eco-panel-saturate, 1.55));
+  -webkit-backdrop-filter: blur(var(--eco-panel-blur)) saturate(var(--eco-panel-saturate, 1.55));
+  box-shadow: var(--eco-panel-shadow);
+  border-left: 1px solid var(--eco-panel-border);
+}
+.eco-rpanel-scroll {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.eco-rpanel-scroll::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+.eco-api-card {
+  background: linear-gradient(145deg, #0759B0 0%, #064995 55%, #053A7A 100%) !important;
+  color: var(--eco-api-navy-text) !important;
+  border-radius: 14px;
+}
+.eco-surface-soft {
+  background: var(--eco-primary-softer) !important;
+}
+.eco-ring-selected {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--eco-primary) 20%, transparent);
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--eco-page-bg-solid);
+  overflow: hidden;
+  font-family: "Poppins", sans-serif;
+}

@@ -16,6 +16,7 @@
   .dashboard-main-content h3 {
     font-size: 1.125rem;
   }
+
 }
 
  
@@ -263,54 +264,21 @@
   scroll-behavior: smooth;
 }
 
-.dashboard-main-content::-webkit-scrollbar {
-  width: 8px;
+/* All dashboard scroll areas: scroll works, bars never show */
+.dashboard-main-content,
+.custom-scrollbar,
+.freezer-cards-container,
+.eco-rpanel-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
-
-.dashboard-main-content::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-
-.dashboard-main-content::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 10px;
-}
-
-.dashboard-main-content::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-
-/* Custom scrollbar for maintenance list */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
-
-
-/* Mobile */
-@media (max-width: 767px) {
-  .custom-scrollbar {
-    -ms-overflow-style: none; /* IE & Edge */
-    scrollbar-width: none;    /* Firefox */
-  }
-
-  .custom-scrollbar::-webkit-scrollbar {
-    display: none;            /* Chrome, Safari, Edge */
-  }
+.dashboard-main-content::-webkit-scrollbar,
+.custom-scrollbar::-webkit-scrollbar,
+.freezer-cards-container::-webkit-scrollbar,
+.eco-rpanel-scroll::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 /* Fix for icon-number alignment */
 .icon-number-align {
@@ -370,6 +338,11 @@
   box-sizing: border-box !important;
 }
 
+/* Glass shell keeps overflow hidden; scroll lives on .eco-rpanel-scroll */
+.dashboard-right-panel.eco-rpanel-shell {
+  overflow: hidden !important;
+}
+
 /* @media (min-width: 320px) and (max-width: 420px) { */
 @media  (max-width: 420px) {
   .dashboard-right-panel {
@@ -377,8 +350,7 @@
     min-width: 0;
     display: flex !important;
     height: 100% !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
+    overflow: hidden !important;
     position: relative !important;
     visibility: visible !important;
   }
@@ -390,11 +362,10 @@
     width: 350px !important;
     min-width: 350px !important;
     max-width: 320px !important;
-    padding: 1.5rem !important;
+    padding: 0 !important; /* padding is on .eco-rpanel-scroll */
     display: flex !important;
     height: 100% !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
+    overflow: hidden !important;
     position: relative !important;
     visibility: visible !important;
   }
@@ -405,13 +376,12 @@
 
 @media (min-width: 768px) and (max-width: 1024px) {
   .dashboard-right-panel {
-    width: 320px !important;
-    min-width: 320px !important;
-    max-width: 320px !important;
+    width: 340px !important;
+    min-width: 340px !important;
+    max-width: 370px !important;
     display: flex !important;
     height: 100% !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
+    overflow: hidden !important;
     position: relative !important;
     visibility: visible !important;
   }
@@ -424,8 +394,7 @@
     max-width: 360px !important;
     display: flex !important;
     height: 100% !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
+    overflow: hidden !important;
     position: relative !important;
     visibility: visible !important;
   }
@@ -439,8 +408,7 @@
     max-width: 560px !important;
     display: flex !important;
     height: 100% !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
+    overflow: hidden !important;
     position: relative !important;
     visibility: visible !important;
   }
