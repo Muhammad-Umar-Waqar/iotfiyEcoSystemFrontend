@@ -21,6 +21,7 @@ const DEVICE_TYPE_LABEL = {
   OD: "Odour Device",
   THD: "Temperature/Humidity",
   AQID: "Air Quality",
+  SMD: "Smoke Device",
   GLD: "Gas Leakage",
   ED: "Energy Device",
   AC: "AC Device",
@@ -30,6 +31,7 @@ const DEVICE_TYPE_LABEL_SHORT = {
   OD: "Odour",
   THD: "Temp/Hum",
   AQID: "AQI",
+  SMD: "Smoke",
   GLD: "Gas",
   ED: "Energy",
   AC: "AC",
@@ -39,6 +41,7 @@ const DEVICE_TYPE_COLOR = {
   OD: "warning",
   THD: "primary",
   AQID: "success",
+  SMD: "error",
   GLD: "error",
   ED: "secondary",
   AC: "info",
@@ -232,7 +235,7 @@ const DeviceList = ({ onDeviceSelect, selectedDevice }) => {
   const displayDevices = selectedVenue ? (devicesByVenue[selectedVenue] || []) : [];
 
   const renderListMarkup = () => (
-    <div className="bg-white rounded-xl shadow-sm w-full max-w-full border border-[#E5E7EB] p-3 sm:p-5 flex flex-col h-full min-h-0 overflow-hidden">
+    <div className="eco-mgmt-list rounded-xl shadow-sm w-full max-w-full border p-3 sm:p-5 flex flex-col h-full min-h-0 overflow-hidden">
       {isDesktop ? (
         <h1 className="organization-list-title font-semibold text-gray-800 mb-4">
           Device Management
@@ -312,15 +315,15 @@ const DeviceList = ({ onDeviceSelect, selectedDevice }) => {
 
       <div className="organization-table-scroll custom-scroll overflow-y-auto overflow-x-hidden flex-1 min-h-0 min-w-0 pr-1 overscroll-contain w-full">
         <table className="w-full max-w-full table-fixed text-left">
-          <thead className="sticky top-0 z-10 bg-white">
-            <tr className="bg-gray-100">
-              <th className="text-sm sm:text-lg py-3 sm:py-5 px-2 sm:px-4 font-semibold text-gray-800 w-[42%]">
+          <thead className="sticky top-0 z-10">
+            <tr className="eco-mgmt-thead">
+              <th className="text-sm sm:text-lg py-3 sm:py-5 px-2 sm:px-4 font-semibold text-gray-800 w-[36%]">
                 Device Name
               </th>
-              <th className="text-sm sm:text-lg font-semibold py-3 sm:py-5 px-1 sm:px-4 text-center text-gray-800 w-[38%]">
+              <th className="text-sm sm:text-lg font-semibold py-3 sm:py-5 px-1 sm:px-4 text-center text-gray-800 w-[36%]">
                 Type
               </th>
-              <th className="text-sm sm:text-lg font-semibold py-3 sm:py-5 px-1 sm:px-4 text-center text-gray-800 w-[20%]">
+              <th className="text-sm sm:text-lg font-semibold py-3 sm:py-5 px-1 sm:px-4 text-center text-gray-800 w-[28%]">
                 Actions
               </th>
             </tr>

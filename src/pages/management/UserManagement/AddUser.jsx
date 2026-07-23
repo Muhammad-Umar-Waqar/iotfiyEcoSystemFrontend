@@ -306,7 +306,7 @@
 //         <button
 //           type="submit"
 //           disabled={formLoading || !hasManagePermission}
-//           className={`w-full bg-[#1E64D9] text-white font-semibold py-2.5 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+//           className={`w-full eco-btn-primary text-white font-semibold py-2.5 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--eco-primary)] focus:ring-offset-2 ${
 //             formLoading || !hasManagePermission
 //               ? "opacity-70 cursor-not-allowed"
 //               : "cursor-pointer hover:bg-[#1557C7]"
@@ -336,18 +336,41 @@ import {
   Select,
   MenuItem,
   FormControl,
-  InputLabel,
   Checkbox,
   ListItemText,
-  OutlinedInput,
   Chip,
   Box,
 } from "@mui/material";
+import { User, Mail, Building2, MapPin, Shield } from "lucide-react";
 
 const PERMISSION_OPTIONS = [
   { value: "view", label: "View Only" },
   { value: "manage", label: "Manage" },
 ];
+
+const SELECT_HEIGHT = 48;
+const ITEM_HEIGHT = 48;
+const VISIBLE_ITEMS = 4;
+
+const menuProps = {
+  PaperProps: {
+    sx: {
+      maxHeight: ITEM_HEIGHT * VISIBLE_ITEMS,
+      mt: 1,
+      zIndex: 1500,
+    },
+  },
+  MenuListProps: {
+    disablePadding: true,
+  },
+};
+
+const selectSx = {
+  pl: "1.5rem",
+  minHeight: SELECT_HEIGHT,
+  backgroundColor: "white",
+  borderRadius: "0.375rem",
+};
 
 const AddUser = ({ selectedUser }) => {
   const dispatch = useDispatch();
@@ -482,7 +505,7 @@ const AddUser = ({ selectedUser }) => {
   };
 
   return (
-    <div className="rounded-xl shadow-sm w-full h-full  flex flex-col items-center justify-center bg-[#EEF3F9] border border-[#E5E7EB] p-4 sm:p-5">
+    <div className="rounded-xl shadow-sm w-full h-full  flex flex-col items-center justify-center eco-mgmt-add p-4 sm:p-5">
       <div className="hidden md:flex justify-center mb-4" aria-hidden="true">
         <img
           src="/user-add-hero.svg"
@@ -490,10 +513,10 @@ const AddUser = ({ selectedUser }) => {
           className="h-[120px] w-auto select-none pointer-events-none"
         />
       </div>
-      <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-1 text-center">
+      <h2 className="user-add-title text-lg sm:text-xl font-semibold eco-mgmt-title mb-1 text-center">
         Add User
       </h2>
-      <p className="text-sm text-gray-500 mb-6 text-center">
+      <p className="text-sm eco-mgmt-muted mb-6 text-center">
         {hasManagePermission
           ? "Create a new sub-user account"
           : "View Only Mode - Forms are disabled"}
@@ -513,6 +536,7 @@ const AddUser = ({ selectedUser }) => {
           value={formData.name}
           onchange={handleChange}
           placeholder="Enter user's full name"
+          icon={<User size={20} />}
           disabled={!hasManagePermission}
         />
 
@@ -524,99 +548,171 @@ const AddUser = ({ selectedUser }) => {
           value={formData.email}
           onchange={handleChange}
           placeholder="user@example.com"
+          icon={<Mail size={20} />}
           disabled={!hasManagePermission}
         />
 
-        <div className="flex flex-col gap-4">
-          {/* Organizations - Multi-select */}
-          <FormControl fullWidth size="small">
-            <InputLabel id="organizations-label">Organizations *</InputLabel>
+        {/* Organizations - Multi-select (same MUI Select pattern as Device Management) */}
+        <div className="relative">
+          <Building2
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-30"
+            size={20}
+          />
+          <FormControl fullWidth>
             <Select
-              labelId="organizations-label"
+              displayEmpty
               multiple
-              name="organizations"
               value={formData.organizations}
               onChange={handleOrganizationsChange}
-              input={<OutlinedInput label="Organizations *" />}
-              renderValue={(selected) => (
-                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                  {selected.map((orgId) => {
-                    const org = Organizations.find((o) => o._id === orgId);
-                    return (
-                      <Chip key={orgId} label={org?.name || orgId} size="small" />
-                    );
-                  })}
-                </Box>
-              )}
+              MenuProps={menuProps}
               disabled={!hasManagePermission || orgsLoading}
+              sx={selectSx}
+              renderValue={(selected) => {
+                if (!selected || selected.length === 0) {
+                  return <span className="text-gray-500">Select organizations</span>;
+                }
+                return (
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                    {selected.map((orgId) => {
+                      const org = Organizations.find((o) => o._id === orgId);
+                      return (
+                        <Chip
+                          key={orgId}
+                          label={org?.name || orgId}
+                          size="small"
+                          color="primary"
+                        />
+                      );
+                    })}
+                  </Box>
+                );
+              }}
             >
               {orgsLoading ? (
-                <MenuItem disabled>Loading organizations...</MenuItem>
+                <MenuItem disabled sx={{ height: ITEM_HEIGHT }}>
+                  Loading organizations...
+                </MenuItem>
               ) : Organizations.length === 0 ? (
-                <MenuItem disabled>No organizations found</MenuItem>
+                <MenuItem disabled sx={{ height: ITEM_HEIGHT }}>
+                  No organizations found
+                </MenuItem>
               ) : (
                 Organizations.map((org) => (
-                  <MenuItem key={org._id} value={org._id}>
-                    <Checkbox checked={formData.organizations.includes(org._id)} />
+                  <MenuItem
+                    key={org._id}
+                    value={org._id}
+                    sx={{ height: ITEM_HEIGHT, display: "flex", alignItems: "center" }}
+                  >
+                    <Checkbox
+                      checked={formData.organizations.includes(org._id)}
+                      sx={{
+                        color: "var(--eco-primary)",
+                        "&.Mui-checked": { color: "var(--eco-primary)" },
+                      }}
+                    />
                     <ListItemText primary={org.name} />
                   </MenuItem>
                 ))
               )}
             </Select>
           </FormControl>
+        </div>
 
-          {/* Venues - Multi-select (Optional) */}
-          {formData.organizations.length > 0 && (
-            <FormControl fullWidth size="small">
-              <InputLabel id="venues-label">Venues (Optional)</InputLabel>
+        {/* Venues - Multi-select (Optional) */}
+        {formData.organizations.length > 0 && (
+          <div className="relative">
+            <MapPin
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-30"
+              size={20}
+            />
+            <FormControl fullWidth>
               <Select
-                labelId="venues-label"
+                displayEmpty
                 multiple
-                name="venues"
                 value={formData.venues}
                 onChange={handleVenuesChange}
-                input={<OutlinedInput label="Venues (Optional)" />}
-                renderValue={(selected) => (
-                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                    {selected.map((venueId) => {
-                      const venue = availableVenues.find((v) => v._id === venueId);
-                      return (
-                        <Chip key={venueId} label={venue?.name || venueId} size="small" />
-                      );
-                    })}
-                  </Box>
-                )}
+                MenuProps={menuProps}
                 disabled={!hasManagePermission || venueLoading || availableVenues.length === 0}
+                sx={selectSx}
+                renderValue={(selected) => {
+                  if (!selected || selected.length === 0) {
+                    return <span className="text-gray-500">Select venues (optional)</span>;
+                  }
+                  return (
+                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                      {selected.map((venueId) => {
+                        const venue = availableVenues.find((v) => v._id === venueId);
+                        return (
+                          <Chip
+                            key={venueId}
+                            label={venue?.name || venueId}
+                            size="small"
+                            color="primary"
+                          />
+                        );
+                      })}
+                    </Box>
+                  );
+                }}
               >
                 {venueLoading ? (
-                  <MenuItem disabled>Loading venues...</MenuItem>
+                  <MenuItem disabled sx={{ height: ITEM_HEIGHT }}>
+                    Loading venues...
+                  </MenuItem>
                 ) : availableVenues.length === 0 ? (
-                  <MenuItem disabled>No venues found</MenuItem>
+                  <MenuItem disabled sx={{ height: ITEM_HEIGHT }}>
+                    No venues found
+                  </MenuItem>
                 ) : (
                   availableVenues.map((venue) => (
-                    <MenuItem key={venue._id} value={venue._id}>
-                      <Checkbox checked={formData.venues.includes(venue._id)} />
+                    <MenuItem
+                      key={venue._id}
+                      value={venue._id}
+                      sx={{ height: ITEM_HEIGHT, display: "flex", alignItems: "center" }}
+                    >
+                      <Checkbox
+                        checked={formData.venues.includes(venue._id)}
+                        sx={{
+                          color: "var(--eco-primary)",
+                          "&.Mui-checked": { color: "var(--eco-primary)" },
+                        }}
+                      />
                       <ListItemText primary={venue.name} />
                     </MenuItem>
                   ))
                 )}
               </Select>
             </FormControl>
-          )}
+          </div>
+        )}
 
-          {/* Permission */}
-          <FormControl fullWidth size="small">
-            <InputLabel id="permission-label">Permission *</InputLabel>
+        {/* Permission */}
+        <div className="relative">
+          <Shield
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-30"
+            size={20}
+          />
+          <FormControl fullWidth>
             <Select
-              labelId="permission-label"
-              name="permission"
+              displayEmpty
               value={formData.permission}
-              label="Permission *"
               onChange={handleChange}
+              inputProps={{ name: "permission" }}
+              MenuProps={menuProps}
               disabled={!hasManagePermission}
+              sx={{ pl: "1.5rem", height: SELECT_HEIGHT, backgroundColor: "white", borderRadius: "0.375rem" }}
+              renderValue={(selected) => {
+                if (!selected) return <span className="text-gray-500">Select permission</span>;
+                const opt = PERMISSION_OPTIONS.find((o) => o.value === selected);
+                return opt?.label ?? selected;
+              }}
             >
               {PERMISSION_OPTIONS.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
+                <MenuItem
+                  key={option.value}
+                  value={option.value}
+                  sx={{ height: ITEM_HEIGHT, display: "flex", alignItems: "center" }}
+                >
                   {option.label}
                 </MenuItem>
               ))}
@@ -628,7 +724,7 @@ const AddUser = ({ selectedUser }) => {
         <button
           type="submit"
           disabled={formLoading || !hasManagePermission}
-          className={`w-full bg-[#1E64D9] text-white font-semibold py-2.5 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+          className={`w-full eco-btn-primary text-white font-semibold py-2.5 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--eco-primary)] focus:ring-offset-2 ${
             formLoading || !hasManagePermission
               ? "opacity-70 cursor-not-allowed"
               : "cursor-pointer hover:bg-[#1557C7]"

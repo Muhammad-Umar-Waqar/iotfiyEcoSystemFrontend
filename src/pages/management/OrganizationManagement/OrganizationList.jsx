@@ -130,11 +130,11 @@ const OrganizationList = ({ onOrganizationSelect, selectedOrganization }) => {
 
   // render the list markup (keeps your classes unchanged)
   const renderListMarkup = () => (
-<div className="bg-white rounded-xl shadow-sm w-full border border-[#E5E7EB] p-5 flex flex-col h-full min-h-0 overflow-hidden">
+<div className="eco-mgmt-list rounded-xl shadow-sm w-full p-5 flex flex-col h-full min-h-0 overflow-hidden">
 
         {
       isDesktop ?
-      <h1 className="organization-list-title font-semibold text-gray-800 mb-4">Organization Management</h1>
+      <h1 className="organization-list-title eco-mgmt-title font-semibold mb-4">Organization Management</h1>
     :
     <>
     <div className="flex justify-end">
@@ -151,17 +151,17 @@ const OrganizationList = ({ onOrganizationSelect, selectedOrganization }) => {
     }
 
       <div className="mb-4">
-        <h2 className="organization-list-header text-center font-semibold text-gray-800">Organization List</h2>
+        <h2 className="organization-list-header text-center font-semibold eco-mgmt-title">Organization List</h2>
       </div>
 
     <div className="organization-table-scroll overflow-y-auto flex-1 min-h-0 pr-1 overscroll-contain">
   <table className="w-full table-auto text-left">
-    <thead className="sticky top-0 z-10 bg-white">
-      <tr className="bg-gray-100">
-        <th className="text-lg py-5 px-4 font-semibold text-gray-800">
+    <thead className="sticky top-0 z-10">
+      <tr className="eco-mgmt-thead">
+        <th className="text-lg py-5 px-4 font-semibold eco-mgmt-title">
           Organization Name
         </th>
-        <th className="text-lg font-semibold py-5 px-4 text-center text-gray-800" >
+        <th className="text-lg font-semibold py-5 px-4 text-center eco-mgmt-title" >
           Actions
         </th>
       </tr>
@@ -181,10 +181,10 @@ const OrganizationList = ({ onOrganizationSelect, selectedOrganization }) => {
           return (
             <tr
               key={id}
-              className={`border-b border-gray-200 cursor-pointer transition-colors hover:bg-blue-50/60 ${
+              className={`border-b border-[var(--eco-border)] cursor-pointer transition-colors hover:bg-[var(--eco-primary-softer)] ${
                 selectedOrganization?._id === id ||
                 selectedOrganization?.id === id
-                  ? "bg-blue-50 border-blue-300"
+                  ? "bg-[var(--eco-primary-soft)]"
                   : ""
               }`}
               onClick={(e) => handleRowClick(org, e)}
@@ -260,7 +260,7 @@ const OrganizationList = ({ onOrganizationSelect, selectedOrganization }) => {
           <div className="flex items-center justify-between mb-4">
 
             <img src="/logo-half.png" className="w-auto h-[30px]"/>
-            <h1 className="organization-list-title font-semibold text-gray-800">Organization Management</h1>
+            <h1 className="organization-list-title font-semibold eco-mgmt-title">Organization Management</h1>
 
             <div>
               <IconButton aria-label="Open organizations" size="small" onClick={() => setDrawerOpen(true)}>

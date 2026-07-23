@@ -1,6 +1,6 @@
 import { createElement } from "react";
 
-/** MUI Drawer props so list content scrolls inside the panel, not the page. */
+/** MUI Drawer props — eco page bg, full-height, scroll inside (scrollbar hidden). */
 export const managementDrawerPaperProps = {
   sx: {
     width: "100%",
@@ -9,6 +9,18 @@ export const managementDrawerPaperProps = {
     overflow: "hidden",
     display: "flex",
     flexDirection: "column",
+    backgroundColor: "var(--eco-page-bg-solid)",
+    background: "var(--eco-page-bg) !important",
+    borderLeft: "1px solid var(--eco-panel-border)",
+    boxShadow: "none",
+    /* hide native scrollbar chrome on Paper itself */
+    scrollbarWidth: "none",
+    msOverflowStyle: "none",
+    "&::-webkit-scrollbar": {
+      display: "none",
+      width: 0,
+      height: 0,
+    },
   },
 };
 
@@ -21,13 +33,26 @@ export const managementDrawerUserPaperProps = {
     overflow: "hidden",
     display: "flex",
     flexDirection: "column",
+    backgroundColor: "var(--eco-page-bg-solid)",
+    background: "var(--eco-page-bg) !important",
+    borderLeft: "1px solid var(--eco-panel-border)",
+    boxShadow: "none",
+    scrollbarWidth: "none",
+    msOverflowStyle: "none",
+    "&::-webkit-scrollbar": {
+      display: "none",
+      width: 0,
+      height: 0,
+    },
   },
 };
 
 export function ManagementDrawerBody({ children, className = "" }) {
   return createElement(
     "div",
-    { className: `flex h-full min-h-0 flex-col overflow-hidden ${className}`.trim() },
+    {
+      className: `eco-mgmt-drawer-body flex h-full min-h-0 flex-col overflow-hidden ${className}`.trim(),
+    },
     children
   );
 }

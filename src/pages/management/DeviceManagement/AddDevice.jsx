@@ -18,6 +18,7 @@ const DEVICE_CONDITIONS_MAP = {
   OD: ["temperature", "humidity", "odour"],
   THD: ["temperature", "humidity"],
   AQID: ["temperature", "humidity", "AQI"],
+  SMD: ["AQI"],
   GLD: ["temperature", "humidity", "gass"],
   ED: ["temperature", "humidity", "voltage", "current"],
   AC: [],
@@ -28,6 +29,7 @@ const CONDITION_LABEL = {
   humidity: "Humidity",
   odour: "Odour",
   AQI: "AQI",
+  smoke: "Smoke",
   gass: "Leakage",
   voltage: "Voltage",
   current: "Current",
@@ -38,6 +40,7 @@ const CONDITION_UNIT = {
   humidity: "%",
   odour: "%",
   AQI: "AQI",
+  smoke: "",
   gass: "%",
   voltage: "V",
   current: "A",
@@ -47,6 +50,7 @@ const DEVICE_TYPE_LABEL = {
   OD: "Odour Device (OD)",
   THD: "Temperature Humidity Device (THD)",
   AQID: "Air Quality Index Device (AQID)",
+  SMD: "Smoke Device (SMD)",
   GLD: "Gas Leakage Device (GLD)",
   ED: "Energy Device (ED)",
   AC: "AC Device (AC)",
@@ -67,6 +71,7 @@ const menuProps = {
     sx: {
       maxHeight: ITEM_HEIGHT * VISIBLE_ITEMS,
       mt: 1,
+      zIndex: 1500,
     },
   },
   MenuListProps: {
@@ -90,6 +95,7 @@ const ALERT_ACCESS_MAP = {
   OD: ["tempAlertAccess", "humiAlertAccess", "odourAlertAccess"],
   THD: ["tempAlertAccess", "humiAlertAccess"],
   AQID: ["tempAlertAccess", "humiAlertAccess", "aqiAlertAccess"],
+  SMD: ["aqiAlertAccess", "smokeAlertAccess"],
   GLD: ["tempAlertAccess", "humiAlertAccess", "glAlertAccess"],
   ED: ["tempAlertAccess", "humiAlertAccess", "voltageAlertAccess", "currentAlertAccess"],
   AC: [],
@@ -100,6 +106,7 @@ const ALERT_ACCESS_LABELS = {
   humiAlertAccess: "Humidity Alert",
   odourAlertAccess: "Odour Alert",
   aqiAlertAccess: "AQI Alert",
+  smokeAlertAccess: "Smoke Alert",
   glAlertAccess: "Gas Leakage Alert",
   voltageAlertAccess: "Voltage Alert",
   currentAlertAccess: "Current Alert",
@@ -126,6 +133,7 @@ const AddDevice = () => {
     humiAlertAccess: false,
     odourAlertAccess: false,
     aqiAlertAccess: false,
+    smokeAlertAccess: false,
     glAlertAccess: false,
     voltageAlertAccess: false,
     currentAlertAccess: false,
@@ -192,6 +200,7 @@ const AddDevice = () => {
         humiAlertAccess: false,
         odourAlertAccess: false,
         aqiAlertAccess: false,
+        smokeAlertAccess: false,
         glAlertAccess: false,
         voltageAlertAccess: false,
         currentAlertAccess: false,
@@ -349,6 +358,7 @@ const AddDevice = () => {
       payload.humiAlertAccess = alertAccess.humiAlertAccess;
       payload.odourAlertAccess = alertAccess.odourAlertAccess;
       payload.aqiAlertAccess = alertAccess.aqiAlertAccess;
+      payload.smokeAlertAccess = alertAccess.smokeAlertAccess;
       payload.glAlertAccess = alertAccess.glAlertAccess;
       payload.voltageAlertAccess = alertAccess.voltageAlertAccess;
       payload.currentAlertAccess = alertAccess.currentAlertAccess;
@@ -387,6 +397,7 @@ const AddDevice = () => {
         humiAlertAccess: false,
         odourAlertAccess: false,
         aqiAlertAccess: false,
+        smokeAlertAccess: false,
         glAlertAccess: false,
         voltageAlertAccess: false,
         currentAlertAccess: false,
@@ -423,7 +434,7 @@ const AddDevice = () => {
   };
 
   return (
-    <div className="min-h-[60vh] flex items-center justify-center bg-[#EEF3F9] rounded-xl shadow-sm w-full md:flex flex-col justify-center border border-[#E5E7EB]">
+    <div className="min-h-[60vh] flex items-center justify-center eco-mgmt-add rounded-xl shadow-sm w-full md:flex flex-col justify-center">
       <div className="AddingPage device-add-container w-full">
       <div className="hidden md:flex justify-center mb-4" aria-hidden="true">
         <img
@@ -432,8 +443,8 @@ const AddDevice = () => {
           className="h-[120px] w-auto select-none pointer-events-none"
         />
       </div>
-      <h2 className="device-add-title font-semibold mb-1 text-center">Add Device</h2>
-      <p className="device-add-subtitle text-gray-500 mb-6 text-center">
+      <h2 className="device-add-title font-semibold mb-1 text-center eco-mgmt-title">Add Device</h2>
+      <p className="device-add-subtitle eco-mgmt-muted mb-6 text-center">
         {hasManagePermission
           ? "Welcome back! Fill in device details"
           : "View Only Mode - Forms are disabled"
@@ -531,49 +542,52 @@ const AddDevice = () => {
 
         {formData.venue && (
           <>
-            <div>
-              <FormControl fullWidth>
-                <InputLabel id="device-type-label">Device Type</InputLabel>
-                <Select
-                  labelId="device-type-label"
-                  value={formData.deviceType || ""}
-                  label="Device Type"
-                  name="deviceType"
-                  onChange={handleChange}
-                  MenuProps={menuProps}
-                  disabled={!hasManagePermission}
-                  sx={{ height: SELECT_HEIGHT, borderRadius: "0.375rem" }}
-                >
-                  <MenuItem value="">Select Device Type</MenuItem>
-                  <MenuItem value="OD">{DEVICE_TYPE_LABEL.OD}</MenuItem>
-                  <MenuItem value="THD">{DEVICE_TYPE_LABEL.THD}</MenuItem>
-                  <MenuItem value="AQID">{DEVICE_TYPE_LABEL.AQID}</MenuItem>
-                  <MenuItem value="GLD">{DEVICE_TYPE_LABEL.GLD}</MenuItem>
-                  <MenuItem value="ED">{DEVICE_TYPE_LABEL.ED}</MenuItem>
-                  <MenuItem value="AC">{DEVICE_TYPE_LABEL.AC}</MenuItem>
-                </Select>
-              </FormControl>
-            </div>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1 min-w-0">
+                <FormControl fullWidth>
+                  <InputLabel id="device-type-label">Device Type</InputLabel>
+                  <Select
+                    labelId="device-type-label"
+                    value={formData.deviceType || ""}
+                    label="Device Type"
+                    name="deviceType"
+                    onChange={handleChange}
+                    MenuProps={menuProps}
+                    disabled={!hasManagePermission}
+                    sx={{ height: SELECT_HEIGHT, borderRadius: "0.375rem", backgroundColor: "#fff" }}
+                  >
+                    <MenuItem value="">Select Device Type</MenuItem>
+                    <MenuItem value="OD">{DEVICE_TYPE_LABEL.OD}</MenuItem>
+                    <MenuItem value="THD">{DEVICE_TYPE_LABEL.THD}</MenuItem>
+                    <MenuItem value="AQID">{DEVICE_TYPE_LABEL.AQID}</MenuItem>
+                    <MenuItem value="SMD">{DEVICE_TYPE_LABEL.SMD}</MenuItem>
+                    <MenuItem value="GLD">{DEVICE_TYPE_LABEL.GLD}</MenuItem>
+                    <MenuItem value="ED">{DEVICE_TYPE_LABEL.ED}</MenuItem>
+                    <MenuItem value="AC">{DEVICE_TYPE_LABEL.AC}</MenuItem>
+                  </Select>
+                </FormControl>
+              </div>
 
-            <div>
-              <FormControl fullWidth>
-                <InputLabel id="category-label">Category</InputLabel>
-                <Select
-                  labelId="category-label"
-                  value={formData.category || ""}
-                  label="Category"
-                  name="category"
-                  onChange={handleChange}
-                  MenuProps={menuProps}
-                  disabled={!hasManagePermission}
-                  sx={{ height: SELECT_HEIGHT, borderRadius: "0.375rem" }}
-                >
-                  <MenuItem value="">Select Category</MenuItem>
-                  <MenuItem value="monitoring">{CATEGORY_LABEL.monitoring}</MenuItem>
-                  <MenuItem value="scheduling">{CATEGORY_LABEL.scheduling}</MenuItem>
-                  <MenuItem value="trigger">{CATEGORY_LABEL.trigger}</MenuItem>
-                </Select>
-              </FormControl>
+              <div className="flex-1 min-w-0">
+                <FormControl fullWidth>
+                  <InputLabel id="category-label">Category</InputLabel>
+                  <Select
+                    labelId="category-label"
+                    value={formData.category || ""}
+                    label="Category"
+                    name="category"
+                    onChange={handleChange}
+                    MenuProps={menuProps}
+                    disabled={!hasManagePermission}
+                    sx={{ height: SELECT_HEIGHT, borderRadius: "0.375rem", backgroundColor: "#fff" }}
+                  >
+                    <MenuItem value="">Select Category</MenuItem>
+                    <MenuItem value="monitoring">{CATEGORY_LABEL.monitoring}</MenuItem>
+                    <MenuItem value="scheduling">{CATEGORY_LABEL.scheduling}</MenuItem>
+                    <MenuItem value="trigger">{CATEGORY_LABEL.trigger}</MenuItem>
+                  </Select>
+                </FormControl>
+              </div>
             </div>
 
             {formData.deviceType === "AC" && (
@@ -590,8 +604,8 @@ const AddDevice = () => {
                       }
                       disabled={!hasManagePermission}
                       sx={{
-                        color: "#1E64D9",
-                        "&.Mui-checked": { color: "#1E64D9" },
+                        color: "var(--eco-primary)",
+                        "&.Mui-checked": { color: "var(--eco-primary)" },
                       }}
                     />
                   }
@@ -616,9 +630,9 @@ const AddDevice = () => {
                           onChange={() => handleAlertAccessChange(accessField)}
                           disabled={!hasManagePermission}
                           sx={{
-                            color: "#1E64D9",
+                            color: "var(--eco-primary)",
                             "&.Mui-checked": {
-                              color: "#1E64D9",
+                              color: "var(--eco-primary)",
                             },
                           }}
                         />
@@ -639,7 +653,7 @@ const AddDevice = () => {
             disabled={deviceLoading || !hasManagePermission}
             className={`
               w-full py-2.5 px-4 rounded-md font-semibold text-white
-              ${deviceLoading || !hasManagePermission ? "bg-[#1E64D9]/70 cursor-not-allowed" : "bg-[#1E64D9] hover:bg-[#1557C7] cursor-pointer"}
+              ${deviceLoading || !hasManagePermission ? "eco-btn-primary opacity-70 cursor-not-allowed" : "eco-btn-primary cursor-pointer"}
             `}
           >
             {deviceLoading ? "Saving..." : "Save"}
@@ -648,10 +662,10 @@ const AddDevice = () => {
 
         {createdDevice?.apiKey && (
           <div className="mt-3 p-3 rounded-md bg-white border border-gray-200 text-sm text-gray-700 break-words px-5">
-            <strong>Device Created Successfully!</strong>
-            <div className="mt-2 text-sm">
-              <strong>Device ID:</strong> {createdDevice.deviceId}
-            </div>
+            {/* <strong>Device Created Successfully!</strong> */}
+            {/* <div className="mt-2 text-sm"> */}
+              {/* <strong>Device ID:</strong> {createdDevice.deviceId} */}
+            {/* </div> */}
             <div className="mt-2">
               <strong>API Key:</strong>
               <div className="flex items-center justify-between">

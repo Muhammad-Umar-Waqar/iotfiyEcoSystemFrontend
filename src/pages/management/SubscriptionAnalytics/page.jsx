@@ -91,22 +91,21 @@ const MetricCard = ({ icon: Icon, label, used, total, remaining, accentColor, ri
         background: "#FFFFFF",
         borderRadius: "20px",
         padding: "24px",
-        border: "1px solid #E2E8F0",
+        border: "1px solid #E5EBF2",
         display: "flex",
         flexDirection: "column",
         gap: "16px",
-        boxShadow: "0 1px 3px rgba(15,23,42,0.06), 0 4px 16px rgba(15,23,42,0.04)",
+        boxShadow: "0 2px 10px rgba(7,81,141,0.06)",
         transition: "box-shadow 0.2s",
         position: "relative",
         overflow: "hidden",
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.boxShadow =
-          "0 4px 12px rgba(15,23,42,0.10), 0 8px 32px rgba(15,23,42,0.07)";
+          "0 4px 16px rgba(7,81,141,0.1)";
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.boxShadow =
-          "0 1px 3px rgba(15,23,42,0.06), 0 4px 16px rgba(15,23,42,0.04)";
+        e.currentTarget.style.boxShadow = "0 2px 10px rgba(7,81,141,0.06)";
       }}
     >
       {/* Subtle background accent */}
@@ -363,14 +362,14 @@ const SubscriptionAnalytics = () => {
         {/* Plan Card */}
         <div
           style={{
-            background: "linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #4338CA 100%)",
+            background: "linear-gradient(135deg, #064995 0%, #0759B0 50%, #0292FF 100%)",
             borderRadius: "24px",
             padding: "28px 32px",
             marginBottom: "24px",
             color: "#fff",
             position: "relative",
             overflow: "hidden",
-            boxShadow: "0 8px 32px rgba(99,102,241,0.25)",
+            boxShadow: "0 8px 32px rgba(2,146,255,0.22)",
           }}
         >
           {/* Decorative circles */}
@@ -552,11 +551,11 @@ const SubscriptionAnalytics = () => {
             background: "#FFFFFF",
             borderRadius: "16px",
             padding: "20px 24px",
-            border: "1px solid #E2E8F0",
+            border: "1px solid #E5EBF2",
             display: "flex",
             alignItems: "center",
             gap: "12px",
-            boxShadow: "0 1px 3px rgba(15,23,42,0.04)",
+            boxShadow: "0 2px 10px rgba(7,81,141,0.06)",
           }}
         >
           <div

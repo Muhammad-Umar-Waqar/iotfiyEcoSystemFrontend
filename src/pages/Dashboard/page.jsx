@@ -16,6 +16,7 @@ import {
 } from "../../slices/OrganizationSlice";
 import DeviceSkeleton from "./DeviceSkeleton";
 import AQIDeviceCard from "./AQIDeviceCard";
+import SmokeDeviceCard from "./SmokeDeviceCard";
 import TemperatureHumidityDeviceCard from "./TemperatureHumidityDeviceCard";
 import OdourDeviceCard from "./OdourDeviceCard";
 import GasLeakageDeviceCard from "./GasLeakageDeviceCard";
@@ -451,6 +452,7 @@ export default function Dashboard() {
                     espHumidity:      liveData.humidity ?? device?.espHumidity,
                     espOdour:         liveData.odour ?? device?.espOdour,
                     espAQI:           liveData.AQI ?? device?.espAQI,
+                    espSmoke:         liveData.smoke ?? device?.espSmoke,
                     espGL:            liveData.gass ?? device?.espGL,
                     espVoltage:       liveData.voltage ?? device?.espVoltage,
                     espCurrent:       liveData.current ?? device?.espCurrent,
@@ -459,6 +461,7 @@ export default function Dashboard() {
                     voltageAlert:     liveData.alerts?.some(a => a.type === 'voltage') ?? device?.voltageAlert,
                     odourAlert:       liveData.alerts?.some(a => a.type === 'odour') ?? device?.odourAlert,
                     aqiAlert:         liveData.alerts?.some(a => a.type === 'AQI') ?? device?.aqiAlert,
+                    smokeAlert:       liveData.alerts?.some(a => a.type === 'smoke') ?? device?.smokeAlert,
                     glAlert:          liveData.alerts?.some(a => a.type === 'gass') ?? device?.glAlert,
                     isOnline:         isOnline,
                     lastUpdateISO:    liveData.lastUpdateISO ?? device?.lastUpdateTime,
@@ -552,6 +555,20 @@ export default function Dashboard() {
                     );
                   }
 
+                  // SMD with scheduling/trigger
+                  if (device.deviceType === "SMD" && (category === "scheduling" || category === "trigger")) {
+                    return (
+                      <SmokeDeviceCard
+                        key={idKey}
+                        {...commonProps}
+                        category={category}
+                        onRefreshScheduler={fetchSchedulerData}
+                        scheduleData={deviceScheduleMap[deviceKey]}
+                        interval={device?.interval}
+                      />
+                    );
+                  }
+
                   // OD with scheduling/trigger → modified OD card
                   if (device.deviceType === "OD" && (category === "scheduling" || category === "trigger")) {
                     return (
@@ -585,6 +602,14 @@ export default function Dashboard() {
                     case "AQID":
                       return (
                         <AQIDeviceCard
+                          key={idKey}
+                          {...commonProps}
+                        />
+                      );
+
+                    case "SMD":
+                      return (
+                        <SmokeDeviceCard
                           key={idKey}
                           {...commonProps}
                         />
@@ -690,6 +715,7 @@ export default function Dashboard() {
           espHumidity: liveData.humidity ?? selectedDevice?.espHumidity,
           espOdour: liveData.odour ?? selectedDevice?.espOdour,
           espAQI: liveData.AQI ?? selectedDevice?.espAQI,
+          espSmoke: liveData.smoke ?? selectedDevice?.espSmoke,
           espGL: liveData.gass ?? selectedDevice?.espGL,
           espVoltage: liveData.voltage ?? selectedDevice?.espVoltage,
           espCurrent: liveData.espCurrent ?? liveData.current ?? selectedDevice?.espCurrent,
@@ -700,6 +726,7 @@ export default function Dashboard() {
           humidityAlert: liveData.alerts?.some(a => a.type === 'humidity') ?? selectedDevice?.humidityAlert,
           voltageAlert: liveData.alerts?.some(a => a.type === 'voltage') ?? selectedDevice?.voltageAlert,
           aqiAlert: liveData.alerts?.some(a => a.type === 'AQI') ?? selectedDevice?.aqiAlert,
+          smokeAlert: liveData.alerts?.some(a => a.type === 'smoke') ?? selectedDevice?.smokeAlert,
           glAlert: liveData.alerts?.some(a => a.type === 'gass') ?? selectedDevice?.glAlert,
           triggeredAlerts: liveData.triggeredAlerts ?? [],
           batteryLow: selectedDevice?.batteryLow ?? selectedDevice?.batteryAlert ?? false,

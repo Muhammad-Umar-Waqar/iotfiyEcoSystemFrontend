@@ -354,7 +354,7 @@ const UserList = ({ onUserSelect, selectedUser }) => {
 
   const renderListMarkup = () => (
     // <div className="bg-white rounded-xl shadow-sm w-full h-full border border-[#E5E7EB] p-4 sm:p-5 flex flex-col">
-    <div className="bg-white rounded-xl shadow-sm w-full h-full min-h-0 border border-[#E5E7EB] p-4 sm:p-5 flex flex-col overflow-hidden">  
+    <div className="eco-mgmt-list rounded-xl shadow-sm w-full h-full min-h-0 border p-4 sm:p-5 flex flex-col overflow-hidden">  
     {isDesktop ? (
         <h1 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">User Management</h1>
       ) : (
@@ -370,10 +370,10 @@ const UserList = ({ onUserSelect, selectedUser }) => {
       </div>
 
       <div className="flex-1 min-h-0 overflow-hidden">
-  <div className="h-full min-h-0 overflow-y-auto overscroll-contain">
+  <div className="h-full min-h-0 overflow-y-auto overscroll-contain user-table-scroll">
     <table className="w-full table-fixed text-left border-collapse">
-  <thead className="sticky top-0 z-20 bg-white ">
-  <tr className="bg-gray-100">
+  <thead className="sticky top-0 z-20">
+  <tr className="eco-mgmt-thead">
     <th className="py-3 px-2 sm:px-4 text-xs sm:text-sm font-semibold text-gray-800 w-[38%] sm:w-[24%]">
       Name
     </th>

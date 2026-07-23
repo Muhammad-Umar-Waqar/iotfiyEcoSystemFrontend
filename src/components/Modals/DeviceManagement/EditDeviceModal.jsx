@@ -30,6 +30,7 @@ const DEVICE_CONDITIONS_MAP = {
   OD: ["temperature", "humidity", "odour"],
   THD: ["temperature", "humidity"],
   AQID: ["temperature", "humidity", "AQI"],
+  SMD: ["AQI"],
   GLD: ["temperature", "humidity", "gass"],
   ED: ["temperature", "humidity", "voltage", "current"],
   AC: [],
@@ -40,6 +41,7 @@ const CONDITION_LABEL = {
   humidity: "Humidity",
   odour: "Odour",
   AQI: "AQI",
+  smoke: "Smoke",
   gass: "Leakage",
   voltage: "Voltage",
   current: "Current",
@@ -50,6 +52,7 @@ const CONDITION_UNIT = {
   humidity: "%",
   odour: "%",
   AQI: "AQI",
+  smoke: "",
   gass: "%",
   voltage: "V",
   current: "A",
@@ -59,6 +62,7 @@ const DEVICE_TYPE_LABEL = {
   OD: "Odour Device (OD)",
   THD: "Temperature Humidity Device (THD)",
   AQID: "Air Quality Index Device (AQID)",
+  SMD: "Smoke Device (SMD)",
   GLD: "Gas Leakage Device (GLD)",
   ED: "Energy Device (ED)",
   AC: "AC Device (AC)",
@@ -90,6 +94,7 @@ const ALERT_ACCESS_MAP = {
   OD: ["tempAlertAccess", "humiAlertAccess", "odourAlertAccess"],
   THD: ["tempAlertAccess", "humiAlertAccess"],
   AQID: ["tempAlertAccess", "humiAlertAccess", "aqiAlertAccess"],
+  SMD: ["aqiAlertAccess", "smokeAlertAccess"],
   GLD: ["tempAlertAccess", "humiAlertAccess", "glAlertAccess"],
   ED: ["tempAlertAccess", "humiAlertAccess", "voltageAlertAccess", "currentAlertAccess"],
   AC: [],
@@ -100,6 +105,7 @@ const ALERT_ACCESS_LABELS = {
   humiAlertAccess: "Humidity Alert",
   odourAlertAccess: "Odour Alert",
   aqiAlertAccess: "AQI Alert",
+  smokeAlertAccess: "Smoke Alert",
   glAlertAccess: "Gas Leakage Alert",
   voltageAlertAccess: "Voltage Alert",
   currentAlertAccess: "Current Alert",
@@ -132,6 +138,7 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
     humiAlertAccess: false,
     odourAlertAccess: false,
     aqiAlertAccess: false,
+    smokeAlertAccess: false,
     glAlertAccess: false,
     voltageAlertAccess: false,
     currentAlertAccess: false,
@@ -182,6 +189,7 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
         humiAlertAccess: device.humiAlertAccess || false,
         odourAlertAccess: device.odourAlertAccess || false,
         aqiAlertAccess: device.aqiAlertAccess || false,
+        smokeAlertAccess: device.smokeAlertAccess || false,
         glAlertAccess: device.glAlertAccess || false,
         voltageAlertAccess: device.voltageAlertAccess || false,
         currentAlertAccess: device.currentAlertAccess || false,
@@ -233,6 +241,7 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
         humiAlertAccess: false,
         odourAlertAccess: false,
         aqiAlertAccess: false,
+        smokeAlertAccess: false,
         glAlertAccess: false,
         voltageAlertAccess: false,
         currentAlertAccess: false,
@@ -392,6 +401,7 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
       payload.humiAlertAccess = alertAccess.humiAlertAccess;
       payload.odourAlertAccess = alertAccess.odourAlertAccess;
       payload.aqiAlertAccess = alertAccess.aqiAlertAccess;
+      payload.smokeAlertAccess = alertAccess.smokeAlertAccess;
       payload.glAlertAccess = alertAccess.glAlertAccess;
       payload.voltageAlertAccess = alertAccess.voltageAlertAccess;
       payload.currentAlertAccess = alertAccess.currentAlertAccess;
@@ -495,6 +505,7 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
                   <MenuItem value="OD">{DEVICE_TYPE_LABEL.OD}</MenuItem>
                   <MenuItem value="THD">{DEVICE_TYPE_LABEL.THD}</MenuItem>
                   <MenuItem value="AQID">{DEVICE_TYPE_LABEL.AQID}</MenuItem>
+                  <MenuItem value="SMD">{DEVICE_TYPE_LABEL.SMD}</MenuItem>
                   <MenuItem value="GLD">{DEVICE_TYPE_LABEL.GLD}</MenuItem>
                   <MenuItem value="ED">{DEVICE_TYPE_LABEL.ED}</MenuItem>
                   <MenuItem value="AC">{DEVICE_TYPE_LABEL.AC}</MenuItem>
@@ -528,8 +539,8 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
                           }))
                         }
                         sx={{
-                          color: "#1E64D9",
-                          "&.Mui-checked": { color: "#1E64D9" },
+                          color: "var(--eco-primary)",
+                          "&.Mui-checked": { color: "var(--eco-primary)" },
                         }}
                       />
                     }
@@ -562,9 +573,9 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
                             checked={alertAccess[accessField]}
                             onChange={() => handleAlertAccessChange(accessField)}
                             sx={{
-                              color: "#1E64D9",
+                              color: "var(--eco-primary)",
                               "&.Mui-checked": {
-                                color: "#1E64D9",
+                                color: "var(--eco-primary)",
                               },
                             }}
                           />

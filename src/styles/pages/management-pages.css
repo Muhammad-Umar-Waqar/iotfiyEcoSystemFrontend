@@ -1,3 +1,122 @@
+/* ============================================================================
+   ECO MANAGEMENT THEME (shared — Organization / Venue / Device / User)
+   OTA stays on its own indigo/slate theme — do not force eco-mgmt-* there.
+   ============================================================================ */
+
+.eco-mgmt-shell {
+  background: #ffffff !important;
+  border: 1px solid rgba(148, 186, 220, 0.4);
+  box-shadow: 0 8px 28px rgba(7, 81, 141, 0.08);
+  color: var(--eco-text);
+}
+
+.eco-mgmt-list {
+  background: #ffffff !important;
+  border: 1px solid #e5ebf2 !important;
+  box-shadow: 0 1px 4px rgba(7, 81, 141, 0.05);
+  color: var(--eco-text);
+}
+
+.eco-mgmt-add {
+  /* Solid soft blue panel — readable form surface, not translucent wash */
+  background: #eef4fa !important;
+  border: 1px solid #dce6f0 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  color: var(--eco-text);
+}
+
+.eco-mgmt-add .organization-add-title,
+.eco-mgmt-add .venue-add-title,
+.eco-mgmt-add .device-add-title,
+.eco-mgmt-add .user-add-title,
+.eco-mgmt-add .brand-add-title {
+  color: #0b1f33 !important;
+  font-weight: 700;
+}
+
+.eco-mgmt-add .organization-add-subtitle,
+.eco-mgmt-add .venue-add-subtitle,
+.eco-mgmt-add .device-add-subtitle,
+.eco-mgmt-add .user-add-subtitle {
+  color: var(--eco-text-muted) !important;
+}
+
+.eco-mgmt-thead {
+  background: #f3f7fb !important;
+  color: var(--eco-text) !important;
+}
+
+.eco-mgmt-divider {
+  background: #e5ebf2 !important;
+  width: 1px;
+  align-self: stretch;
+}
+
+.eco-mgmt-title {
+  color: var(--eco-text) !important;
+}
+
+.eco-mgmt-muted {
+  color: var(--eco-text-muted) !important;
+}
+
+/* Do NOT override MUI Select / OutlinedInput internals — breaks dropdown layout */
+
+.eco-mgmt-add button.eco-btn-primary,
+.eco-mgmt-add .eco-btn-primary {
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(2, 146, 255, 0.28);
+}
+
+/* Drawer body + management tables: hide scrollbars (scroll still works) */
+.eco-mgmt-drawer-body,
+.organization-table-scroll,
+.user-table-scroll,
+.device-table-scroll,
+.venue-table-scroll,
+.brand-table-scroll,
+.manager-table-scroll {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+.eco-mgmt-drawer-body::-webkit-scrollbar,
+.organization-table-scroll::-webkit-scrollbar,
+.user-table-scroll::-webkit-scrollbar,
+.device-table-scroll::-webkit-scrollbar,
+.venue-table-scroll::-webkit-scrollbar,
+.brand-table-scroll::-webkit-scrollbar,
+.manager-table-scroll::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
+/* Mobile: keep drawer content breathing room without layout break */
+@media (max-width: 767px) {
+  .eco-mgmt-drawer-body {
+    padding: 0.75rem;
+  }
+
+  .eco-mgmt-list,
+  .eco-mgmt-add {
+    min-height: 0;
+  }
+
+  .MuiDrawer-paper .eco-mgmt-list {
+    height: 100%;
+    border-radius: 1rem !important;
+  }
+
+  /* Mobile page: soft white shell so add form doesn't look floating/washed */
+  .eco-mgmt-shell {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+}
+
 /* Desktop-only styles - Mobile styles removed */
 
 /* ============================================================================
@@ -432,23 +551,11 @@
   }
 }
 
-/* Custom scrollbar for organization table */
+/* Custom scrollbar for organization table — hidden (eco theme) */
 .organization-table-scroll::-webkit-scrollbar {
-  width: 8px;
-}
-
-.organization-table-scroll::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-
-.organization-table-scroll::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 10px;
-}
-
-.organization-table-scroll::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* ============================================================================
@@ -865,23 +972,11 @@
   }
 }
 
-/* Custom scrollbar for user table */
+/* Custom scrollbar for user table — hidden (eco theme) */
 .user-table-scroll::-webkit-scrollbar {
-  width: 8px;
-}
-
-.user-table-scroll::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-
-.user-table-scroll::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 10px;
-}
-
-.user-table-scroll::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* ============================================================================
@@ -1204,23 +1299,11 @@
   }
 }
 
-/* Custom scrollbar for device table */
+/* Custom scrollbar for device table — hidden (eco theme) */
 .device-table-scroll::-webkit-scrollbar {
-  width: 8px;
-}
-
-.device-table-scroll::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-
-.device-table-scroll::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 10px;
-}
-
-.device-table-scroll::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* ============================================================================
@@ -1319,21 +1402,9 @@
 }
 
 .manager-table-scroll::-webkit-scrollbar {
-  width: 8px;
-}
-
-.manager-table-scroll::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-
-.manager-table-scroll::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 10px;
-}
-
-.manager-table-scroll::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* ============================================================================
@@ -1443,21 +1514,9 @@
 }
 
 .venue-table-scroll::-webkit-scrollbar {
-  width: 8px;
-}
-
-.venue-table-scroll::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-
-.venue-table-scroll::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 10px;
-}
-
-.venue-table-scroll::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* ============================================================================
@@ -1572,21 +1631,9 @@
 }
 
 .brand-table-scroll::-webkit-scrollbar {
-  width: 8px;
-}
-
-.brand-table-scroll::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-
-.brand-table-scroll::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 10px;
-}
-
-.brand-table-scroll::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* ============================================================================

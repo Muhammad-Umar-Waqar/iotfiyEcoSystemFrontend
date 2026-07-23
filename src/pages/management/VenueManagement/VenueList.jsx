@@ -734,7 +734,7 @@ const VenueList = ({ onVenueSelect, selectedVenue }) => {
   const displayedVenues = getDisplayedVenues();
 
   const renderListMarkup = () => (
-    <div className="bg-white rounded-xl shadow-sm w-full border border-[#E5E7EB] p-5 flex flex-col h-full min-h-0 overflow-hidden">
+    <div className="eco-mgmt-list rounded-xl shadow-sm w-full border p-5 flex flex-col h-full min-h-0 overflow-hidden">
       {isDesktop ? (
         <h1 className="organization-list-title font-semibold text-gray-800 mb-4">
           Venue Management
@@ -788,8 +788,8 @@ const VenueList = ({ onVenueSelect, selectedVenue }) => {
 
       <div className="organization-table-scroll overflow-y-auto flex-1 min-h-0 pr-1 overscroll-contain">
         <table className="w-full table-auto text-left">
-          <thead className="sticky top-0 z-10 bg-white">
-            <tr className="bg-gray-100">
+          <thead className="sticky top-0 z-10">
+            <tr className="eco-mgmt-thead">
               <th className="text-lg py-5 px-4 font-semibold text-gray-800">
                 Venue Name
               </th>

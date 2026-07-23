@@ -32,6 +32,7 @@ const AddVenue = () => {
       sx: {
         maxHeight: ITEM_HEIGHT * VISIBLE_ITEMS,
         mt: 1,
+        zIndex: 1500,
       },
     },
     MenuListProps: {
@@ -100,7 +101,7 @@ const AddVenue = () => {
   };
 
   return (
-      <div className="min-h-[60vh] flex items-center justify-center bg-[#EEF3F9] rounded-xl shadow-sm w-full md:flex flex-col justify-center  border border-[#E5E7EB]">
+      <div className="min-h-[60vh] flex items-center justify-center eco-mgmt-add rounded-xl shadow-sm w-full md:flex flex-col justify-center">
       
     <div className="AddingPage venue-add-container w-full">
       <div className="hidden md:flex justify-center mb-4" aria-hidden="true">
@@ -110,7 +111,7 @@ const AddVenue = () => {
           className="h-[120px] w-auto select-none pointer-events-none"
         />
       </div>
-      <h2 className="venue-add-title font-semibold mb-1 text-center">Add Venues</h2>
+      <h2 className="venue-add-title font-semibold mb-1 text-center eco-mgmt-title">Add Venues</h2>
       <p className="venue-add-subtitle text-gray-500 mb-6 text-center">
         {hasManagePermission
           ? "Welcome back! Select method to add venue"
@@ -183,7 +184,7 @@ const AddVenue = () => {
 
         <button
           type="submit"
-          className={`w-full bg-[#1E64D9] text-white font-semibold py-2.5 px-4 rounded-md transition duration-300 shadow-md ${
+          className={`w-full eco-btn-primary text-white font-semibold py-2.5 px-4 rounded-md transition duration-300 shadow-md ${
             (formLoading || !hasManagePermission) ? "opacity-70 cursor-not-allowed" : "cursor-pointer hover:bg-[#1557C7]"
           }`}
           disabled={formLoading || !hasManagePermission}

@@ -18,16 +18,16 @@ const DeviceManagement = () => {
   return (
     <DeviceManagementProvider>
       <div
-        className="md:h-full flex bg-white rounded-[20px] w-full h-full"
+        className="md:h-full flex eco-mgmt-shell rounded-[20px] w-full h-full overflow-hidden"
         onClick={handleOutsideClick}
       >
-        <div className="md:p-none p-[1rem] shadow-md flex flex-col md:flex-row gap-2 lg:gap-0 h-full w-full rounded-[20px]">
+        <div className="md:p-none p-[1rem] flex flex-col md:flex-row gap-2 md:gap-4 h-full w-full rounded-[20px] min-h-0">
           <DeviceList
             className="ListPage device-list-section"
             onDeviceSelect={handleDeviceSelect}
             selectedDevice={selectedDevice}
           />
-          <div className="hidden lg:block bg-[#E5E7EB]"></div>
+          {/* <div className="hidden md:block eco-mgmt-divider"></div> */}
           <AddDevice className="AddPage device-add-section" />
         </div>
       </div>

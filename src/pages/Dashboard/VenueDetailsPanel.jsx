@@ -151,11 +151,13 @@ export default function VenueDetailsPanel({
   humidityAlert = false,
   voltageAlert = false,
   aqiAlert = false,
+  smokeAlert = false,
   glAlert = false,
   triggeredAlerts = [],
   deviceId = "",
   espOdour = 0,
   espAQI = null,
+  espSmoke = null,
   espGL = null,
   lastUpdateTime = null,
   espVoltage = null,
@@ -532,6 +534,9 @@ export default function VenueDetailsPanel({
     const effectiveAqiAlert = resolveAlertState(
       category, triggeredAlerts, "AQI", aqiAlert
     );
+    const effectiveSmokeAlert = resolveAlertState(
+      category, triggeredAlerts, "smoke", smokeAlert
+    );
     const effectiveGlAlert = resolveAlertState(
       category, triggeredAlerts, "gass", glAlert
     );
@@ -604,6 +609,34 @@ export default function VenueDetailsPanel({
         },
         tempMetric,
         humMetric,
+      ];
+    }
+    if (String(deviceType) === "SMD") {
+      const smokeDetected =
+        espSmoke === true ||
+        Number(espSmoke) >= 1 ||
+        String(espSmoke).toLowerCase() === "detected";
+      return [
+        {
+          key: "aqi",
+          label: "AQI",
+          unit: "",
+          value: displayAQI ?? "--",
+          img: null,
+          lucideIcon: <MetricIcon Icon={CloudIcon} tone="violet" size="sm" />,
+          alertFlag: !!effectiveAqiAlert,
+          color: "red",
+        },
+        {
+          key: "smoke",
+          label: "Smoke",
+          unit: "",
+          value: smokeDetected ? "Detected" : "Not Detected",
+          img: null,
+          lucideIcon: <MetricIcon Icon={LocalFireDepartmentIcon} tone="rose" size="sm" />,
+          alertFlag: !!effectiveSmokeAlert || smokeDetected,
+          color: "red",
+        },
       ];
     }
     if (String(deviceType) === "GLD") {
@@ -1131,11 +1164,10 @@ export default function VenueDetailsPanel({
         )}
 
         <div
-          className="mt-3 flex items-center justify-start gap-1.5 text-xs sm:text-sm font-medium"
-          style={{ color: "var(--eco-primary)" }}
+          className="mt-3 flex items-center justify-start gap-1.5 text-xs sm:text-sm font-medium" style={{ color: "var(--eco-primary)" }}
         >
           <Clock size={13} strokeWidth={2.2} />
-          <span>Last Update: {lastUpdateDisplay ?? "-- -- --"}</span>
+          <span className="text-sm font-semibold ">Last Update: <span className="text-sm font-normal"  style={{ color: "var(--eco-primary)" }}>{lastUpdateDisplay ?? "-- -- --"}</span></span>
         </div>
       </div>
 

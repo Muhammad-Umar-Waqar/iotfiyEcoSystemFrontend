@@ -74,6 +74,11 @@ export default function DownloadModal({
       PM10:        { label: "PM10 (ug/m³)",       unit: "ug/m³" },
       Status:      { label: "Status",             unit: "", computed: true },
     },
+    SMD: {
+      AQI:         { label: "Air Quality Index",  unit: "AQI" },
+      smoke:       { label: "Smoke",              unit: "" },
+      Status:      { label: "AQI Status",         unit: "", computed: true },
+    },
     ED: {
       voltage:     { label: "Voltage (V)",        unit: "V" },
       current:     { label: "Current (A)",        unit: "A" },

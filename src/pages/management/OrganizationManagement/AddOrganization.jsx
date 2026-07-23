@@ -92,7 +92,7 @@ const AddOrganization = () => {
   };
 
   return (
-    <div className="min-h-[60vh] flex items-center justify-center bg-[#EEF3F9] rounded-xl shadow-sm w-full md:flex flex-col justify-center  border border-[#E5E7EB]">
+    <div className="min-h-[60vh] flex items-center justify-center eco-mgmt-add rounded-xl shadow-sm w-full md:flex flex-col justify-center">
       
     <div className="  AddingPage organization-add-container w-full">
       {/* Desktop only (≥768px) — theme illustration above title */}
@@ -104,8 +104,8 @@ const AddOrganization = () => {
         />
       </div>
 
-      <h2 className="organization-add-title font-semibold mb-1 text-center">Add Organization</h2>
-      <p className="organization-add-subtitle text-gray-500 mb-6 text-center">
+      <h2 className="organization-add-title font-semibold mb-1 text-center eco-mgmt-title">Add Organization</h2>
+      <p className="organization-add-subtitle eco-mgmt-muted mb-6 text-center">
         {hasManagePermission
           ? "Welcome back! Select method to add organization"
           : "View Only Mode - Forms are disabled"
@@ -129,7 +129,7 @@ const AddOrganization = () => {
           type="submit"
           onClick={handleSubmit}
           disabled={loadingformSubmit || !hasManagePermission}
-          className={`w-full bg-[#1E64D9] hover:bg-[#1557C7] text-white font-semibold py-2.5 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+          className={`w-full eco-btn-primary text-white font-semibold py-2.5 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--eco-primary)] focus:ring-offset-2 ${
             (loadingformSubmit || !hasManagePermission) ? "opacity-70 cursor-not-allowed" : "cursor-pointer"
           }`}
         >
