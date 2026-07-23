@@ -760,20 +760,23 @@ function CompactAxisTick({ x, y, payload, mode }) {
 function AllDeviceAlertsChart({ data }) {
   const containerRef = useRef(null);
   const [mode, setMode] = useState("full"); // "full" | "abbrev" | "angled"
+  const [compact, setCompact] = useState(false);
 
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
 
     const decideMode = (width) => {
-      const perBar = width / data.length;
+      const perBar = width / Math.max(data.length, 1);
       if (perBar >= 70) return "full";
       if (perBar >= 48) return "abbrev";
       return "angled";
     };
 
     const observer = new ResizeObserver(([entry]) => {
-      setMode(decideMode(entry.contentRect.width));
+      const { width, height } = entry.contentRect;
+      setMode(decideMode(width));
+      setCompact(height < 220);
     });
 
     observer.observe(el);
@@ -784,22 +787,23 @@ function AllDeviceAlertsChart({ data }) {
 
   if (!hasData) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-gray-500 text-sm">
-        {/* <BarChartRoundedIcon sx={{ fontSize: 40, color: "var(--eco-primary)", mb: 1 }} />
-        No active alerts to chart */}
+      <div className="flex flex-col items-center justify-center h-full min-h-[120px] py-8 text-gray-500 text-sm">
+        {/* empty */}
       </div>
     );
   }
 
-  const chartHeight = mode === "angled" ? 280 : 260;
-  const bottomMargin = mode === "angled" ? 28 : 4;
+  const bottomMargin = mode === "angled" ? (compact ? 14 : 24) : (compact ? 0 : 4);
+  const xAxisHeight = mode === "angled" ? (compact ? 34 : 42) : (compact ? 22 : 28);
+  const topMargin = compact ? 4 : 10;
+  const maxBarSize = compact ? 36 : 44;
 
   return (
-    <div className="w-full" ref={containerRef}>
-      <ResponsiveContainer width="100%" height={chartHeight}>
+    <div className="w-full h-full min-h-0" ref={containerRef}>
+      <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={data}
-          margin={{ top: 12, right: 8, left: -8, bottom: bottomMargin }}
+          margin={{ top: topMargin, right: 8, left: -8, bottom: bottomMargin }}
           barCategoryGap="28%"
         >
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
@@ -808,14 +812,14 @@ function AllDeviceAlertsChart({ data }) {
             axisLine={false}
             tickLine={false}
             interval={0}
-            height={mode === "angled" ? 45 : 30}
+            height={xAxisHeight}
             tick={<CompactAxisTick mode={mode} />}
           />
           <YAxis
             allowDecimals={false}
             axisLine={false}
             tickLine={false}
-            tick={{ fill: "#9CA3AF", fontSize: 11 }}
+            tick={{ fill: "#9CA3AF", fontSize: compact ? 10 : 11 }}
             width={28}
           />
           <RechartsTooltip
@@ -829,23 +833,13 @@ function AllDeviceAlertsChart({ data }) {
             formatter={(value) => [`${value}`, "Alerts"]}
             labelFormatter={(label) => `${label} Alert`}
           />
-          <Bar dataKey="value" radius={[10, 10, 4, 4]} maxBarSize={44} activeBar={false}>
+          <Bar dataKey="value" radius={[10, 10, 4, 4]} maxBarSize={maxBarSize} activeBar={false}>
             {data.map((entry) => (
               <Cell key={entry.key} fill={entry.color} />
             ))}
           </Bar>
         </BarChart>
       </ResponsiveContainer>
-
-      <div className="flex flex-wrap justify-center gap-3 mt-2 px-1">
-        {data.map((d) => (
-          <div key={d.key} className="flex items-center gap-1.5 text-xs text-gray-600">
-            <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: d.color }} />
-            <span className="font-medium">{d.short}</span>
-            <span className="text-gray-400">({d.value})</span>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
@@ -1204,7 +1198,7 @@ export default function AlertsPanel({
 
   const alertsChartContent = (
     <div
-      className="rounded-xl p-3 sm:p-4 h-full flex items-center"
+      className="rounded-xl p-2 sm:p-3 h-full min-h-0 flex flex-col overflow-hidden"
       style={{
         background: "var(--eco-metric-card-bg, #fff)",
         border: "1px solid var(--eco-metric-card-border)",
@@ -1216,10 +1210,9 @@ export default function AlertsPanel({
   );
 
   return (
-    <div className="flex-shrink-0 mb-8">
-      {/* View Mode Selector + mobile chart toggle (same row) */}
-      <div className="flex items-center justify-between gap-2 mb-4">
-        {/* <FormControl size="small" sx={{ minWidth: isMobile ? 160 : 200, flex: isMobile ? 1 : "unset" }}> */}
+    <div className="flex flex-col flex-1 min-h-[270px] mb-8">
+      {/* Dropdown left · Alert Type arrows (or mobile chart toggle) right */}
+      <div className="flex items-center justify-between gap-2 mb-4 shrink-0">
         <FormControl
           size="small"
           sx={{
@@ -1260,35 +1253,48 @@ export default function AlertsPanel({
           </Select>
         </FormControl>
 
-        {isMobile && viewMode === "all" && (
-          <Tooltip title={displayMode === "list" ? "Chart view" : "List view"}>
-            <IconButton
-              onClick={toggleDisplayMode}
-              aria-label={displayMode === "list" ? "Switch to chart view" : "Switch to list view"}
-              sx={{
-                width: 40,
-                height: 40,
-                borderRadius: "10px",
-                backgroundColor: displayMode === "chart" ? "var(--eco-primary)" : "white",
-                color: displayMode === "chart" ? "white" : "var(--eco-primary)",
-                border: "1px solid",
-                borderColor: displayMode === "chart" ? "var(--eco-primary)" : "#E5E7EB",
-                boxShadow: "0 2px 8px rgba(7, 81, 141, 0.12)",
-                transition: "all 0.25s ease",
-                "&:hover": {
-                  backgroundColor: displayMode === "chart" ? "var(--eco-primary-hover)" : "#F0F7FC",
-                  borderColor: "var(--eco-primary)",
-                },
-              }}
-            >
-              {displayMode === "list" ? (
-                <BarChartRoundedIcon fontSize="small" />
-              ) : (
-                <ViewListRoundedIcon fontSize="small" />
-              )}
-            </IconButton>
-          </Tooltip>
-        )}
+        <div className="flex items-center gap-1 shrink-0">
+          {isMobile && viewMode === "all" && (
+            <Tooltip title={displayMode === "list" ? "Chart view" : "List view"}>
+              <IconButton
+                onClick={toggleDisplayMode}
+                aria-label={displayMode === "list" ? "Switch to chart view" : "Switch to list view"}
+                sx={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: "10px",
+                  backgroundColor: displayMode === "chart" ? "var(--eco-primary)" : "white",
+                  color: displayMode === "chart" ? "white" : "var(--eco-primary)",
+                  border: "1px solid",
+                  borderColor: displayMode === "chart" ? "var(--eco-primary)" : "#E5E7EB",
+                  boxShadow: "0 2px 8px rgba(7, 81, 141, 0.12)",
+                  transition: "all 0.25s ease",
+                  "&:hover": {
+                    backgroundColor: displayMode === "chart" ? "var(--eco-primary-hover)" : "#F0F7FC",
+                    borderColor: "var(--eco-primary)",
+                  },
+                }}
+              >
+                {displayMode === "list" ? (
+                  <BarChartRoundedIcon fontSize="small" />
+                ) : (
+                  <ViewListRoundedIcon fontSize="small" />
+                )}
+              </IconButton>
+            </Tooltip>
+          )}
+
+          {!isMobile && viewMode === "types" && (
+            <>
+              <IconButton size="small" onClick={prev} disabled={!canNavigate} sx={{ color: "var(--eco-primary)" }}>
+                <ArrowBackIosNewIcon fontSize="small" />
+              </IconButton>
+              <IconButton size="small" onClick={next} disabled={!canNavigate} sx={{ color: "var(--eco-primary)" }}>
+                <ArrowForwardIosIcon fontSize="small" />
+              </IconButton>
+            </>
+          )}
+        </div>
       </div>
 
       {viewMode === "all" ? (
@@ -1307,7 +1313,7 @@ export default function AlertsPanel({
             <Box
               sx={{
                 position: "relative",
-                minHeight: displayMode === "chart" ? 300 : 120,
+                minHeight: displayMode === "chart" ? 240 : 120,
                 transition: "min-height 0.32s ease",
               }}
             >
@@ -1318,15 +1324,15 @@ export default function AlertsPanel({
               </Fade>
 
               <Fade in={displayMode === "chart"} timeout={320} unmountOnExit>
-                <Box sx={{ width: "100%" }}>{alertsChartContent}</Box>
+                <Box sx={{ width: "100%", height: 240 }}>{alertsChartContent}</Box>
               </Fade>
             </Box>
           </div>
         ) : (
-          /* Desktop: equal-height panels; list scrolls when content overflows */
-          <div className="flex flex-row gap-5 items-stretch">
+          /* min-h floor + grow into leftover viewport; page scrolls if needed */
+          <div className="flex flex-row gap-5 items-stretch flex-1 min-h-[270px]">
             <div
-              className="w-[40%] p-6 rounded-2xl flex flex-col h-[450px] overflow-hidden"
+              className="w-[40%] p-6 rounded-2xl flex flex-col overflow-hidden min-h-0 h-full"
               style={{ backgroundColor: "#FFFFFF" }}
             >
               <div className="flex items-center justify-center mb-4 gap-2 shrink-0">
@@ -1334,35 +1340,24 @@ export default function AlertsPanel({
                 <h3 className="font-semibold text-lg" style={{ color: "var(--eco-primary)" }}>All Device Alerts</h3>
               </div>
               <div className="h-0.5 w-full mb-4 shrink-0" style={{ backgroundColor: "var(--eco-primary)" }} />
-              {renderAlertsList("flex-1 min-h-0 overflow-y-auto")}
+              {renderAlertsList("flex-1 min-h-0 overflow-y-auto scrollbar-none")}
             </div>
 
             <div
-              className="w-[60%] p-6 rounded-2xl flex flex-col h-[450px] overflow-hidden"
+              className="w-[60%] p-4 rounded-2xl flex flex-col overflow-hidden min-h-0 h-full"
               style={{ backgroundColor: "#FFFFFF" }}
             >
-              <div className="flex items-center justify-center mb-4 gap-2 shrink-0">
+              <div className="flex items-center justify-center mb-3 gap-2 shrink-0">
                 <BarChartRoundedIcon sx={{ color: "var(--eco-primary)" }} />
                 <h3 className="font-semibold text-lg" style={{ color: "var(--eco-primary)" }}>Alert Overview</h3>
               </div>
-              <div className="h-0.5 w-full mb-4 shrink-0" style={{ backgroundColor: "var(--eco-primary)" }} />
-              <div className="flex-1 min-h-0">{alertsChartContent}</div>
+              <div className="h-0.5 w-full mb-3 shrink-0" style={{ backgroundColor: "var(--eco-primary)" }} />
+              <div className="flex-1 min-h-0 overflow-hidden">{alertsChartContent}</div>
             </div>
           </div>
         )
       ) : (
-        <div className="flex-shrink-0 mb-16 md:mb-auto">
-          {!isMobile && (
-            <Box display="flex" alignItems="center" justifyContent="flex-end" gap={1} mb={2}>
-              <IconButton size="small" onClick={prev} disabled={!canNavigate} sx={{ color: "var(--eco-primary)" }}>
-                <ArrowBackIosNewIcon fontSize="small" />
-              </IconButton>
-              <IconButton size="small" onClick={next} disabled={!canNavigate} sx={{ color: "var(--eco-primary)" }}>
-                <ArrowForwardIosIcon fontSize="small" />
-              </IconButton>
-            </Box>
-          )}
-
+        <div className="flex-1 flex flex-col min-h-[270px] mb-16">
           {isMobile ? (
             <Box
               component="div"
@@ -1410,6 +1405,9 @@ export default function AlertsPanel({
                 gridTemplateColumns: "repeat(2, 1fr)",
                 gap: "24px",
                 width: "100%",
+                flex: 1,
+                minHeight: 270,
+                alignItems: "stretch",
               }}
             >
               {visibleDesktop.map((card) => (
@@ -1421,9 +1419,14 @@ export default function AlertsPanel({
                     padding: { xs: "8px", md: "16px" },
                     border: "1px solid var(--eco-metric-card-border)",
                     boxShadow: "var(--eco-metric-card-shadow)",
+                    display: "flex",
+                    flexDirection: "column",
+                    minHeight: 270,
+                    height: "100%",
+                    overflow: "hidden",
                   }}
                 >
-                  <AlertList title={card.title} iconSrc={card.icon} items={card.items} />
+                  <AlertList title={card.title} iconSrc={card.icon} items={card.items} fillHeight />
                 </Box>
               ))}
             </Box>

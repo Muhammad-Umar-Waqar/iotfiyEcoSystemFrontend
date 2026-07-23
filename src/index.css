@@ -81,21 +81,21 @@
 /* Right panel: page gradient + frosted glass overlay (scroll is on child) */
 .eco-rpanel-shell {
   position: relative;
-  background: var(--eco-page-bg) !important;
+  /* background: var(--eco-page-bg) !important; */
   overflow: hidden !important;
-  border-left: 1px solid var(--eco-border);
+  /* border-left: 1px solid var(--eco-border); */
 }
 .eco-rpanel-shell::before {
-  content: "";
+  /* content: "";
   position: absolute;
   inset: 0;
   z-index: 0;
-  pointer-events: none;
-  background: var(--eco-panel-glass);
-  backdrop-filter: blur(var(--eco-panel-blur)) saturate(var(--eco-panel-saturate, 1.55));
-  -webkit-backdrop-filter: blur(var(--eco-panel-blur)) saturate(var(--eco-panel-saturate, 1.55));
-  box-shadow: var(--eco-panel-shadow);
-  border-left: 1px solid var(--eco-panel-border);
+  pointer-events: none; */
+  /* background: var(--eco-panel-glass); */
+  /* backdrop-filter: blur(var(--eco-panel-blur)) saturate(var(--eco-panel-saturate, 1.55)); */
+  /* -webkit-backdrop-filter: blur(var(--eco-panel-blur)) saturate(var(--eco-panel-saturate, 1.55)); */
+  /* box-shadow: var(--eco-panel-shadow); */
+  /* border-left: 1px solid var(--eco-panel-border); */
 }
 .eco-rpanel-scroll {
   position: relative;
@@ -112,7 +112,7 @@
   height: 0;
 }
 .eco-api-card {
-  background: linear-gradient(145deg, #0759B0 0%, #064995 55%, #053A7A 100%) !important;
+  background: linear-gradient(145deg, #0759b0a7 0%, #064995e2 55%, #053A7A 100%) !important;
   color: var(--eco-api-navy-text) !important;
   border-radius: 14px;
 }

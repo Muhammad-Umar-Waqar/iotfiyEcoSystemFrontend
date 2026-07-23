@@ -15,12 +15,11 @@
 }
 
 .freezer-card-container:hover {
-  transform: translateY(-2px);
+  /* no translateY — peeks into next row under tight 2-row clip */
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
 .freezer-card-container.selected {
-  transform: scale(1.02);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
 }
 
@@ -28,18 +27,27 @@
 .freezer-cards-grid {
   display: grid;
   gap: 1rem;
-  padding: 1rem; /* py same, px tight */
+  padding: 0.5; /* vertical padding lives on .freezer-cards-container (2-row clip) */
   width: 100%;
   transition: all 0.3s ease-in-out;
 }
 
-/* ===== CONTAINER HEIGHT FOR EXACTLY 2 ROWS (mobile / < md) ===== */
+/*
+ * EXACT 2 ROWS:
+ * Padding MUST be on the container (border-box), NOT on the grid.
+ * If py is on the grid, padding-bottom sits after ALL rows — so height calc
+ * accidentally reveals the top of row 3.
+ * Formula (border-box): height = 2*card + 1*gap + 2*padY
+ * → content box = exactly 2 cards + 1 gap.
+ */
 .freezer-cards-container {
-  height: calc((var(--card-height, 200px) * 2) + var(--gap, 1rem) + (var(--padding, 1rem) * 2));
+  box-sizing: border-box;
+  padding-block: 1rem;
+  padding-inline: 0.55rem;
+  height: calc((var(--card-height, 200px) * 2) + var(--gap, 1rem) + (1rem * 2));
+  overflow-x: hidden;
   overflow-y: auto;
-  /* background-color: #07518D12; */
   border-radius: 20px;
-  
 }
 
 @media (max-width: 639px) {
@@ -59,13 +67,15 @@
   :root {
     --single-row-card-w: 300px; 
     --single-row-card-h: 210px;
-    /* --single-row-card-w: 340px; 
-    --single-row-card-h: 210px; */
+    --fc-pad-y: 0.5rem; /* restore panel py for md–2xl */
+    --fc-gap: 0.5rem;
   }
 
   .freezer-cards-container {
     height: auto;
-    min-height: calc(var(--single-row-card-h) + 2rem);
+    min-height: calc(var(--single-row-card-h) + (var(--fc-pad-y) * 2));
+    padding-block: var(--fc-pad-y);
+    padding-inline: 0.25rem;
     overflow-x: auto;
     overflow-y: hidden;
     -ms-overflow-style: none;
@@ -86,7 +96,8 @@
     overflow-y: hidden;
     -ms-overflow-style: none;
     scrollbar-width: none;
-    gap: 1rem;
+    gap: var(--fc-gap);
+    padding: 0.5rem 0 0.5rem 0;
   }
   .freezer-cards-grid::-webkit-scrollbar {
     display: none;
@@ -99,113 +110,202 @@
     flex: 0 0 var(--single-row-card-w);
     width: var(--single-row-card-w);
     max-width: none;
-    height: var(--single-row-card-h);
+    height: var(--single-row-card-h) !important;
+    min-height: var(--single-row-card-h) !important;
+    max-height: var(--single-row-card-h) !important;
   }
 }
 
 /* Desktop-only - Mobile/Tablet styles removed */
 
-/* ===== 14-INCH LAPTOPS (1024px to 1365px) ===== */
+/* ===== 14-INCH LAPTOPS (1024px to 1365px) — still inside md–2xl single-row ===== */
 @media (min-width: 1024px) and (max-width: 1365px) {
   .freezer-cards-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 1.25rem;
-    /* padding: 1.5rem; */
+    /* gap: 0.5rem; */
   }
   
   .freezer-card-container {
     aspect-ratio: 1.6;
-    height: 210px; /* Reduced height for 14" laptops */
+    height: 210px !important;
+    min-height: 210px !important;
+    max-height: 210px !important;
   }
 }
 
-/* ===== 15-17 INCH LAPTOPS (was 1366px; starts at 1536px — 2xl — since single-row covers below) ===== */
+/* ===== 2xl+: pad on container (border-box), grid py=0 → exact 2-row clip ===== */
 @media (min-width: 1536px) and (max-width: 1599px) {
+  :root {
+    --fc-card-h: 210px;
+    --fc-gap: 0.75rem;
+    --fc-pad-top: 0.75rem;
+    --fc-pad-bottom: 0.875rem;
+    --fc-pad-x: 0.35rem;
+  }
+
   .freezer-cards-grid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
-    padding: 1.5rem 0.35rem; /* py same, px tight */
+    gap: var(--fc-gap);
+    padding: 0.5rem 0 0.5rem 0;
+    align-content: start;
   }
-  
+
   .freezer-card-container {
     aspect-ratio: 1.6;
-    height: 210px; /* Reduced height for 15-17" laptops */
+    height: var(--fc-card-h) !important;
+    min-height: var(--fc-card-h) !important;
+    max-height: var(--fc-card-h) !important;
   }
-  
+
   .freezer-cards-container {
-    height: calc((210px * 2) + 1.5rem + (1.5rem * 2)); /* 2 rows + gap + padding */
+    box-sizing: border-box;
+    padding-top: var(--fc-pad-top);
+    padding-bottom: var(--fc-pad-bottom);
+    padding-inline: var(--fc-pad-x);
+    height: calc((var(--fc-card-h) * 2) + var(--fc-gap) + var(--fc-pad-top) + var(--fc-pad-bottom));
+    max-height: calc((var(--fc-card-h) * 2) + var(--fc-gap) + var(--fc-pad-top) + var(--fc-pad-bottom));
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 }
 
-/* ===== 19-21 INCH MONITORS (1600px to 1919px) ===== */
 @media (min-width: 1600px) and (max-width: 1919px) {
+  :root {
+    --fc-card-h: 220px;
+    --fc-gap: 0.875rem;
+    --fc-pad-top: 0.75rem;
+    --fc-pad-bottom: 0.875rem;
+    --fc-pad-x: 0.4rem;
+  }
+
   .freezer-cards-grid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 1.75rem;
-    padding: 1.75rem 0.4rem; /* py same, px tight */
+    gap: var(--fc-gap);
+    padding: 0.5rem 0 0.5rem 0;
+    align-content: start;
   }
-  
+
   .freezer-card-container {
     aspect-ratio: 1.6;
-    height: 220px; /* Reduced height for 19-21" monitors */
+    height: var(--fc-card-h) !important;
+    min-height: var(--fc-card-h) !important;
+    max-height: var(--fc-card-h) !important;
   }
-  
+
   .freezer-cards-container {
-    height: calc((220px * 2) + 1.75rem + (1.75rem * 2)); /* 2 rows + gap + padding */
+    box-sizing: border-box;
+    padding-top: var(--fc-pad-top);
+    padding-bottom: var(--fc-pad-bottom);
+    padding-inline: var(--fc-pad-x);
+    height: calc((var(--fc-card-h) * 2) + var(--fc-gap) + var(--fc-pad-top) + var(--fc-pad-bottom));
+    max-height: calc((var(--fc-card-h) * 2) + var(--fc-gap) + var(--fc-pad-top) + var(--fc-pad-bottom));
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 }
 
-/* ===== 22-24 INCH MONITORS (1920px to 2559px) ===== */
 @media (min-width: 1920px) and (max-width: 2559px) {
+  :root {
+    --fc-card-h: 240px;
+    --fc-gap: 1rem;
+    --fc-pad-top: 0.75rem;
+    --fc-pad-bottom: 0.875rem;
+    --fc-pad-x: 0.45rem;
+  }
+
   .freezer-cards-grid {
     grid-template-columns: repeat(4, 1fr);
-    gap: 2rem;
-    padding: 2rem 0.45rem; /* py same, px tight */
+    gap: var(--fc-gap);
+    padding: 0;
+    align-content: start;
   }
-  
+
   .freezer-card-container {
     aspect-ratio: 1.6;
-    height: 240px; /* Reduced height for 22-24" monitors */
+    height: var(--fc-card-h) !important;
+    min-height: var(--fc-card-h) !important;
+    max-height: var(--fc-card-h) !important;
   }
-  
+
   .freezer-cards-container {
-    height: calc((240px * 2) + 2rem + (2rem * 2)); /* 2 rows + gap + padding */
+    box-sizing: border-box;
+    padding-top: var(--fc-pad-top);
+    padding-bottom: var(--fc-pad-bottom);
+    padding-inline: var(--fc-pad-x);
+    height: calc((var(--fc-card-h) * 2) + var(--fc-gap) + var(--fc-pad-top) + var(--fc-pad-bottom));
+    max-height: calc((var(--fc-card-h) * 2) + var(--fc-gap) + var(--fc-pad-top) + var(--fc-pad-bottom));
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 }
 
-/* ===== 25-27 INCH MONITORS (2560px and above) ===== */
 @media (min-width: 2560px) {
+  :root {
+    --fc-card-h: 260px;
+    --fc-gap: 1.125rem;
+    --fc-pad-top: 0.75rem;
+    --fc-pad-bottom: 1rem;
+    --fc-pad-x: 0.5rem;
+  }
+
   .freezer-cards-grid {
     grid-template-columns: repeat(5, 1fr);
-    gap: 2.25rem;
-    padding: 2.25rem 0.5rem; /* py same, px tight */
+    gap: var(--fc-gap);
+    padding: 0;
+    align-content: start;
   }
-  
+
   .freezer-card-container {
     aspect-ratio: 1.6;
-    height: 260px; /* Reduced height for 25-27" monitors */
+    height: var(--fc-card-h) !important;
+    min-height: var(--fc-card-h) !important;
+    max-height: var(--fc-card-h) !important;
   }
-  
+
   .freezer-cards-container {
-    height: calc((260px * 2) + 2.25rem + (2.25rem * 2)); /* 2 rows + gap + padding */
+    box-sizing: border-box;
+    padding-top: var(--fc-pad-top);
+    padding-bottom: var(--fc-pad-bottom);
+    padding-inline: var(--fc-pad-x);
+    height: calc((var(--fc-card-h) * 2) + var(--fc-gap) + var(--fc-pad-top) + var(--fc-pad-bottom));
+    max-height: calc((var(--fc-card-h) * 2) + var(--fc-gap) + var(--fc-pad-top) + var(--fc-pad-bottom));
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 }
 
-/* ===== ULTRA-WIDE MONITORS (3440px and above) ===== */
 @media (min-width: 3440px) {
+  :root {
+    --fc-card-h: 280px;
+    --fc-gap: 1.25rem;
+    --fc-pad-top: 0.75rem;
+    --fc-pad-bottom: 1.125rem;
+    --fc-pad-x: 0.5rem;
+  }
+
   .freezer-cards-grid {
     grid-template-columns: repeat(6, 1fr);
-    gap: 2.5rem;
-    padding: 2.5rem 0.5rem; /* py same, px tight */
+    gap: var(--fc-gap);
+    padding: 0;
+    align-content: start;
   }
-  
+
   .freezer-card-container {
     aspect-ratio: 1.6;
-    height: 280px; /* Reduced height for ultra-wide monitors */
+    height: var(--fc-card-h) !important;
+    min-height: var(--fc-card-h) !important;
+    max-height: var(--fc-card-h) !important;
   }
-  
+
   .freezer-cards-container {
-    height: calc((280px * 2) + 2.5rem + (2.5rem * 2)); /* 2 rows + gap + padding */
+    box-sizing: border-box;
+    padding-top: var(--fc-pad-top);
+    padding-bottom: var(--fc-pad-bottom);
+    padding-inline: var(--fc-pad-x);
+    height: calc((var(--fc-card-h) * 2) + var(--fc-gap) + var(--fc-pad-top) + var(--fc-pad-bottom));
+    max-height: calc((var(--fc-card-h) * 2) + var(--fc-gap) + var(--fc-pad-top) + var(--fc-pad-bottom));
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 }
 

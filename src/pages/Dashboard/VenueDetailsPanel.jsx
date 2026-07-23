@@ -850,7 +850,7 @@ export default function VenueDetailsPanel({
           style={{
             background: "var(--eco-live-metric-bg)",
             border: "1px solid var(--eco-panel-border)",
-            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7), 0 2px 16px rgba(7, 81, 141, 0.06)",
+            boxShadow: "inset 0 1px 0 rgba(193, 193, 193, 0.28), 0 2px 16px rgba(7, 81, 141, 0.15)",
             backdropFilter: "blur(12px) saturate(1.3)",
             WebkitBackdropFilter: "blur(12px) saturate(1.3)",
           }}
@@ -1008,59 +1008,61 @@ export default function VenueDetailsPanel({
         </div>
       )}
 
-      {/* API Access + Last Update (plain under API — not boxed) */}
+      {/* API Access (monitoring only) + Last Update */}
       <div>
-        {apiKey ? (
-          <div className="eco-api-card mt-1 p-3 text-sm break-words">
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 mb-2 text-white/95">
-                  <Shield size={16} strokeWidth={2.2} />
-                  <strong className="text-sm font-semibold">API Access</strong>
+        {category === "monitoring" && (
+          apiKey ? (
+            <div className="eco-api-card mt-1 p-3 text-sm break-words">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 mb-2 text-white/95">
+                    <Shield size={16} strokeWidth={2.2} />
+                    <strong className="text-sm font-semibold">API Access</strong>
+                  </div>
+                  <div className="text-[11px] text-white/70 mb-1">API Key</div>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-sm truncate text-white" title={apiKey}>
+                      {apiKey.length > 12 ? `${apiKey.slice(0, 8)}…` : apiKey}
+                    </span>
+                    <button
+                      type="button"
+                      title={apiKeyCopied ? "Copied" : "Copy API key"}
+                      aria-label="Copy API key"
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(apiKey);
+                          setApiKeyCopied(true);
+                          setTimeout(() => setApiKeyCopied(false), 1500);
+                        } catch {
+                          window.prompt("Copy API key:", apiKey);
+                        }
+                      }}
+                      className="shrink-0 p-1.5 rounded-md text-white/85 hover:bg-white/10 hover:text-white transition"
+                    >
+                      {apiKeyCopied ? (
+                        <Check size={14} className="text-emerald-300" />
+                      ) : (
+                        <Copy size={14} />
+                      )}
+                    </button>
+                  </div>
                 </div>
-                <div className="text-[11px] text-white/70 mb-1">API Key</div>
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-sm truncate text-white" title={apiKey}>
-                    {apiKey.length > 12 ? `${apiKey.slice(0, 8)}…` : apiKey}
-                  </span>
-                  <button
-                    type="button"
-                    title={apiKeyCopied ? "Copied" : "Copy API key"}
-                    aria-label="Copy API key"
-                    onClick={async () => {
-                      try {
-                        await navigator.clipboard.writeText(apiKey);
-                        setApiKeyCopied(true);
-                        setTimeout(() => setApiKeyCopied(false), 1500);
-                      } catch {
-                        window.prompt("Copy API key:", apiKey);
-                      }
-                    }}
-                    className="shrink-0 p-1.5 rounded-md text-white/85 hover:bg-white/10 hover:text-white transition"
-                  >
-                    {apiKeyCopied ? (
-                      <Check size={14} className="text-emerald-300" />
-                    ) : (
-                      <Copy size={14} />
-                    )}
-                  </button>
+                <div className="rounded-lg bg-white p-1.5 shrink-0">
+                  <QRCode apiKey={apiKey} />
                 </div>
-              </div>
-              <div className="rounded-lg bg-white p-1.5 shrink-0">
-                <QRCode apiKey={apiKey} />
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="eco-api-card mt-1 p-3 text-sm break-words opacity-85">
-            <div className="flex items-center justify-between">
-              <div>
-                <Skeleton variant="text" width={50} height={20} className="mb-2" sx={{ bgcolor: "rgba(255,255,255,0.2)" }} />
-                <Skeleton variant="text" width={120} height={20} className="mb-2" sx={{ bgcolor: "rgba(255,255,255,0.2)" }} />
+          ) : (
+            <div className="eco-api-card mt-1 p-3 text-sm break-words opacity-85">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Skeleton variant="text" width={50} height={20} className="mb-2" sx={{ bgcolor: "rgba(255,255,255,0.2)" }} />
+                  <Skeleton variant="text" width={120} height={20} className="mb-2" sx={{ bgcolor: "rgba(255,255,255,0.2)" }} />
+                </div>
+                <Skeleton variant="rectangular" width={80} height={80} sx={{ borderRadius: "10%", bgcolor: "rgba(255,255,255,0.15)" }} />
               </div>
-              <Skeleton variant="rectangular" width={80} height={80} sx={{ borderRadius: "10%", bgcolor: "rgba(255,255,255,0.15)" }} />
             </div>
-          </div>
+          )
         )}
 
         <div

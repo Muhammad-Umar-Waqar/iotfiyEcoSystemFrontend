@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function AlertList({ title = "Alert", iconSrc = null, items = [] }) {
+export default function AlertList({ title = "Alert", iconSrc = null, items = [], fillHeight = false }) {
   const [expandedItems, setExpandedItems] = useState(new Set());
 
   const toggleExpand = (id) => {
@@ -14,9 +14,9 @@ export default function AlertList({ title = "Alert", iconSrc = null, items = [] 
   };
 
   return (
-    <div className="w-full">
+    <div className={`w-full ${fillHeight ? "h-full min-h-0 flex flex-col" : ""}`}>
       {/* Header */}
-      <div className="flex items-center justify-center mb-3 gap-2">
+      <div className="flex items-center justify-center mb-3 gap-2 shrink-0">
         {iconSrc && <img src={iconSrc} alt="Alert" className="w-6 h-6 rounded-full" />}
         <h3
           className="font-semibold text-center"
@@ -26,13 +26,19 @@ export default function AlertList({ title = "Alert", iconSrc = null, items = [] 
         </h3>
       </div>
 
-      <div className="h-0.5 w-full mb-3" style={{ backgroundColor: "var(--eco-primary)" }} />
+      <div className="h-0.5 w-full mb-3 shrink-0" style={{ backgroundColor: "var(--eco-primary)" }} />
 
       {/* List */}
-      <div className="space-y-0.5 max-h-[30vh] md:max-h-[10vh] 2xl:min-h-[16vh] 3xl:min-h-[20vh] overflow-y-auto scrollbar-none pr-2 pb-2">
+      <div
+        className={
+          fillHeight
+            ? "space-y-0.5 flex-1 min-h-0 overflow-y-auto scrollbar-none pr-2 pb-2"
+            : "space-y-0.5 max-h-[30vh] md:max-h-[10vh] 2xl:min-h-[16vh] 3xl:min-h-[20vh] overflow-y-auto scrollbar-none pr-2 pb-2"
+        }
+      >
         {items.length === 0 ? (
           <div className="flex items-center justify-center text-center py-4 text-sm" style={{ color: "var(--eco-text-muted)" }}>
-            {/* <h4>🎉 All devices are operating normally.</h4> */}
+            {/* empty */}
           </div>
         ) : (
           items.map((item) => {

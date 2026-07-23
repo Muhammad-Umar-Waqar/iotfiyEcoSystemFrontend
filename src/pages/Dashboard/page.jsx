@@ -337,21 +337,25 @@ export default function Dashboard() {
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div
-      className="flex w-full flex-row h-full font-inter rounded-md"
+      className="flex w-full flex-row h-full font-inter rounded-md min-h-0"
       style={{ background: "var(--eco-page-bg)" }}
     >
 
       {/* ── Main content column ──────────────────────────────────────────── */}
+      {/*
+        Flex column + h-full: alerts can grow into leftover viewport height.
+        min-h on alerts keeps a usable floor; overflow-y-auto scrolls if content exceeds.
+      */}
       <div
-        className="flex-1 min-w-0 space-y-6 overflow-y-auto dashboard-main-content scrollbar-none shadow-sm p-2 lg:p-2"
+        className="flex-1 min-w-0 min-h-0 h-full flex flex-col shadow-sm p-2 lg:p-2 dashboard-main-content scrollbar-none overflow-y-auto gap-3"
         style={{
           background: "transparent",
-          border: "1px solid var(--eco-border)",
+          // border: "1px solid var(--eco-border)",
         }}
       >
 
         {/* Header row: logo · org selector · venue selector */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center shrink-0">
           {!isDesktopForIcon && (
             <img src="/logo-half.png" alt="Logo" className="w-auto h-[40px]" />
           )}
@@ -361,7 +365,7 @@ export default function Dashboard() {
               <OrganizationSelect
                 value={selectedOrgId}
                 onChange={onOrganizationChange}
-                className="mt-1"
+                className="mt-0"
                 externalLabel={ctxOrg?.name ?? orgNameForTop}
               />
 
@@ -378,12 +382,12 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Device cards grid */}
-        <div className="flex-1 min-h-0">
-          <div className="freezer-cards-container custom-scrollbar">
+        {/* Device cards — natural height; leftover space goes to alerts */}
+        <div className="shrink-0">
+          <div className="freezer-cards-container custom-scrollbar ">
             {isInitialDevicesLoad || isContextChanging ? (
               /* Loading skeletons */
-              <div className="freezer-cards-grid freezer-cards-container">
+              <div className="freezer-cards-grid">
                 {Array.from({ length: 4 }).map((_, i) => (
                   <DeviceSkeleton key={i} />
                 ))}
@@ -411,7 +415,7 @@ export default function Dashboard() {
 
             ) : (
               /* Device cards */
-              <div className="freezer-cards-grid freezer-cards-container">
+              <div className="freezer-cards-grid">
                 {freezerDevices.map((device) => {
                   const idKey = String(device._id ?? device.id ?? device.deviceId);
                   const category = device.category || "monitoring"; // default to monitoring
@@ -633,11 +637,14 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <AlertsPanel
-          venueId={selectedVenueId}
-          organizationId={selectedOrgId}
-          deviceDataMap={deviceDataMap}
-        />
+        {/* Alerts — min height floor; grows into leftover viewport; page scrolls if needed */}
+        <div className="flex flex-1 flex-col min-h-[270px]">
+          <AlertsPanel
+            venueId={selectedVenueId}
+            organizationId={selectedOrgId}
+            deviceDataMap={deviceDataMap}
+          />
+        </div>
       </div>
 
       {/* ── Right panel / drawer ─────────────────────────────────────────── */}
