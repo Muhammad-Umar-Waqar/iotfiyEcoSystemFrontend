@@ -631,7 +631,7 @@ export default function VenueDetailsPanel({
           key: "smoke",
           label: "Smoke",
           unit: "",
-          value: smokeDetected ? "Detected" : "Not Detected",
+          value: smokeDetected ? "Detected" : "Not Det.",
           img: null,
           lucideIcon: <MetricIcon Icon={LocalFireDepartmentIcon} tone="rose" size="sm" />,
           alertFlag: !!effectiveSmokeAlert || smokeDetected,
@@ -727,10 +727,10 @@ export default function VenueDetailsPanel({
       ]
     : [];
 
-  const statusText = (flag) => (flag ? "Alert Det." : "Not Det.");
+  const statusText = (flag) => (flag ? "Alert Detected" : "Not Detected");
   const alertChipClass = (m) => {
     const flag = !!m.alertFlag;
-    const base = "flex items-center gap-2.5 p-2 rounded-xl shrink-0 min-w-[7.5rem] border";
+    const base = "flex items-center gap-2.5 p-2 rounded-xl shrink-0 min-w-[8.75rem] border";
     // Alert → soft red only; otherwise white
     if (flag) {
       return `${base} border-rose-200 bg-[var(--eco-temp-alert-bg)]`;
@@ -818,6 +818,23 @@ export default function VenueDetailsPanel({
         </>
       );
     }
+
+    // Status strings (e.g. Smoke → "Not Detected") — smaller so full text fits
+    const isStatusText =
+      typeof m.value === "string" &&
+      m.value !== "--" &&
+      !Number.isFinite(Number(m.value));
+    if (isStatusText) {
+      return (
+        <span
+          className="text-base font-bold leading-snug whitespace-normal break-words"
+          title={m.value}
+        >
+          {m.value}
+        </span>
+      );
+    }
+
     return (
       <>
         {m.value ?? "--"}
@@ -971,11 +988,11 @@ export default function VenueDetailsPanel({
                   key={m.key}
                   className={
                     isMonitoring
-                      ? "w-full rounded-xl flex flex-row items-center gap-3 px-3 py-2.5 min-h-[4.75rem] flex-1 basis-0 overflow-hidden"
+                      ? "w-full rounded-xl flex flex-row items-center gap-3 px-3 py-2.5 min-h-[4.75rem] flex-1 basis-0"
                       : `rounded-xl flex flex-col overflow-hidden shrink-0 ${
                           isSchedulerDevice
                             ? "w-[calc(50%-0.25rem)] min-w-[5.5rem]"
-                            : "w-[7rem]"
+                            : "w-[7rem] min-w-[7.5rem]"
                         }`
                   }
                   style={{

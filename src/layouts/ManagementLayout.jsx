@@ -27,7 +27,7 @@ const ManagementLayout = () => {
       )}
 
       {/* Main area — transparent so page gradient shows through */}
-      <main className="z-10 flex-1 min-h-0 overflow-auto bg-transparent">
+      <main className="z-10 flex-1 min-h-0 overflow-auto bg-transparent p-2">
         <div className="MainContentArea h-full min-h-0">
           <Outlet context={{ adminActiveTab, setAdminActiveTab }} />
         </div>
