@@ -79,7 +79,7 @@
   box-shadow: var(--eco-panel-shadow);
 }
 
-/* Right panel: transparent blend — no edge shadow/border vs dashboard */
+/* Right panel: same page bg (needed in Drawer; blends on desktop too) */
 .eco-rpanel-shell {
   position: relative;
   display: flex;
@@ -88,7 +88,7 @@
   min-height: 0;
   align-self: stretch;
   overflow: hidden !important;
-  background: transparent;
+  background: var(--eco-page-bg);
   border-left: none;
   box-shadow: none;
 }
@@ -105,6 +105,7 @@
   overflow-y: auto;
   -ms-overflow-style: none;
   scrollbar-width: none;
+  background: transparent;
 }
 .eco-rpanel-scroll::-webkit-scrollbar {
   display: none;

@@ -756,7 +756,8 @@ export default function Dashboard() {
               sx: {
                 width: "100%",
                 maxWidth: "100vw",
-                background: "var(--eco-page-bg)",
+                backgroundColor: "var(--eco-page-bg-solid)",
+                background: "var(--eco-page-bg) !important",
               },
             }}
           >
