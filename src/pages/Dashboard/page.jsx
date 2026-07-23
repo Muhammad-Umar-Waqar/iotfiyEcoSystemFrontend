@@ -337,8 +337,8 @@ export default function Dashboard() {
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div
-      className="flex w-full flex-row h-full font-inter rounded-md min-h-0"
-      style={{ background: "var(--eco-page-bg)" }}
+      className="flex w-full flex-row h-full font-inter min-h-0"
+      style={{ background: "transparent" }}
     >
 
       {/* ── Main content column ──────────────────────────────────────────── */}
@@ -347,7 +347,7 @@ export default function Dashboard() {
         min-h on alerts keeps a usable floor; overflow-y-auto scrolls if content exceeds.
       */}
       <div
-        className="flex-1 min-w-0 min-h-0 h-full flex flex-col shadow-sm p-2 lg:p-2 dashboard-main-content scrollbar-none overflow-y-auto gap-3"
+        className="flex-1 min-w-0 min-h-0 h-full flex flex-col p-2 lg:p-2 dashboard-main-content scrollbar-none overflow-y-auto gap-3"
         style={{
           background: "transparent",
           // border: "1px solid var(--eco-border)",
@@ -384,7 +384,15 @@ export default function Dashboard() {
 
         {/* Device cards — natural height; leftover space goes to alerts */}
         <div className="shrink-0">
-          <div className="freezer-cards-container custom-scrollbar ">
+          <div
+            className={`freezer-cards-container custom-scrollbar${
+              !isInitialDevicesLoad &&
+              !isContextChanging &&
+              freezerDevices.length === 0
+                ? " flex flex-col items-center justify-center"
+                : ""
+            }`}
+          >
             {isInitialDevicesLoad || isContextChanging ? (
               /* Loading skeletons */
               <div className="freezer-cards-grid">
@@ -394,8 +402,8 @@ export default function Dashboard() {
               </div>
 
             ) : freezerDevices.length === 0 ? (
-              /* Empty state */
-              <div className="flex flex-col items-center justify-center h-full text-[#64748B]">
+              /* Empty state — centered via parent flex (only when empty; cards path stays normal) */
+              <div className="text-[#64748B] flex flex-col items-center justify-center text-center px-4">
                 <svg
                   className="w-16 h-16 mb-4 text-[#E2E8F0]"
                   fill="none"

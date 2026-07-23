@@ -10,24 +10,24 @@
   transition: all 0.3s ease-in-out;
   border-radius: 26px;
   overflow: hidden;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  /* small but visible shadow (parent padding leaves room to show it) */
+  box-shadow: 0 2px 8px rgba(7, 81, 141, 0.12);
   height: var(--card-height);
 }
 
 .freezer-card-container:hover {
-  /* no translateY — peeks into next row under tight 2-row clip */
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 3px 12px rgba(7, 81, 141, 0.16);
 }
 
 .freezer-card-container.selected {
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 3px 12px rgba(2, 146, 255, 0.22);
 }
 
 /* ===== RESPONSIVE GRID LAYOUT ===== */
 .freezer-cards-grid {
   display: grid;
   gap: 1rem;
-  padding: 0.5; /* vertical padding lives on .freezer-cards-container (2-row clip) */
+  padding: 0.35rem; /* room so card shadows are visible */
   width: 100%;
   transition: all 0.3s ease-in-out;
 }
@@ -97,7 +97,7 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
     gap: var(--fc-gap);
-    padding: 0.5rem 0 0.5rem 0;
+    padding: 0.5rem 0.2rem 0.5rem 0.2rem;
   }
   .freezer-cards-grid::-webkit-scrollbar {
     display: none;

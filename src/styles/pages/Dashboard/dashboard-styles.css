@@ -334,11 +334,15 @@
 
 .dashboard-right-panel {
   display: flex !important;
+  flex-direction: column !important;
   flex-shrink: 0 !important;
   box-sizing: border-box !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  align-self: stretch !important;
 }
 
-/* Glass shell keeps overflow hidden; scroll lives on .eco-rpanel-scroll */
+/* Shell keeps overflow hidden; scroll lives on .eco-rpanel-scroll */
 .dashboard-right-panel.eco-rpanel-shell {
   overflow: hidden !important;
 }

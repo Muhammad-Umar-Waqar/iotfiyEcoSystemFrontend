@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
@@ -110,11 +111,11 @@ const TriggerEventModal = ({ open, onClose, onSave }) => {
     "& .MuiInputLabel-root.Mui-focused": { color: "#3B82F6" },
   };
 
-  return (
+  return createPortal(
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      {/* Backdrop */}
+      {/* Backdrop — portaled to body so it centers on the viewport, not VenueDetailsPanel */}
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center"
+        className="fixed inset-0 z-[1400] flex items-center justify-center"
         style={{ backgroundColor: "rgba(15, 23, 42, 0.45)", backdropFilter: "blur(3px)" }}
       >
         {/* Card */}
@@ -201,7 +202,8 @@ const TriggerEventModal = ({ open, onClose, onSave }) => {
           </div>
         </div>
       </div>
-    </LocalizationProvider>
+    </LocalizationProvider>,
+    document.body
   );
 };
 

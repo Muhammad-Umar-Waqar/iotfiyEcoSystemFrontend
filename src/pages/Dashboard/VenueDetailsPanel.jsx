@@ -840,23 +840,25 @@ export default function VenueDetailsPanel({
     </div>
   ) : null;
 
+  const isMonitoring = category === "monitoring";
+  const hasEventsSection = isSchedulerDevice || category === "trigger";
+  const showApiAccess =  !isAc;
+
   return (
-    <div
-      className="dashboard-right-panel eco-rpanel-shell flex flex-col h-full max-w-[95vw] min-w-0"
-    >
-      <div className="eco-rpanel-scroll scrollbar-none flex flex-col h-full p-4 lg:p-3">
+    <div className="dashboard-right-panel eco-rpanel-shell flex flex-col h-full min-h-0 self-stretch max-w-[95vw] min-w-0">
+      <div className="eco-rpanel-scroll scrollbar-none flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 lg:p-3">
         <div
-          className="w-full rounded-2xl p-3 space-y-6"
+          className={`w-full min-h-full rounded-2xl p-3 ${
+            isMonitoring || hasEventsSection ? "flex flex-col gap-3" : "space-y-6"
+          }`}
           style={{
             background: "var(--eco-live-metric-bg)",
-            border: "1px solid var(--eco-panel-border)",
-            boxShadow: "inset 0 1px 0 rgba(193, 193, 193, 0.28), 0 2px 16px rgba(7, 81, 141, 0.15)",
             backdropFilter: "blur(12px) saturate(1.3)",
             WebkitBackdropFilter: "blur(12px) saturate(1.3)",
           }}
         >
       {closeIcon && (
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center shrink-0">
           <img src="/iotfiy_logo_rpanel.svg" alt="IOTFIY LOGO" className="h-[30px] w-auto" />
           <IconButton onClick={() => typeof onClose === "function" && onClose()} edge="start" aria-label="close-details" size="small">
             <CloseIcon />
@@ -865,7 +867,7 @@ export default function VenueDetailsPanel({
       )}
 
       {/* Header */}
-      <div className="flex justify-between items-center pb-4 border-b border-[#E5E7EB]/40 mb-6">
+      <div className="flex justify-between items-center pb-4 border-b border-[#E5E7EB]/40 shrink-0">
         <div>
           <p className="text-sm text-[#64748B] font-medium">Device ID</p>
           <h2 className="text-sm text-[#1E293B] font-bold">{deviceId || <Skeleton variant="text" width={70} />}</h2>
@@ -881,9 +883,24 @@ export default function VenueDetailsPanel({
         </button>
       </div>
 
+      {/* Live Status + alerts — monitoring: grow into leftover space above API */}
+      <div
+        className={
+          isMonitoring
+            ? "flex flex-1 flex-col gap-4 min-h-0"
+            : "contents"
+        }
+      >
       {/* Live Status — scrollable metric cards + fixed power column */}
-      <div className="mb-5 bg-white rounded-2xl p-2 border border-slate-200 shadow-sm">
-        <div className="flex items-center justify-between mb-3">
+      <div
+        className={`bg-white rounded-2xl border border-slate-200/70 ${
+          isMonitoring
+            ? "flex flex-1 flex-col min-h-0 p-3"
+            : "mb-5 p-2 shrink-0"
+        }`}
+        style={{ boxShadow: "var(--eco-panel-lift)" }}
+      >
+        <div className="flex items-center justify-between mb-3 shrink-0">
           <h3 className="text-sm font-semibold" style={{ color: "var(--eco-primary)" }}>
             Live Status
           </h3>
@@ -896,12 +913,17 @@ export default function VenueDetailsPanel({
           </div>
         </div>
 
-        <div className="flex items-stretch gap-1.5 min-w-0">
-          {/* With power: each card = half of visible area → 2 always fully visible */}
+        <div
+          className={`flex gap-1.5 min-w-0 ${
+            isMonitoring ? "flex-1 min-h-0 items-stretch" : "items-center"
+          }`}
+        >
           <div
-            className={`flex-1 min-w-0 overflow-x-auto scrollbar-none flex flex-nowrap gap-2 pb-0.5 ${
-              isSchedulerDevice ? "" : ""
-            }`}
+            className={
+              isMonitoring
+                ? "flex-1 min-h-0 overflow-y-auto scrollbar-none flex flex-col gap-2"
+                : "flex-1 min-w-0 overflow-x-auto scrollbar-none flex flex-nowrap gap-2 pb-0.5"
+            }
           >
             {liveMetrics.length === 0 ? (
               <div
@@ -914,11 +936,15 @@ export default function VenueDetailsPanel({
               liveMetrics.map((m) => (
                 <div
                   key={m.key}
-                  className={`rounded-xl flex flex-col overflow-hidden shrink-0 ${
-                    isSchedulerDevice
-                      ? "w-[calc(50%-0.25rem)] min-w-[5.5rem]"
-                      : "w-[7rem]"
-                  }`}
+                  className={
+                    isMonitoring
+                      ? "w-full rounded-xl flex flex-row items-center gap-3 px-3 py-2.5 min-h-[4.75rem] flex-1 basis-0 overflow-hidden"
+                      : `rounded-xl flex flex-col overflow-hidden shrink-0 ${
+                          isSchedulerDevice
+                            ? "w-[calc(50%-0.25rem)] min-w-[5.5rem]"
+                            : "w-[7rem]"
+                        }`
+                  }
                   style={{
                     background: "rgba(255, 255, 255, 0.91)",
                     border: "1px solid var(--eco-metric-card-border)",
@@ -927,37 +953,69 @@ export default function VenueDetailsPanel({
                     WebkitBackdropFilter: "blur(10px)",
                   }}
                 >
-                  {/* Icon | label+value */}
-                  <div className="flex items-center justify-center gap-1.5 px-2 pt-2.5 pb-1 min-w-0">
-                    <div className="shrink-0">
-                      {m.img ? (
-                        <img src={m.img} className="h-7 w-auto" alt="" />
-                      ) : m.lucideIcon ? (
-                        m.lucideIcon
-                      ) : (
-                        <img src="/odour-alert.svg" className="h-7 w-auto" alt="" />
-                      )}
-                    </div>
-                    <div className="flex flex-col items-start min-w-0">
-                      <span
-                        className="text-[11px] font-semibold truncate leading-tight w-full"
-                        style={{ color: "var(--eco-text-label)" }}
-                        title={m.label}
-                      >
-                        {m.label}
-                      </span>
-                      <div
-                        className="text-xl font-bold leading-tight tracking-tight"
-                        style={{ color: "var(--eco-text)" }}
-                      >
-                        {renderMetricValue(m)}
+                  {isMonitoring ? (
+                    <>
+                      <div className="shrink-0">
+                        {m.img ? (
+                          <img src={m.img} className="h-8 w-auto" alt="" />
+                        ) : m.lucideIcon ? (
+                          m.lucideIcon
+                        ) : (
+                          <img src="/odour-alert.svg" className="h-8 w-auto" alt="" />
+                        )}
                       </div>
-                    </div>
-                  </div>
-
-                  <div className="px-1.5 pb-1 mt-auto">
-                    <Sparkline points={metricHistory[m.key] || []} />
-                  </div>
+                      <div className="flex flex-col items-start min-w-0 flex-1">
+                        <span
+                          className="text-xs font-semibold truncate leading-tight w-full"
+                          style={{ color: "var(--eco-text-label)" }}
+                          title={m.label}
+                        >
+                          {m.label}
+                        </span>
+                        <div
+                          className="text-2xl font-bold leading-tight tracking-tight"
+                          style={{ color: "var(--eco-text)" }}
+                        >
+                          {renderMetricValue(m)}
+                        </div>
+                      </div>
+                      <div className="w-[5.5rem] shrink-0">
+                        <Sparkline points={metricHistory[m.key] || []} />
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-center gap-1.5 px-2 pt-2.5 pb-1 min-w-0">
+                        <div className="shrink-0">
+                          {m.img ? (
+                            <img src={m.img} className="h-7 w-auto" alt="" />
+                          ) : m.lucideIcon ? (
+                            m.lucideIcon
+                          ) : (
+                            <img src="/odour-alert.svg" className="h-7 w-auto" alt="" />
+                          )}
+                        </div>
+                        <div className="flex flex-col items-start min-w-0">
+                          <span
+                            className="text-[11px] font-semibold truncate leading-tight w-full"
+                            style={{ color: "var(--eco-text-label)" }}
+                            title={m.label}
+                          >
+                            {m.label}
+                          </span>
+                          <div
+                            className="text-xl font-bold leading-tight tracking-tight"
+                            style={{ color: "var(--eco-text)" }}
+                          >
+                            {renderMetricValue(m)}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="px-1.5 pb-1 mt-auto shrink-0">
+                        <Sparkline points={metricHistory[m.key] || []} />
+                      </div>
+                    </>
+                  )}
                 </div>
               ))
             )}
@@ -978,7 +1036,7 @@ export default function VenueDetailsPanel({
 
       {/* Alert chips — soft semantic colors (not brand blue) */}
       {!isAc && liveMetrics.length > 0 && (
-        <div className="w-full min-w-0 overflow-x-auto scrollbar-none mb-4">
+        <div className="w-full min-w-0 overflow-x-auto scrollbar-none shrink-0">
           <div className="flex flex-nowrap gap-2 pb-0.5">
             {liveMetrics.map((m) => {
               const flag = !!m.alertFlag;
@@ -1007,10 +1065,17 @@ export default function VenueDetailsPanel({
           </div>
         </div>
       )}
+      </div>
 
-      {/* API Access (monitoring only) + Last Update */}
-      <div>
-        {category === "monitoring" && (
+      {/* API Access: monitoring only, never AC. Last Update always. */}
+      <div
+        className={
+          showApiAccess || (isMonitoring && !hasEventsSection)
+            ? "mt-auto pt-2 shrink-0"
+            : ""
+        }
+      >
+        {showApiAccess && (
           apiKey ? (
             <div className="eco-api-card mt-1 p-3 text-sm break-words">
               <div className="flex items-center justify-between gap-3">
@@ -1082,26 +1147,26 @@ export default function VenueDetailsPanel({
         deviceType={deviceType}
       />
 
-      {isSchedulerDevice && (
-        <div className="pt-6">
-          <EventsSection
-            selectedDevice={{ deviceId, venueId, venueName: displayVenueName, deviceType, category }}
-            onEventsChange={(updated) => { }}
-            externalOpen={powerModalOpen}
-            onExternalClose={() => setPowerModalOpen(false)}
-            onToggleChange={(val) => { }}
-            onScheduleRefresh={onScheduleRefresh}
-          />
-        </div>
-      )}
-
-      {category === "trigger" && (
-        <div className="pt-6">
-          <TriggerEventsSection
-            selectedDevice={{ deviceId, venueId, venueName: displayVenueName, deviceType, category }}
-            externalOpen={powerModalOpen}
-            onExternalClose={() => setPowerModalOpen(false)}
-          />
+      {/* Events — pin to bottom for scheduling / trigger devices */}
+      {(isSchedulerDevice || category === "trigger") && (
+        <div className="mt-auto pt-2 shrink-0">
+          {isSchedulerDevice && (
+            <EventsSection
+              selectedDevice={{ deviceId, venueId, venueName: displayVenueName, deviceType, category }}
+              onEventsChange={(updated) => { }}
+              externalOpen={powerModalOpen}
+              onExternalClose={() => setPowerModalOpen(false)}
+              onToggleChange={(val) => { }}
+              onScheduleRefresh={onScheduleRefresh}
+            />
+          )}
+          {category === "trigger" && (
+            <TriggerEventsSection
+              selectedDevice={{ deviceId, venueId, venueName: displayVenueName, deviceType, category }}
+              externalOpen={powerModalOpen}
+              onExternalClose={() => setPowerModalOpen(false)}
+            />
+          )}
         </div>
       )}
         </div>

@@ -41,7 +41,12 @@ const MobDashMenu = ({ items = [], onItemClick, activePath = "/", openLogout, ac
 
   return (
     <div
-      className="bg-[#E8EDF2] left-1/2 transform -translate-x-1/2 px-3 flex items-center justify-around rounded-t-[35px] fixed bottom-0 z-30 pt-1 w-full max-w-[500px]"
+      className="left-1/2 transform -translate-x-1/2 px-3 flex items-center justify-around rounded-t-[35px] fixed bottom-0 z-30 pt-1 w-full max-w-[500px]"
+      style={{
+        background: "var(--eco-page-bg)",
+        borderTop: "1px solid color-mix(in srgb, var(--eco-primary) 12%, transparent)",
+        boxShadow: "0 -4px 16px rgba(7, 81, 141, 0.08)",
+      }}
       role="navigation"
       aria-label="Mobile bottom navigation"
     >

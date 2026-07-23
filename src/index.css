@@ -20,8 +20,8 @@
 
   /* Surfaces / glass */
   --eco-card: #FFFFFF;
-  --eco-sidebar: #FFFFFF;
-  --eco-sidebar-track: #E8EDF2;
+  --eco-sidebar: transparent;
+  --eco-sidebar-track: transparent;
   /* Frosted overlay (works even when backdrop-filter is limited by overflow) */
   --eco-panel-glass: linear-gradient(
     165deg,
@@ -37,7 +37,8 @@
   --eco-live-metric-bg: rgba(255, 255, 255, 0.28);
   --eco-metric-card-bg: #FFFFFF;
   --eco-metric-card-border: rgba(148, 186, 220, 0.55);
-  --eco-metric-card-shadow: 0 4px 14px rgba(7, 81, 141, 0.1);
+  --eco-metric-card-shadow: 0 2px 8px rgba(7, 81, 141, 0.1);
+  --eco-panel-lift: 0 2px 10px rgba(7, 81, 141, 0.08);
 
   /* API / dark blocks */
   --eco-api-navy: #064995;
@@ -78,29 +79,28 @@
   box-shadow: var(--eco-panel-shadow);
 }
 
-/* Right panel: page gradient + frosted glass overlay (scroll is on child) */
+/* Right panel: transparent blend — no edge shadow/border vs dashboard */
 .eco-rpanel-shell {
   position: relative;
-  /* background: var(--eco-page-bg) !important; */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  align-self: stretch;
   overflow: hidden !important;
-  /* border-left: 1px solid var(--eco-border); */
+  background: transparent;
+  border-left: none;
+  box-shadow: none;
 }
 .eco-rpanel-shell::before {
-  /* content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none; */
-  /* background: var(--eco-panel-glass); */
-  /* backdrop-filter: blur(var(--eco-panel-blur)) saturate(var(--eco-panel-saturate, 1.55)); */
-  /* -webkit-backdrop-filter: blur(var(--eco-panel-blur)) saturate(var(--eco-panel-saturate, 1.55)); */
-  /* box-shadow: var(--eco-panel-shadow); */
-  /* border-left: 1px solid var(--eco-panel-border); */
+  display: none;
 }
 .eco-rpanel-scroll {
   position: relative;
   z-index: 1;
-  height: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
   overflow-x: hidden;
   overflow-y: auto;
   -ms-overflow-style: none;
@@ -115,6 +115,7 @@
   background: linear-gradient(145deg, #0759b0a7 0%, #064995e2 55%, #053A7A 100%) !important;
   color: var(--eco-api-navy-text) !important;
   border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(5, 58, 122, 0.2) !important;
 }
 .eco-surface-soft {
   background: var(--eco-primary-softer) !important;
