@@ -126,7 +126,12 @@ const AddDevice = () => {
     deviceType: "",
     category: "",
     energyMonitoringIncluded: false,
+    brandName: "",
   });
+
+  const [acBrands, setAcBrands] = useState([]);
+  const [acBrandsLoading, setAcBrandsLoading] = useState(false);
+  const [acBrandsError, setAcBrandsError] = useState("");
 
   const [alertAccess, setAlertAccess] = useState({
     tempAlertAccess: false,
@@ -206,11 +211,48 @@ const AddDevice = () => {
         currentAlertAccess: false,
       });
       if (formData.deviceType !== "AC") {
-        setFormData((prev) => ({ ...prev, energyMonitoringIncluded: false }));
+        setFormData((prev) => ({
+          ...prev,
+          energyMonitoringIncluded: false,
+          brandName: "",
+        }));
       }
     } else {
       setConditions([]);
     }
+  }, [formData.deviceType]);
+
+  useEffect(() => {
+    if (formData.deviceType !== "AC") return;
+
+    let cancelled = false;
+    const loadBrands = async () => {
+      setAcBrandsLoading(true);
+      setAcBrandsError("");
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/device/ac-brands`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Failed to load brands");
+        if (!cancelled) setAcBrands(data.brands || []);
+      } catch (err) {
+        if (!cancelled) {
+          setAcBrands([]);
+          setAcBrandsError(err.message || "Failed to load AC brands");
+        }
+      } finally {
+        if (!cancelled) setAcBrandsLoading(false);
+      }
+    };
+    loadBrands();
+    return () => {
+      cancelled = true;
+    };
   }, [formData.deviceType]);
 
   const [condModalOpen, setCondModalOpen] = useState(false);
@@ -272,6 +314,10 @@ const AddDevice = () => {
     }
 
     const isAc = formData.deviceType === "AC";
+
+    if (isAc && !formData.brandName) {
+      return Swal.fire({ icon: "warning", title: "Select AC Brand" });
+    }
 
     let finalConditions = [];
 
@@ -350,6 +396,7 @@ const AddDevice = () => {
 
     if (isAc) {
       payload.energyMonitoringIncluded = !!formData.energyMonitoringIncluded;
+      payload.brandName = formData.brandName;
     }
 
     // Add alert access fields for trigger category
@@ -390,6 +437,7 @@ const AddDevice = () => {
         deviceType: "",
         category: "",
         energyMonitoringIncluded: false,
+        brandName: "",
       });
       setConditions([]);
       setAlertAccess({
@@ -591,30 +639,65 @@ const AddDevice = () => {
             </div>
 
             {formData.deviceType === "AC" && (
-              <div className="mt-2 p-4 bg-white rounded-md border border-gray-200">
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={!!formData.energyMonitoringIncluded}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          energyMonitoringIncluded: e.target.checked,
-                        }))
-                      }
-                      disabled={!hasManagePermission}
-                      sx={{
-                        color: "var(--eco-primary)",
-                        "&.Mui-checked": { color: "var(--eco-primary)" },
-                      }}
-                    />
-                  }
-                  label="Energy Monitoring Sensor Included"
-                />
-                <p className="text-xs text-gray-500 ml-8 -mt-1">
-                  Enable if this AC has an energy module for consumption display.
-                </p>
-              </div>
+              <>
+                <FormControl fullWidth className="mt-2">
+                  <InputLabel id="ac-brand-label" shrink>
+                    AC Brand
+                  </InputLabel>
+                  <Select
+                    labelId="ac-brand-label"
+                    label="AC Brand"
+                    displayEmpty
+                    value={formData.brandName || ""}
+                    disabled={!hasManagePermission || acBrandsLoading}
+                    MenuProps={menuProps}
+                    sx={{ height: SELECT_HEIGHT, borderRadius: "0.375rem", backgroundColor: "#fff" }}
+                    onChange={(e) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        brandName: e.target.value,
+                      }));
+                    }}
+                  >
+                    <MenuItem value="">
+                      {acBrandsLoading ? "Loading brands…" : "Select Brand"}
+                    </MenuItem>
+                    {acBrands.map((b) => (
+                      <MenuItem key={b.brandName} value={b.brandName}>
+                        {b.brandName}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {acBrandsError && (
+                    <p className="text-xs text-red-500 mt-1">{acBrandsError}</p>
+                  )}
+                </FormControl>
+
+                <div className="mt-2 p-4 bg-white rounded-md border border-gray-200">
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={!!formData.energyMonitoringIncluded}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            energyMonitoringIncluded: e.target.checked,
+                          }))
+                        }
+                        disabled={!hasManagePermission}
+                        sx={{
+                          color: "var(--eco-primary)",
+                          "&.Mui-checked": { color: "var(--eco-primary)" },
+                        }}
+                      />
+                    }
+                    label="Energy Monitoring Sensor Included"
+                  />
+                  <p className="text-xs text-gray-500 ml-8 -mt-1">
+                    Enable if this AC has an energy module for consumption display.
+                  </p>
+                </div>
+              </>
             )}
 
             {formData.category === "trigger" && formData.deviceType && ALERT_ACCESS_MAP[formData.deviceType]?.length > 0 && (

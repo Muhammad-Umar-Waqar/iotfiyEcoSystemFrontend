@@ -131,7 +131,12 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
     category: "",
     interval: "",
     energyMonitoringIncluded: false,
+    brandName: "",
   });
+
+  const [acBrands, setAcBrands] = useState([]);
+  const [acBrandsLoading, setAcBrandsLoading] = useState(false);
+  const [acBrandsError, setAcBrandsError] = useState("");
 
   const [alertAccess, setAlertAccess] = useState({
     tempAlertAccess: false,
@@ -181,6 +186,7 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
         category: device.category || "",
         interval: device.interval !== undefined ? String(device.interval) : "",
         energyMonitoringIncluded: !!device.energyMonitoringIncluded,
+        brandName: device.brandName || "",
       });
 
       // Set alert access fields for trigger category
@@ -232,6 +238,7 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
         ...prev,
         deviceType: value,
         energyMonitoringIncluded: value === "AC" ? prev.energyMonitoringIncluded : false,
+        brandName: value === "AC" ? prev.brandName : "",
       }));
       // Update conditions when device type changes
       setConditions(makeConditionsFor(value, []));
@@ -251,6 +258,39 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
 
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+
+  useEffect(() => {
+    if (!open || formData.deviceType !== "AC") return;
+
+    let cancelled = false;
+    const loadBrands = async () => {
+      setAcBrandsLoading(true);
+      setAcBrandsError("");
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/device/ac-brands`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Failed to load brands");
+        if (!cancelled) setAcBrands(data.brands || []);
+      } catch (err) {
+        if (!cancelled) {
+          setAcBrands([]);
+          setAcBrandsError(err.message || "Failed to load AC brands");
+        }
+      } finally {
+        if (!cancelled) setAcBrandsLoading(false);
+      }
+    };
+    loadBrands();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, formData.deviceType]);
 
   // Get available venues based on role
   const availableVenues = (() => {
@@ -314,6 +354,9 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
     }
 
     const isAc = formData.deviceType === "AC";
+    if (isAc && !formData.brandName) {
+      return Swal.fire({ icon: "warning", title: "Select AC Brand" });
+    }
     let finalConditions = [];
 
     if (!isAc) {
@@ -393,6 +436,7 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
 
     if (isAc) {
       payload.energyMonitoringIncluded = !!formData.energyMonitoringIncluded;
+      payload.brandName = formData.brandName;
     }
 
     // Add alert access fields for trigger category
@@ -527,26 +571,56 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
               </FormControl>
 
               {formData.deviceType === "AC" && (
-                <div className="p-3 rounded-md border border-gray-200 bg-gray-50">
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={!!formData.energyMonitoringIncluded}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            energyMonitoringIncluded: e.target.checked,
-                          }))
-                        }
-                        sx={{
-                          color: "var(--eco-primary)",
-                          "&.Mui-checked": { color: "var(--eco-primary)" },
-                        }}
-                      />
-                    }
-                    label="Energy Monitoring Sensor Included"
-                  />
-                </div>
+                <>
+                  <FormControl fullWidth size="small">
+                    <InputLabel>AC Brand</InputLabel>
+                    <Select
+                      label="AC Brand"
+                      displayEmpty
+                      value={formData.brandName || ""}
+                      disabled={acBrandsLoading}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          brandName: e.target.value,
+                        }))
+                      }
+                    >
+                      <MenuItem value="">
+                        {acBrandsLoading ? "Loading brands…" : "Select Brand"}
+                      </MenuItem>
+                      {acBrands.map((b) => (
+                        <MenuItem key={b.brandName} value={b.brandName}>
+                          {b.brandName}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    {acBrandsError && (
+                      <p className="text-xs text-red-500 mt-1">{acBrandsError}</p>
+                    )}
+                  </FormControl>
+
+                  <div className="p-3 rounded-md border border-gray-200 bg-gray-50">
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={!!formData.energyMonitoringIncluded}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              energyMonitoringIncluded: e.target.checked,
+                            }))
+                          }
+                          sx={{
+                            color: "var(--eco-primary)",
+                            "&.Mui-checked": { color: "var(--eco-primary)" },
+                          }}
+                        />
+                      }
+                      label="Energy Monitoring Sensor Included"
+                    />
+                  </div>
+                </>
               )}
 
               {formData.category === "trigger" && (
