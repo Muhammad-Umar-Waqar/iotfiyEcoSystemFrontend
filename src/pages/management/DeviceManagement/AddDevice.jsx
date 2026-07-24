@@ -388,7 +388,7 @@ const AddDevice = () => {
     };
 
     if (isAc) {
-      payload.energyMonitoringIncluded = !!formData.energyMonitoringIncluded;
+      payload.energyMonitoringIncluded = false;
       payload.brandName = formData.brandName;
     }
 
@@ -632,65 +632,38 @@ const AddDevice = () => {
             </div>
 
             {formData.deviceType === "AC" && (
-              <>
-                <FormControl fullWidth className="mt-2">
-                  <InputLabel id="ac-brand-label" shrink>
-                    AC Brand
-                  </InputLabel>
-                  <Select
-                    labelId="ac-brand-label"
-                    label="AC Brand"
-                    displayEmpty
-                    value={formData.brandName || ""}
-                    disabled={!hasManagePermission || acBrandsLoading}
-                    MenuProps={menuProps}
-                    sx={{ height: SELECT_HEIGHT, borderRadius: "0.375rem", backgroundColor: "#fff" }}
-                    onChange={(e) => {
-                      setFormData((prev) => ({
-                        ...prev,
-                        brandName: e.target.value,
-                      }));
-                    }}
-                  >
-                    <MenuItem value="">
-                      {acBrandsLoading ? "Loading brands…" : "Select Brand"}
+              <FormControl fullWidth className="mt-2">
+                <InputLabel id="ac-brand-label" shrink>
+                  AC Brand
+                </InputLabel>
+                <Select
+                  labelId="ac-brand-label"
+                  label="AC Brand"
+                  displayEmpty
+                  value={formData.brandName || ""}
+                  disabled={!hasManagePermission || acBrandsLoading}
+                  MenuProps={menuProps}
+                  sx={{ height: SELECT_HEIGHT, borderRadius: "0.375rem", backgroundColor: "#fff" }}
+                  onChange={(e) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      brandName: e.target.value,
+                    }));
+                  }}
+                >
+                  <MenuItem value="">
+                    {acBrandsLoading ? "Loading brands…" : "Select Brand"}
+                  </MenuItem>
+                  {acBrands.map((b) => (
+                    <MenuItem key={b.brandName} value={b.brandName}>
+                      {b.brandName}
                     </MenuItem>
-                    {acBrands.map((b) => (
-                      <MenuItem key={b.brandName} value={b.brandName}>
-                        {b.brandName}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  {acBrandsError && (
-                    <p className="text-xs text-red-500 mt-1">{acBrandsError}</p>
-                  )}
-                </FormControl>
-
-                <div className="mt-2 p-4 bg-white rounded-md border border-gray-200">
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={!!formData.energyMonitoringIncluded}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            energyMonitoringIncluded: e.target.checked,
-                          }))
-                        }
-                        disabled={!hasManagePermission}
-                        sx={{
-                          color: "var(--eco-primary)",
-                          "&.Mui-checked": { color: "var(--eco-primary)" },
-                        }}
-                      />
-                    }
-                    label="Energy Monitoring Sensor Included"
-                  />
-                  <p className="text-xs text-gray-500 ml-8 -mt-1">
-                    Enable if this AC has an energy module for consumption display.
-                  </p>
-                </div>
-              </>
+                  ))}
+                </Select>
+                {acBrandsError && (
+                  <p className="text-xs text-red-500 mt-1">{acBrandsError}</p>
+                )}
+              </FormControl>
             )}
 
             {formData.category === "trigger" && formData.deviceType && ALERT_ACCESS_MAP[formData.deviceType]?.length > 0 && (
