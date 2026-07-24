@@ -18,11 +18,24 @@
 }
 
 .eco-mgmt-add {
-  /* Solid soft blue panel — readable form surface, not translucent wash */
+  /* Desktop: soft blue form panel vs white list */
   background: #eef4fa !important;
   border: 1px solid #dce6f0 !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
   color: var(--eco-text);
+}
+
+@media (max-width: 767px) {
+  .eco-mgmt-add {
+    /* Mobile: solid white card so it contrasts vs page gradient */
+    background: #ffffff7b !important;
+    border: 1px solid rgba(148, 186, 220, 0.55) !important;
+    box-shadow: 0 8px 28px rgba(7, 81, 141, 0.12) !important;
+    border-radius: 1.25rem !important;
+    min-height: auto !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
 }
 
 .eco-mgmt-add .organization-add-title,
@@ -75,7 +88,8 @@
 .device-table-scroll,
 .venue-table-scroll,
 .brand-table-scroll,
-.manager-table-scroll {
+.manager-table-scroll,
+.subscription-analytics-scroll {
   -ms-overflow-style: none !important;
   scrollbar-width: none !important;
 }
@@ -86,11 +100,23 @@
 .device-table-scroll::-webkit-scrollbar,
 .venue-table-scroll::-webkit-scrollbar,
 .brand-table-scroll::-webkit-scrollbar,
-.manager-table-scroll::-webkit-scrollbar {
+.manager-table-scroll::-webkit-scrollbar,
+.subscription-analytics-scroll::-webkit-scrollbar {
   display: none !important;
   width: 0 !important;
   height: 0 !important;
   background: transparent !important;
+}
+
+/* Page scroll container (mobile Add forms) — scroll works, bar hidden */
+.eco-mgmt-page-scroll {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+.eco-mgmt-page-scroll::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* Mobile: keep drawer content breathing room without layout break */
@@ -102,6 +128,7 @@
   .eco-mgmt-list,
   .eco-mgmt-add {
     min-height: 0;
+    height: auto !important;
   }
 
   .MuiDrawer-paper .eco-mgmt-list {
@@ -109,11 +136,20 @@
     border-radius: 1rem !important;
   }
 
-  /* Mobile page: soft white shell so add form doesn't look floating/washed */
+  /* Mobile: shell grows with form content; page scroll handles overflow */
   .eco-mgmt-shell {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
+    height: auto !important;
+    min-height: 100% !important;
+    overflow: visible !important;
+  }
+
+  .eco-mgmt-shell > div {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
   }
 }
 

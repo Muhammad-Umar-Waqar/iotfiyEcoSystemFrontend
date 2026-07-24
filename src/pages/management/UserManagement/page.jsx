@@ -93,7 +93,7 @@ const UserManagement = () => {
 
   return (
   <div
-    className="flex flex-col md:flex-row w-full h-full min-h-0 eco-mgmt-shell rounded-[20px] gap-2 md:gap-4 p-3 sm:p-4 overflow-hidden"
+    className="flex flex-col md:flex-row w-full h-auto min-h-full md:h-full md:min-h-0 eco-mgmt-shell rounded-[20px] gap-2 md:gap-4 p-3 sm:p-4 overflow-visible md:overflow-hidden"
     onClick={handleOutsideClick}
   >
     <div className="w-full md:w-1/2 md:h-full min-h-0 min-w-0 overflow-hidden">

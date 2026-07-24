@@ -18,7 +18,7 @@ const DeviceManagement = () => {
   return (
     <DeviceManagementProvider>
       <div
-        className="md:h-full flex eco-mgmt-shell rounded-[20px] w-full h-full overflow-hidden"
+        className="md:h-full flex eco-mgmt-shell rounded-[20px] w-full h-auto min-h-full md:min-h-0 overflow-visible md:overflow-hidden"
         onClick={handleOutsideClick}
       >
         <div className="md:p-none p-[1rem] flex flex-col md:flex-row gap-2 md:gap-4 h-full w-full rounded-[20px] min-h-0">

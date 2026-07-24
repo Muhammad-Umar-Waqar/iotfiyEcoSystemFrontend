@@ -179,12 +179,14 @@ const SidebarRebuilt = () => {
 
   const navigationItems = getNavigationItems();
   const activePath = location.pathname;
+  const isMainDashboard =
+    activePath === "/management" || activePath === "/admin/management";
 
   return (
     <>
       {/* Desktop sidebar */}
       {!isMobile && (
-        <div className="sidebar">
+        <div className={`sidebar${isMainDashboard ? " sidebar--dashboard" : ""}`}>
           <div className="sidebar-top">
             <img src="/logo-half.png" alt="logo" width={48} height={48} />
           </div>

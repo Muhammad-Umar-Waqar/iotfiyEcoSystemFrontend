@@ -19,6 +19,19 @@ import { fetchCurrentUser } from "../../slices/authSlice";
 
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:5050";
 
+const textFieldSx = {
+  "& .MuiOutlinedInput-root": {
+    backgroundColor: "#fff",
+    borderRadius: "0.5rem",
+    "& fieldset": { borderColor: "#E5EBF2" },
+    "&:hover fieldset": { borderColor: "var(--eco-primary)" },
+    "&.Mui-focused fieldset": { borderColor: "var(--eco-primary)" },
+  },
+  "& .MuiInputLabel-root.Mui-focused": {
+    color: "var(--eco-primary)",
+  },
+};
+
 function TabPanel({ children, value, index }) {
   return (
     <div
@@ -109,6 +122,7 @@ export default function LogoutDialog({
         title: "Success",
         text: "OTP sent to your new email address!",
         confirmButtonText: "OK",
+        confirmButtonColor: "#0292FF",
       });
       setOtpSent(true);
     } catch (err) {
@@ -118,6 +132,7 @@ export default function LogoutDialog({
         title: "Error",
         text: err.message || "Failed to send OTP",
         confirmButtonText: "OK",
+        confirmButtonColor: "#0292FF",
       });
     } finally {
       setRequestLoading(false);
@@ -154,10 +169,11 @@ export default function LogoutDialog({
         title: "Success",
         text: "Email changed successfully!",
         confirmButtonText: "OK",
+        confirmButtonColor: "#0292FF",
       });
 
       await dispatch(fetchCurrentUser()).unwrap();
-      
+
       resetEmailChangeForm();
       setTabValue(0);
       onClose();
@@ -171,6 +187,7 @@ export default function LogoutDialog({
         title: "Error",
         text: err.message || "Invalid OTP",
         confirmButtonText: "OK",
+        confirmButtonColor: "#0292FF",
       });
     } finally {
       setVerifyLoading(false);
@@ -190,21 +207,68 @@ export default function LogoutDialog({
       aria-labelledby="account-dialog-title"
       maxWidth="sm"
       fullWidth
+      sx={{
+        "& .MuiDialog-paper": {
+          borderRadius: "16px !important",
+          overflow: "hidden",
+        },
+      }}
+      PaperProps={{
+        sx: {
+          borderRadius: "16px",
+          backgroundColor: "#FFFFFF",
+          border: "1px solid #E5EBF2",
+          boxShadow: "0 12px 40px rgba(7, 81, 141, 0.14)",
+          overflow: "hidden",
+        },
+      }}
     >
-      <DialogTitle id="account-dialog-title">Account Settings</DialogTitle>
+      <DialogTitle
+        id="account-dialog-title"
+        sx={{
+          color: "var(--eco-text)",
+          fontWeight: 700,
+          fontSize: "1.15rem",
+          pb: 1.5,
+          borderBottom: "1px solid #E5EBF2",
+          background: "linear-gradient(180deg, #F5FAFE 0%, #FFFFFF 100%)",
+        }}
+      >
+        Account Settings
+      </DialogTitle>
 
       {!isAdmin && (
-        <Box sx={{ borderBottom: 1, borderColor: "divider", px: 3 }}>
-          <Tabs value={tabValue} onChange={handleTabChange} aria-label="account tabs">
+        <Box sx={{ borderBottom: "1px solid #E5EBF2", px: 2 }}>
+          <Tabs
+            value={tabValue}
+            onChange={handleTabChange}
+            aria-label="account tabs"
+            TabIndicatorProps={{
+              sx: { backgroundColor: "var(--eco-primary)", height: 3, borderRadius: 2 },
+            }}
+            sx={{
+              minHeight: 44,
+              "& .MuiTab-root": {
+                textTransform: "none",
+                fontWeight: 600,
+                minHeight: 44,
+                color: "var(--eco-text-muted)",
+                "&.Mui-selected": { color: "var(--eco-primary)" },
+              },
+            }}
+          >
             <Tab label="Logout" id="account-tab-0" aria-controls="account-tabpanel-0" />
             <Tab label="Change Email" id="account-tab-1" aria-controls="account-tabpanel-1" />
           </Tabs>
         </Box>
       )}
 
-      <DialogContent>
+      <DialogContent sx={{ pt: 2.5, backgroundColor: "#FAFCFE" }}>
         <TabPanel value={tabValue} index={0}>
-          <DialogContentText id="logout-dialog-description">
+          <DialogContentText
+            id="logout-dialog-description"
+            sx={{ color: "var(--eco-text-muted)", fontSize: "0.95rem", lineHeight: 1.55 }}
+          >
             {description}
           </DialogContentText>
         </TabPanel>
@@ -224,6 +288,7 @@ export default function LogoutDialog({
                 disabled
                 fullWidth
                 variant="outlined"
+                sx={textFieldSx}
               />
 
               <TextField
@@ -235,6 +300,7 @@ export default function LogoutDialog({
                 fullWidth
                 variant="outlined"
                 placeholder="Enter new email address"
+                sx={textFieldSx}
               />
 
               {!otpSent ? (
@@ -242,8 +308,17 @@ export default function LogoutDialog({
                   variant="contained"
                   onClick={handleRequestEmailChange}
                   disabled={requestLoading || !newEmail}
-                  startIcon={requestLoading ? <CircularProgress size={16} /> : null}
+                  startIcon={requestLoading ? <CircularProgress size={16} color="inherit" /> : null}
                   fullWidth
+                  sx={{
+                    textTransform: "none",
+                    fontWeight: 600,
+                    borderRadius: "0.5rem",
+                    py: 1.1,
+                    backgroundColor: "var(--eco-primary)",
+                    boxShadow: "0 4px 12px rgba(2, 146, 255, 0.28)",
+                    "&:hover": { backgroundColor: "var(--eco-primary-hover)" },
+                  }}
                 >
                   {requestLoading ? "Sending OTP..." : "Request Change"}
                 </Button>
@@ -262,6 +337,7 @@ export default function LogoutDialog({
                     variant="outlined"
                     placeholder="Enter 6-digit OTP"
                     inputProps={{ maxLength: 6 }}
+                    sx={textFieldSx}
                   />
 
                   <Box sx={{ display: "flex", gap: 2 }}>
@@ -273,6 +349,17 @@ export default function LogoutDialog({
                       }}
                       disabled={verifyLoading}
                       fullWidth
+                      sx={{
+                        textTransform: "none",
+                        fontWeight: 600,
+                        borderRadius: "0.5rem",
+                        borderColor: "#DCE6F0",
+                        color: "var(--eco-text-label)",
+                        "&:hover": {
+                          borderColor: "var(--eco-primary)",
+                          backgroundColor: "var(--eco-primary-softer)",
+                        },
+                      }}
                     >
                       Change Email
                     </Button>
@@ -280,8 +367,16 @@ export default function LogoutDialog({
                       variant="contained"
                       onClick={handleVerifyEmailChange}
                       disabled={verifyLoading || !otp}
-                      startIcon={verifyLoading ? <CircularProgress size={16} /> : null}
+                      startIcon={verifyLoading ? <CircularProgress size={16} color="inherit" /> : null}
                       fullWidth
+                      sx={{
+                        textTransform: "none",
+                        fontWeight: 600,
+                        borderRadius: "0.5rem",
+                        backgroundColor: "var(--eco-primary)",
+                        boxShadow: "0 4px 12px rgba(2, 146, 255, 0.28)",
+                        "&:hover": { backgroundColor: "var(--eco-primary-hover)" },
+                      }}
                     >
                       {verifyLoading ? "Verifying..." : "Verify & Change"}
                     </Button>
@@ -293,18 +388,43 @@ export default function LogoutDialog({
         )}
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, py: 2 }}>
-        <Button onClick={handleClose} disabled={loading || requestLoading || verifyLoading}>
+      <DialogActions
+        sx={{
+          px: 3,
+          py: 2,
+          borderTop: "1px solid #E5EBF2",
+          backgroundColor: "#FFFFFF",
+          gap: 1,
+        }}
+      >
+        <Button
+          onClick={handleClose}
+          disabled={loading || requestLoading || verifyLoading}
+          sx={{
+            textTransform: "none",
+            fontWeight: 600,
+            color: "var(--eco-text-muted)",
+            borderRadius: "0.5rem",
+            "&:hover": { backgroundColor: "var(--eco-primary-softer)", color: "var(--eco-text)" },
+          }}
+        >
           Cancel
         </Button>
 
         {tabValue === 0 && (
           <Button
             onClick={onConfirm}
-            color="error"
             variant="contained"
             disabled={loading}
-            startIcon={loading ? <CircularProgress size={16} /> : null}
+            startIcon={loading ? <CircularProgress size={16} color="inherit" /> : null}
+            sx={{
+              textTransform: "none",
+              fontWeight: 600,
+              borderRadius: "0.5rem",
+              backgroundColor: "#EF4444",
+              boxShadow: "0 4px 12px rgba(239, 68, 68, 0.28)",
+              "&:hover": { backgroundColor: "#DC2626" },
+            }}
           >
             {loading ? "Signing out..." : "Logout"}
           </Button>

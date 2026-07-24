@@ -14,6 +14,7 @@ import {
   AlertCircle,
   CheckCircle2,
 } from "lucide-react";
+import "../../../styles/pages/management-pages.css";
 
 
 // --- Donut Ring SVG Component ---
@@ -329,13 +330,13 @@ const SubscriptionAnalytics = () => {
 
   return (
     <div
+      className="subscription-analytics-scroll h-full min-h-0 overflow-y-auto"
       style={{
         background: "#F8FAFC",
-        minHeight: "100%",
         padding: "32px",
         fontFamily:
           "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-        overflowY: "auto",
+        borderRadius: "16px",
       }}
     >
       <div style={{ maxWidth: "960px", margin: "0 auto" }}>
