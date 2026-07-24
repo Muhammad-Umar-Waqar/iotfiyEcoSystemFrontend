@@ -121,6 +121,7 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [condModalOpen, setCondModalOpen] = useState(false);
+  const [deviceApiKey, setDeviceApiKey] = useState("");
 
   const isManager = user?.role === "manager";
 
@@ -174,10 +175,11 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
     try {
       setLoading(true);
       const device = await dispatch(fetchSingleDevice(deviceId)).unwrap();
-      console.log('Individual deviceData: ', device)
       // Extract organization and venue from populated data
       const orgId = device.venue?.organization?._id || device.venue?.organization;
       const venueId = device.venue?._id || device.venue;
+
+      setDeviceApiKey(device.apiKey || "");
 
       setFormData({
         deviceName: device.deviceName || "",
@@ -312,6 +314,28 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
       next[index] = { ...next[index], [key]: value };
       return next;
     });
+  };
+
+  const handleCopyApiKey = () => {
+    if (!deviceApiKey) return;
+
+    navigator.clipboard
+      .writeText(deviceApiKey)
+      .then(() => {
+        Swal.fire({
+          icon: "success",
+          title: "Copied!",
+          timer: 1200,
+          width: 150,
+          showConfirmButton: false,
+          position: "top-end",
+          toast: true,
+          customClass: { popup: "small-toast" },
+        });
+      })
+      .catch(() => {
+        Swal.fire({ icon: "error", title: "Copy failed" });
+      });
   };
 
   const handleAlertAccessChange = (field) => {
@@ -664,6 +688,31 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
                 >
                   Configure Conditions
                 </Button>
+              )}
+
+              {deviceApiKey && (
+                <div className="mt-1 p-3 rounded-md bg-gray-50 border border-gray-200 text-sm text-gray-700">
+                  <strong>API Key</strong>
+                  <div className="flex items-center justify-between gap-2 mt-1">
+                    <code
+                      className="font-mono text-sm break-all select-all"
+                      title={deviceApiKey}
+                    >
+                      {deviceApiKey}
+                    </code>
+                    <img
+                      src="/copyicon.svg"
+                      alt="Copy API key"
+                      className="w-5 h-7 cursor-pointer shrink-0"
+                      onClick={handleCopyApiKey}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") handleCopyApiKey();
+                      }}
+                    />
+                  </div>
+                </div>
               )}
             </Stack>
           )}
