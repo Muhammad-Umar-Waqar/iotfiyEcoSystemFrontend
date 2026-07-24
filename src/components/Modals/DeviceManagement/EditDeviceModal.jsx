@@ -23,6 +23,7 @@ import { Thermometer } from "lucide-react";
 import Swal from "sweetalert2";
 import { fetchSingleDevice, updateDevice, fetchDevicesByVenue } from "../../../slices/DeviceSlice";
 import { fetchOrganizationsByOwner, fetchOrganizationsByUser } from "../../../slices/OrganizationSlice";
+import { fetchAckitBrandOptions } from "../../../utils/ackitBrands";
 import { fetchVenuesByOrganization } from "../../../slices/VenueSlice";
 
 // Backend device types and their required conditions
@@ -267,16 +268,8 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
       setAcBrandsLoading(true);
       setAcBrandsError("");
       try {
-        const token = localStorage.getItem("token");
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/device/ac-brands`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-          },
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Failed to load brands");
-        if (!cancelled) setAcBrands(data.brands || []);
+        const brands = await fetchAckitBrandOptions();
+        if (!cancelled) setAcBrands(brands);
       } catch (err) {
         if (!cancelled) {
           setAcBrands([]);

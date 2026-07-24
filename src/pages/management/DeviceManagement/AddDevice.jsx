@@ -11,6 +11,7 @@ import Swal from "sweetalert2";
 import { Select, MenuItem, FormControl, InputLabel, Dialog, DialogTitle, DialogContent, DialogActions, Button, IconButton, Checkbox, FormControlLabel } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 import { canManage } from "../../../utils/permissions";
+import { fetchAckitBrandOptions } from "../../../utils/ackitBrands";
 import "../../../styles/pages/management-pages.css";
 
 // Backend device types and their required conditions
@@ -230,16 +231,8 @@ const AddDevice = () => {
       setAcBrandsLoading(true);
       setAcBrandsError("");
       try {
-        const token = localStorage.getItem("token");
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/device/ac-brands`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-          },
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Failed to load brands");
-        if (!cancelled) setAcBrands(data.brands || []);
+        const brands = await fetchAckitBrandOptions();
+        if (!cancelled) setAcBrands(brands);
       } catch (err) {
         if (!cancelled) {
           setAcBrands([]);
