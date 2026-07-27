@@ -136,3 +136,23 @@ body,
   overflow: hidden;
   font-family: "Poppins", sans-serif;
 }
+
+/* Marketing / auth pages need document scroll (dashboard keeps overflow:hidden) */
+html.eco-allow-page-scroll,
+html.eco-allow-page-scroll body,
+html.eco-allow-page-scroll #root {
+  height: auto;
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  /* Keep scroll, hide scrollbar */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+html.eco-allow-page-scroll::-webkit-scrollbar,
+html.eco-allow-page-scroll body::-webkit-scrollbar,
+html.eco-allow-page-scroll #root::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}

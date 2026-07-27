@@ -104,11 +104,21 @@ export const useDeviceWebSocket = (devices = []) => {
           const isTrigger =
             data.category === 'trigger' || previous.category === 'trigger';
 
+          // ESP /data may echo setTemperature/temperature — for AC that must not
+          // clobber top-level dashboard/schedule setpoint from the processor.
+          const sensorPayload = { ...(data.data || {}) };
+          const isAc =
+            data.deviceType === "AC" || previous.deviceType === "AC";
+          if (isAc) {
+            delete sensorPayload.setTemperature;
+            delete sensorPayload.temperature;
+          }
+
           return {
             ...prev,
             [deviceId]: {
               ...previous,
-              ...data.data, // Sensor values: temperature, humidity, odour, AQI, voltage, current
+              ...sensorPayload, // Sensor values: humidity, odour, AQI, voltage, current, vent…
               state: data.state ?? previous.state, // ON/OFF for scheduling devices
               // AC fields (top-level from schedulingProcessor / ac-settings emit)
               setTemperature: data.setTemperature ?? previous.setTemperature,

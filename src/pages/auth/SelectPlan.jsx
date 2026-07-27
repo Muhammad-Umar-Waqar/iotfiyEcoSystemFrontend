@@ -555,6 +555,14 @@ const SelectPlan = () => {
   const { isAuthenticated, user } = useSelector((s) => s.auth);
   const { pendingPlan, pendingCustomPlan } = useSelector((s) => s.subscription);
 
+  // /select-plan is outside GuestRoute — unlock document scroll for this long page
+  useEffect(() => {
+    document.documentElement.classList.add("eco-allow-page-scroll");
+    return () => {
+      document.documentElement.classList.remove("eco-allow-page-scroll");
+    };
+  }, []);
+
   useEffect(() => { fetchPlans(); }, []);
 
   useEffect(() => {
@@ -665,7 +673,7 @@ const SelectPlan = () => {
       }}>
         <NavLink to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
           <img src="/logo.png" alt="IoTify" style={{ height: 30 }} onError={e => e.target.style.display = 'none'} />
-          <span className="select-plan-logo-text" style={{ fontWeight: 700, fontSize: 17, color: T.primary }}>IoTify</span>
+          {/* <span className="select-plan-logo-text" style={{ fontWeight: 700, fontSize: 17, color: T.primary }}>IoTify</span> */}
         </NavLink>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <NavLink to="/" style={{

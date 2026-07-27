@@ -53,7 +53,7 @@ function SmokeStatusRow({ detected, hasAlert }) {
         <div className={`text-sm font-semibold ${detected ? "text-rose-600" : "text-emerald-700"}`}>
           {detected ? "Detected" : "Not Detected"}
         </div>
-        <p className={`h-2 w-[2.7rem] rounded-full mt-1 ${hasAlert || detected ? "bg-rose-300" : "bg-[#BAEACC]"}`} />
+        {/* <p className={`h-2 w-[2.7rem] rounded-full mt-1 ${hasAlert || detected ? "bg-rose-300" : "bg-[#BAEACC]"}`} /> */}
       </div>
     </div>
   );
