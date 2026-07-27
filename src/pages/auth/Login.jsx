@@ -527,7 +527,7 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100  px-5 sm:px-16 ">
       <div className="min-h-[60vh] grid md:grid-cols-2 rounded-4xl  place-items-center max-w-6xl w-full bg-white shadow-lg overflow-hidden ">
         {/* Left (Form) Section */}
-        <div className="p-10 lg:p-18 w-full">
+        <div className="p-10 lg:py-10 lg:px-18 w-full">
           <NavLink
             to="/"
             className="inline-flex items-center gap-2.5 mb-6 text-sm font-medium text-slate-600 hover:text-[#178D8F] transition-colors group"
