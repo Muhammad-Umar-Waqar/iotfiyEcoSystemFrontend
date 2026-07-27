@@ -20,6 +20,12 @@ const AQI_SEGMENTS = [
   { min: 301, max: 500, color: '#B71C1C', label: 'Hazardous' },
 ];
 
+/** Smoke % gauge: safe ≤40, caution 41–60, dangerous >60 */
+const SMOKE_SEGMENTS = [
+  { min: 0,  max: 40,  color: '#00E676', label: 'Safe' },
+  { min: 41, max: 60,  color: '#FFD600', label: 'Caution' },
+  { min: 61, max: 100, color: '#FF5252', label: 'Dangerous' },
+];
 
 function polarToCartesian(cx, cy, r, angle) {
   // angle in radians, 0 = up. Matches useGaugeState semantics.
@@ -123,7 +129,7 @@ function GaugeSegments({ segments = AQI_SEGMENTS }) {
 
 
 
-function GaugePointer() {
+function GaugePointer({ segments = AQI_SEGMENTS }) {
   const { valueAngle, outerRadius, innerRadius, cx, cy, value } = useGaugeState();
   if (valueAngle === null) return null;
 
@@ -135,10 +141,10 @@ function GaugePointer() {
   const left = polarToCartesian(cx, cy, needleWidth, valueAngle - Math.PI / 2);
   const right = polarToCartesian(cx, cy, needleWidth, valueAngle + Math.PI / 2);
 
-  // Color based on AQI range
+  // Color based on segment range
   const seg =
-    AQI_SEGMENTS.find((s) => value >= s.min && value <= s.max) ||
-    AQI_SEGMENTS[0];
+    segments.find((s) => value >= s.min && value <= s.max) ||
+    segments[0];
 
   return (
     <g>
@@ -176,7 +182,16 @@ function GaugePointer() {
 
 
 
-export default function AQIGauge({ value = 0, width = 90, height = 65 }) {
+export default function AQIGauge({
+  value = 0,
+  width = 90,
+  height = 65,
+  variant = "aqi",
+}) {
+  const isSmoke = variant === "smoke";
+  const segments = isSmoke ? SMOKE_SEGMENTS : AQI_SEGMENTS;
+  const valueMax = isSmoke ? 100 : 500;
+
   return (
     <GaugeContainer
       width={width}
@@ -185,7 +200,7 @@ export default function AQIGauge({ value = 0, width = 90, height = 65 }) {
       endAngle={110}
       value={value}
       valueMin={0}
-      valueMax={500}
+      valueMax={valueMax}
       innerRadius="68%"
       outerRadius="100%"
     >
@@ -193,13 +208,13 @@ export default function AQIGauge({ value = 0, width = 90, height = 65 }) {
       <GaugeReferenceArc />
 
       {/* our colored segments */}
-      <GaugeSegments />
+      <GaugeSegments segments={segments} />
 
       {/* value arc (fills from left to value) */}
       {/* <GaugeValueArc skipAnimation={false} /> */}
 
       {/* pointer, labels, etc */}
-      <GaugePointer />
+      <GaugePointer segments={segments} />
 
       {/* center text can be further customized via GaugeValueText if preferred */}
     </GaugeContainer>

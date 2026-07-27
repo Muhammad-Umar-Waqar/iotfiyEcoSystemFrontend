@@ -392,7 +392,7 @@ const UserList = ({ onUserSelect, selectedUser }) => {
   </tr>
 </thead>
             <tbody>
-              {isLoading && <TableSkeleton rows={5} />}
+              {isLoading && <TableSkeleton rows={5} variant="user" />}
 
               {!isLoading && subUsers.length === 0 && (
                 <tr>

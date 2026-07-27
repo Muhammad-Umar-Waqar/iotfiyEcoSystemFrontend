@@ -75,9 +75,10 @@ export default function DownloadModal({
       Status:      { label: "Status",             unit: "", computed: true },
     },
     SMD: {
-      AQI:         { label: "Air Quality Index",  unit: "AQI" },
-      smoke:       { label: "Smoke",              unit: "" },
-      Status:      { label: "AQI Status",         unit: "", computed: true },
+      smoke:       { label: "Smoke (%)",          unit: "%" },
+    },
+    WLD: {
+      waterLeak:   { label: "Water Leak",         unit: "" },
     },
     ED: {
       voltage:     { label: "Voltage (V)",        unit: "V" },

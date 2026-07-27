@@ -19,7 +19,8 @@ const DEVICE_CONDITIONS_MAP = {
   OD: ["temperature", "humidity", "odour"],
   THD: ["temperature", "humidity"],
   AQID: ["temperature", "humidity", "AQI"],
-  SMD: ["AQI"],
+  SMD: ["smoke"],
+  WLD: [],
   GLD: ["temperature", "humidity", "gass"],
   ED: ["temperature", "humidity", "voltage", "current"],
   AC: [],
@@ -30,7 +31,8 @@ const CONDITION_LABEL = {
   humidity: "Humidity",
   odour: "Odour",
   AQI: "AQI",
-  smoke: "Smoke",
+  smoke: "Smoke %",
+  waterLeak: "Water Leak",
   gass: "Leakage",
   voltage: "Voltage",
   current: "Current",
@@ -41,17 +43,23 @@ const CONDITION_UNIT = {
   humidity: "%",
   odour: "%",
   AQI: "AQI",
-  smoke: "",
+  smoke: "%",
+  waterLeak: "",
   gass: "%",
   voltage: "V",
   current: "A",
 };
+
+const conditionLabelFor = (deviceType, type) => CONDITION_LABEL[type] || type;
+
+const conditionUnitFor = (deviceType, type) => CONDITION_UNIT[type] ?? "";
 
 const DEVICE_TYPE_LABEL = {
   OD: "Odour Device (OD)",
   THD: "Temperature Humidity Device (THD)",
   AQID: "Air Quality Index Device (AQID)",
   SMD: "Smoke Device (SMD)",
+  WLD: "Water Leakage Device (WLD)",
   GLD: "Gas Leakage Device (GLD)",
   ED: "Energy Device (ED)",
   AC: "AC Device (AC)",
@@ -85,9 +93,9 @@ const makeConditionsFor = (deviceType) => {
   return types.map((t) => ({
     id: t,
     type: t,
-    label: CONDITION_LABEL[t] || t,
-    operator: t === "voltage" || t === "current" ? "=" : ">",
-    value: "",
+    label: conditionLabelFor(deviceType, t),
+    operator: t === "voltage" || t === "current" || t === "waterLeak" ? "=" : ">",
+    value: t === "smoke" ? "60" : t === "waterLeak" ? "1" : "",
   }));
 };
 
@@ -96,7 +104,8 @@ const ALERT_ACCESS_MAP = {
   OD: ["tempAlertAccess", "humiAlertAccess", "odourAlertAccess"],
   THD: ["tempAlertAccess", "humiAlertAccess"],
   AQID: ["tempAlertAccess", "humiAlertAccess", "aqiAlertAccess"],
-  SMD: ["aqiAlertAccess", "smokeAlertAccess"],
+  SMD: ["smokeAlertAccess"],
+  WLD: [],
   GLD: ["tempAlertAccess", "humiAlertAccess", "glAlertAccess"],
   ED: ["tempAlertAccess", "humiAlertAccess", "voltageAlertAccess", "currentAlertAccess"],
   AC: [],
@@ -250,8 +259,8 @@ const AddDevice = () => {
 
   const [condModalOpen, setCondModalOpen] = useState(false);
   useEffect(() => {
-    // AC has no threshold conditions — skip configure dialog
-    if (formData.deviceType && formData.deviceType !== "AC") {
+    // AC / WLD have no threshold conditions — skip configure dialog
+    if (formData.deviceType && formData.deviceType !== "AC" && formData.deviceType !== "WLD") {
       setCondModalOpen(true);
     } else {
       setCondModalOpen(false);
@@ -267,7 +276,11 @@ const AddDevice = () => {
     }
 
     if (name === "deviceType") {
-      setFormData((prev) => ({ ...prev, deviceType: value }));
+      setFormData((prev) => ({
+        ...prev,
+        deviceType: value,
+        ...(value === "WLD" ? { category: "monitoring" } : {}),
+      }));
       return;
     }
 
@@ -307,6 +320,7 @@ const AddDevice = () => {
     }
 
     const isAc = formData.deviceType === "AC";
+    const isWld = formData.deviceType === "WLD";
 
     if (isAc && !formData.brandName) {
       return Swal.fire({ icon: "warning", title: "Select AC Brand" });
@@ -314,7 +328,7 @@ const AddDevice = () => {
 
     let finalConditions = [];
 
-    if (!isAc) {
+    if (!isAc && !isWld) {
       const payloadConditions = Array.isArray(conditions)
         ? conditions.map((c) => ({
             type: c.type,
@@ -337,11 +351,11 @@ const AddDevice = () => {
         }
       }
 
-      const validTypes = ["temperature", "humidity", "odour", "AQI", "gass", "voltage", "current"];
+      const validTypes = ["temperature", "humidity", "odour", "AQI", "smoke", "waterLeak", "gass", "voltage", "current"];
       const validOps = [">", "<", "="];
 
       for (const c of filtered) {
-        if ((c.type === "voltage" || c.type === "current") && c.operator !== "=") {
+        if ((c.type === "voltage" || c.type === "current" || c.type === "waterLeak") && c.operator !== "=") {
           return Swal.fire({
             icon: "warning",
             title: "Invalid operator",
@@ -602,6 +616,7 @@ const AddDevice = () => {
                     <MenuItem value="THD">{DEVICE_TYPE_LABEL.THD}</MenuItem>
                     <MenuItem value="AQID">{DEVICE_TYPE_LABEL.AQID}</MenuItem>
                     <MenuItem value="SMD">{DEVICE_TYPE_LABEL.SMD}</MenuItem>
+                    <MenuItem value="WLD">{DEVICE_TYPE_LABEL.WLD}</MenuItem>
                     <MenuItem value="GLD">{DEVICE_TYPE_LABEL.GLD}</MenuItem>
                     <MenuItem value="ED">{DEVICE_TYPE_LABEL.ED}</MenuItem>
                     <MenuItem value="AC">{DEVICE_TYPE_LABEL.AC}</MenuItem>
@@ -619,13 +634,17 @@ const AddDevice = () => {
                     name="category"
                     onChange={handleChange}
                     MenuProps={menuProps}
-                    disabled={!hasManagePermission}
+                    disabled={!hasManagePermission || formData.deviceType === "WLD"}
                     sx={{ height: SELECT_HEIGHT, borderRadius: "0.375rem", backgroundColor: "#fff" }}
                   >
                     <MenuItem value="">Select Category</MenuItem>
                     <MenuItem value="monitoring">{CATEGORY_LABEL.monitoring}</MenuItem>
-                    <MenuItem value="scheduling">{CATEGORY_LABEL.scheduling}</MenuItem>
-                    <MenuItem value="trigger">{CATEGORY_LABEL.trigger}</MenuItem>
+                    {formData.deviceType !== "WLD" && (
+                      <MenuItem value="scheduling">{CATEGORY_LABEL.scheduling}</MenuItem>
+                    )}
+                    {formData.deviceType !== "WLD" && (
+                      <MenuItem value="trigger">{CATEGORY_LABEL.trigger}</MenuItem>
+                    )}
                   </Select>
                 </FormControl>
               </div>
@@ -766,9 +785,9 @@ const AddDevice = () => {
                     value={cond.operator}
                     onChange={(e) => handleConditionChange(idx, "operator", e.target.value)}
                     className="w-full pl-3 pr-3 py-2 rounded-md bg-white border border-gray-300 text-gray-700 text-sm"
-                    disabled={cond.type === "voltage" || cond.type === "current"}
+                    disabled={cond.type === "voltage" || cond.type === "current" || cond.type === "waterLeak"}
                   >
-                    {cond.type === "voltage" || cond.type === "current" ? (
+                    {cond.type === "voltage" || cond.type === "current" || cond.type === "waterLeak" ? (
                       <option value="=">=</option>
                     ) : (
                       <>
@@ -782,13 +801,23 @@ const AddDevice = () => {
                 <div className="relative flex-[0.6] sm:flex-[1]">
                   <input
                     type="number"
-                    placeholder={cond.type === "temperature" ? "25" : cond.type === "AQI" ? "50" : "50"}
+                    placeholder={
+                      cond.type === "temperature"
+                        ? "25"
+                        : cond.type === "smoke"
+                          ? "60"
+                          : cond.type === "waterLeak"
+                            ? "1"
+                          : cond.type === "AQI"
+                            ? "50"
+                            : "50"
+                    }
                     value={cond.value}
                     onChange={(e) => handleConditionChange(idx, "value", e.target.value)}
                     className="w-full pl-3 pr-10 py-2 rounded-md bg-white border border-gray-300 text-gray-700 text-sm"
                   />
                   <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 text-xs">
-                    {CONDITION_UNIT[cond.type] ?? ""}
+                    {conditionUnitFor(formData.deviceType, cond.type)}
                   </span>
                 </div>
               </div>

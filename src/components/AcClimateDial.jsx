@@ -66,7 +66,7 @@ export default function AcClimateDial({
   const settingsLoading = busyMap[deviceId] === "settings";
   const disabled = !isOnline || settingsLoading || !ac;
 
-  const temp = Number(ac?.setTemperature ?? 24);
+  const temp = Number(ac?.setTemperature ?? 26);
   const locked = !!ac?.acLocked;
   const mode = ac?.acMode || "Cool";
   const fan = ac?.fanSpeed || "Low";

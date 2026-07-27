@@ -17,6 +17,7 @@ import {
 import DeviceSkeleton from "./DeviceSkeleton";
 import AQIDeviceCard from "./AQIDeviceCard";
 import SmokeDeviceCard from "./SmokeDeviceCard";
+import WaterLeakageDeviceCard from "./WaterLeakageDeviceCard";
 import TemperatureHumidityDeviceCard from "./TemperatureHumidityDeviceCard";
 import OdourDeviceCard from "./OdourDeviceCard";
 import GasLeakageDeviceCard from "./GasLeakageDeviceCard";
@@ -452,7 +453,18 @@ export default function Dashboard() {
                     espHumidity:      liveData.humidity ?? device?.espHumidity,
                     espOdour:         liveData.odour ?? device?.espOdour,
                     espAQI:           liveData.AQI ?? device?.espAQI,
-                    espSmoke:         liveData.smoke ?? device?.espSmoke,
+                    espSmokePct:
+                      liveData.smokePct ??
+                      device?.espSmokePct ??
+                      (typeof liveData.smoke === "number" ? liveData.smoke : null),
+                    espSmoke:
+                      liveData.smokeDetected ??
+                      (typeof liveData.smoke === "boolean" ? liveData.smoke : undefined) ??
+                      device?.espSmoke,
+                    espWaterLeak:
+                      typeof liveData.waterLeak === "boolean"
+                        ? liveData.waterLeak
+                        : device?.espWaterLeak,
                     espGL:            liveData.gass ?? device?.espGL,
                     espVoltage:       liveData.voltage ?? device?.espVoltage,
                     espCurrent:       liveData.current ?? device?.espCurrent,
@@ -462,6 +474,7 @@ export default function Dashboard() {
                     odourAlert:       liveData.alerts?.some(a => a.type === 'odour') ?? device?.odourAlert,
                     aqiAlert:         liveData.alerts?.some(a => a.type === 'AQI') ?? device?.aqiAlert,
                     smokeAlert:       liveData.alerts?.some(a => a.type === 'smoke') ?? device?.smokeAlert,
+                    waterLeakAlert:   liveData.alerts?.some(a => a.type === 'waterLeak') ?? device?.waterLeakAlert,
                     glAlert:          liveData.alerts?.some(a => a.type === 'gass') ?? device?.glAlert,
                     isOnline:         isOnline,
                     lastUpdateISO:    liveData.lastUpdateISO ?? device?.lastUpdateTime,
@@ -615,6 +628,14 @@ export default function Dashboard() {
                         />
                       );
 
+                    case "WLD":
+                      return (
+                        <WaterLeakageDeviceCard
+                          key={idKey}
+                          {...commonProps}
+                        />
+                      );
+
                     case "THD":
                       return (
                         <TemperatureHumidityDeviceCard
@@ -715,7 +736,18 @@ export default function Dashboard() {
           espHumidity: liveData.humidity ?? selectedDevice?.espHumidity,
           espOdour: liveData.odour ?? selectedDevice?.espOdour,
           espAQI: liveData.AQI ?? selectedDevice?.espAQI,
-          espSmoke: liveData.smoke ?? selectedDevice?.espSmoke,
+          espSmokePct:
+            liveData.smokePct ??
+            selectedDevice?.espSmokePct ??
+            (typeof liveData.smoke === "number" ? liveData.smoke : null),
+          espSmoke:
+            liveData.smokeDetected ??
+            (typeof liveData.smoke === "boolean" ? liveData.smoke : undefined) ??
+            selectedDevice?.espSmoke,
+          espWaterLeak:
+            typeof liveData.waterLeak === "boolean"
+              ? liveData.waterLeak
+              : selectedDevice?.espWaterLeak,
           espGL: liveData.gass ?? selectedDevice?.espGL,
           espVoltage: liveData.voltage ?? selectedDevice?.espVoltage,
           espCurrent: liveData.espCurrent ?? liveData.current ?? selectedDevice?.espCurrent,
@@ -727,6 +759,7 @@ export default function Dashboard() {
           voltageAlert: liveData.alerts?.some(a => a.type === 'voltage') ?? selectedDevice?.voltageAlert,
           aqiAlert: liveData.alerts?.some(a => a.type === 'AQI') ?? selectedDevice?.aqiAlert,
           smokeAlert: liveData.alerts?.some(a => a.type === 'smoke') ?? selectedDevice?.smokeAlert,
+          waterLeakAlert: liveData.alerts?.some(a => a.type === 'waterLeak') ?? selectedDevice?.waterLeakAlert,
           glAlert: liveData.alerts?.some(a => a.type === 'gass') ?? selectedDevice?.glAlert,
           triggeredAlerts: liveData.triggeredAlerts ?? [],
           batteryLow: selectedDevice?.batteryLow ?? selectedDevice?.batteryAlert ?? false,

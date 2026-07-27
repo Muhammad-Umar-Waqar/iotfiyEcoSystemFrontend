@@ -22,6 +22,7 @@ const DEVICE_TYPE_LABEL = {
   THD: "Temperature/Humidity",
   AQID: "Air Quality",
   SMD: "Smoke Device",
+  WLD: "Water Leakage",
   GLD: "Gas Leakage",
   ED: "Energy Device",
   AC: "AC Device",
@@ -32,6 +33,7 @@ const DEVICE_TYPE_LABEL_SHORT = {
   THD: "Temp/Hum",
   AQID: "AQI",
   SMD: "Smoke",
+  WLD: "Water",
   GLD: "Gas",
   ED: "Energy",
   AC: "AC",
@@ -42,6 +44,7 @@ const DEVICE_TYPE_COLOR = {
   THD: "primary",
   AQID: "success",
   SMD: "error",
+  WLD: "info",
   GLD: "error",
   ED: "secondary",
   AC: "info",
@@ -329,7 +332,7 @@ const DeviceList = ({ onDeviceSelect, selectedDevice }) => {
             </tr>
           </thead>
           <tbody>
-            {devicesLoading && <TableSkeleton rows={5} />}
+            {devicesLoading && <TableSkeleton rows={5} variant="device" />}
 
             {!devicesLoading && !selectedVenue && (
               <tr>

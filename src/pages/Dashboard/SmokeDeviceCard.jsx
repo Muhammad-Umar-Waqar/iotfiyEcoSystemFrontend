@@ -3,7 +3,7 @@ import React, { useMemo, useState } from "react";
 import GaugeContainer from "../../components/gauge/GaugeContainer";
 import PropTypes from "prop-types";
 import "../../styles/pages/Dashboard/dashboard-styles.css";
-import { CalendarDays, TimerIcon, CirclePlus, CalendarClock } from "lucide-react";
+import { CalendarDays, TimerIcon, CirclePlus, CalendarClock, Flame } from "lucide-react";
 import PowerToggle from "../../components/PowerToggle";
 import Swal from "sweetalert2";
 import { useScheduler } from "../../contexts/SchedulerContext";
@@ -11,49 +11,52 @@ import TruncatedText from "../../components/TruncatedText";
 import { resolveAlertState } from "../../utils/triggerAlertUtils";
 import { handleCreateEventPlusClick } from "../../utils/schedulingCardUtils";
 
-function getAQIStatus(aqi) {
-  if (aqi === null || aqi === undefined || Number.isNaN(Number(aqi))) {
-    return { label: "Unknown", color: "bg-gray-200", textColor: "text-gray-800" };
+/** Smoke % level — matches GaugeContainer SMOKE_SEGMENTS */
+function getSmokeLevelStatus(pct) {
+  if (pct === null || pct === undefined || Number.isNaN(Number(pct))) {
+    return { label: "No Data", color: "bg-gray-200", textColor: "text-gray-800" };
   }
-  const v = Number(aqi);
-  if (v <= 50) return { label: "Good", color: "bg-emerald-200", textColor: "text-emerald-800" };
-  if (v <= 100) return { label: "Moderate", color: "bg-yellow-200", textColor: "text-yellow-800" };
-  if (v <= 150) return { label: "Sensitive", color: "bg-yellow-500", textColor: "text-yellow-900" };
-  if (v <= 200) return { label: "Unhealthy", color: "bg-rose-200", textColor: "text-rose-800" };
-  if (v <= 300) return { label: "Severe", color: "bg-pink-300", textColor: "text-pink-900" };
-  return { label: "Hazardous", color: "bg-violet-300", textColor: "text-violet-900" };
+  const n = Number(pct);
+  if (n <= 40) {
+    return { label: "Safe", color: "bg-emerald-200", textColor: "text-emerald-800" };
+  }
+  if (n <= 60) {
+    return { label: "Caution", color: "bg-amber-200", textColor: "text-amber-800" };
+  }
+  return { label: "Dangerous", color: "bg-rose-200", textColor: "text-rose-800" };
 }
 
-function isSmokeDetected(espSmoke) {
-  if (espSmoke === null || espSmoke === undefined) return false;
+function isSmokeDetected(espSmoke, smokeAlert) {
+  if (smokeAlert === true) return true;
+  if (espSmoke === true) return true;
+  if (espSmoke === false || smokeAlert === false) return false;
   if (typeof espSmoke === "boolean") return espSmoke;
   const n = Number(espSmoke);
-  if (Number.isFinite(n)) return n >= 1;
+  if (Number.isFinite(n) && (n === 0 || n === 1)) return n >= 1;
   return String(espSmoke).toLowerCase() === "detected" || String(espSmoke).toLowerCase() === "true";
 }
 
-function AqiValueDisplay({ aqi }) {
-  if (aqi !== null && !Number.isNaN(Number(aqi))) {
-    const [intPart, decPart = "0"] = Number(aqi).toFixed(1).split(".");
+function SmokePctDisplay({ pct }) {
+  if (pct !== null && !Number.isNaN(Number(pct))) {
+    const intPart = Math.round(Number(pct));
     return (
       <div className="flex items-end mb-2">
         <span className="text-3xl font-bold leading-none">{intPart}</span>
-        <span className="text-md font-bold leading-none">.{decPart}</span>
+        <span className="text-md font-bold leading-none text-gray-500 ml-0.5">%</span>
       </div>
     );
   }
   return <div className="text-3xl font-bold">--</div>;
 }
 
-function SmokeStatusRow({ detected, hasAlert }) {
+function SmokeStatusRow({ detected }) {
   return (
     <div className="flex items-center justify-start gap-4">
       <div className="flex flex-col items-start">
-        <div className="text-xs text-gray-500">Smoke</div>
+        <div className="text-xs text-gray-500">Status</div>
         <div className={`text-sm font-semibold ${detected ? "text-rose-600" : "text-emerald-700"}`}>
-          {detected ? "Detected" : "Not Detected"}
+          {detected ? "Smoke Detected" : "Not Detected"}
         </div>
-        {/* <p className={`h-2 w-[2.7rem] rounded-full mt-1 ${hasAlert || detected ? "bg-rose-300" : "bg-[#BAEACC]"}`} /> */}
       </div>
     </div>
   );
@@ -62,11 +65,10 @@ function SmokeStatusRow({ detected, hasAlert }) {
 export default function SmokeDeviceCard({
   deviceId,
   deviceName,
-  espAQI = null,
+  espSmokePct = null,
   espSmoke = null,
   isSelected = false,
   onCardSelect,
-  aqiAlert = false,
   smokeAlert = false,
   isOnline = false,
   lastUpdateISO = null,
@@ -77,10 +79,14 @@ export default function SmokeDeviceCard({
   triggeredAlerts = [],
   onCreateEventClick,
 }) {
-  const aqi = espAQI ?? null;
-  const aqiStatus = getAQIStatus(aqi);
-  const aqiDisplay = aqi !== null && !Number.isNaN(Number(aqi)) ? Number(aqi).toFixed(1) : "--";
-  const smokeDetected = isSmokeDetected(espSmoke);
+  const smokePct =
+    espSmokePct !== null && espSmokePct !== undefined && !Number.isNaN(Number(espSmokePct))
+      ? Number(espSmokePct)
+      : null;
+  const smokeDetected = isSmokeDetected(espSmoke, smokeAlert);
+  const smokeStatus = getSmokeLevelStatus(smokePct);
+  const smokePctDisplay =
+    smokePct !== null ? `${Math.round(smokePct)}%` : "--";
 
   const { triggerDevice, triggerDeviceManual, toggleMap } = useScheduler();
   const toggleState = deviceState?.toLowerCase() || toggleMap?.[deviceId] || "off";
@@ -100,8 +106,9 @@ export default function SmokeDeviceCard({
     category === "scheduling" ? !!wsRunningEvent || !isOnline :
     false;
 
-  const effectiveAqiAlert = resolveAlertState(category, triggeredAlerts, "AQI", aqiAlert);
-  const effectiveSmokeAlert = resolveAlertState(category, triggeredAlerts, "smoke", smokeAlert);
+  const effectiveSmokeAlert =
+    resolveAlertState(category, triggeredAlerts, "smoke", smokeAlert) ||
+    smokeDetected;
 
   const handleToggleClick = async (e) => {
     e.stopPropagation();
@@ -302,26 +309,48 @@ export default function SmokeDeviceCard({
             />
           </div>
 
-          <div className="flex items-center justify-center gap-5 bg-[#E5EBE4] rounded-l-2xl px-2 py-1">
-            <img src="/windy-icon-greed.svg" alt="Windy Icon" className="scale-x-[] w-[3rem] h-[1.5rem]" />
+          <div
+            className={`flex items-center justify-center gap-3 rounded-l-2xl px-2 py-1 ${
+              effectiveSmokeAlert ? "bg-[#FDECEC]" : "bg-[#E5EBE4]"
+            }`}
+          >
+            <Flame
+              className={`w-7 h-7 shrink-0 ${
+                effectiveSmokeAlert ? "text-rose-500" : "text-emerald-600"
+              }`}
+              fill="currentColor"
+              strokeWidth={0}
+              aria-hidden
+            />
             <div className="flex flex-col items-end justify-center">
-              <p className="text-xs font-normal">AQI</p>
-              <p className="text-lg font-bold">{aqiDisplay}</p>
+              <p className="text-xs font-normal">Smoke %</p>
+              <p className="text-lg font-bold">{smokePctDisplay}</p>
             </div>
           </div>
         </div>
       ) : (
-        <img src="/windy-icon-greed.svg" alt="Windy Icon" />
+        <div
+          className={`flex items-center justify-center rounded-2xl px-3 py-2 ${
+            effectiveSmokeAlert ? "bg-rose-100" : "bg-[#E5EBE4]"
+          }`}
+        >
+          <Flame
+            className={`w-11 h-11 ${
+              effectiveSmokeAlert ? "text-rose-500" : "text-emerald-600"
+            }`}
+            fill="currentColor"
+            strokeWidth={0}
+            aria-label="Smoke"
+          />
+        </div>
       )}
 
       <div className={`flex flex-col items-center justify-center ${category === "scheduling" ? "pr-2" : ""}`}>
-        <GaugeContainer value={aqi ?? 0} min={0} max={500} />
-        <p className={`${aqiStatus.color} ${aqiStatus.textColor} rounded-2xl px-2 text-sm font-semibold py-1 mt-2`}>
-          {aqiStatus.label}
+        <GaugeContainer value={smokePct ?? 0} min={0} max={100} variant="smoke" />
+        <p className={`${smokeStatus.color} ${smokeStatus.textColor} rounded-2xl px-2 text-sm font-semibold py-1 mt-2`}>
+          {smokeStatus.label}
         </p>
-        {(effectiveAqiAlert || effectiveSmokeAlert) && (
-          <p className="text-[10px] text-rose-500 font-semibold mt-1">Alert</p>
-        )}
+       
       </div>
     </div>
   );
@@ -337,21 +366,16 @@ export default function SmokeDeviceCard({
             {deviceIdHeader}
           </div>
 
-       {
-        category !== "scheduling" && (
-          <div className="flex items-center justify-between">
-            <div className="border-b-2 border-gray-300 w-full">
-              <div className="text-sm text-gray-500">AQI</div>
-              <AqiValueDisplay aqi={aqi} />
+          {category !== "scheduling" && (
+            <div className="flex items-center justify-between">
+              <div className="border-b-2 border-gray-300 w-full">
+                <div className="text-sm text-gray-500">Smoke %</div>
+                <SmokePctDisplay pct={smokePct} />
+              </div>
             </div>
-          </div>
-        )
-       }
+          )}
 
-          <SmokeStatusRow
-            detected={smokeDetected}
-            hasAlert={!!effectiveSmokeAlert}
-          />
+          <SmokeStatusRow detected={smokeDetected || !!effectiveSmokeAlert} />
 
           {schedulingFooter}
         </div>
@@ -365,13 +389,12 @@ export default function SmokeDeviceCard({
 SmokeDeviceCard.propTypes = {
   deviceId: PropTypes.string,
   deviceName: PropTypes.string,
-  espAQI: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  espSmokePct: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   espSmoke: PropTypes.oneOfType([PropTypes.number, PropTypes.string, PropTypes.bool]),
   isSelected: PropTypes.bool,
   onCardSelect: PropTypes.func,
   isOnline: PropTypes.bool,
   lastUpdateISO: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  aqiAlert: PropTypes.bool,
   smokeAlert: PropTypes.bool,
   category: PropTypes.string,
   onRefreshScheduler: PropTypes.func,

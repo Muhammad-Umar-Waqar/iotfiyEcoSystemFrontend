@@ -650,6 +650,7 @@ const ALERT_TYPES = [
   { key: "humidity", label: "Humidity Alert", short: "Humidity", icon: "/humidity-alert.svg", color: "#3B82F6", unit: "%" },
   { key: "AQI", label: "AQI Alert", short: "AQI", icon: "/windy-icon-greed.svg", color: "#8B5CF6", unit: "" },
   { key: "smoke", label: "Smoke Alert", short: "Smoke", icon: "/alert-icon.png", color: "#DC2626", unit: "" },
+  { key: "waterLeak", label: "Water Leak Alert", short: "Water", icon: "/alert-icon.png", color: "#0EA5E9", unit: "" },
   { key: "gass", label: "Gas Leakage Alert", short: "Gas", icon: "/alert-icon.png", color: "#EAB308", unit: "%" },
 ];
 
@@ -1060,6 +1061,7 @@ export default function AlertsPanel({
       odour: [],
       AQI: [],
       smoke: [],
+      waterLeak: [],
       gass: [],
     };
 
@@ -1137,6 +1139,12 @@ export default function AlertsPanel({
         title: "Smoke Alert",
         icon: "/alert-icon.png",
         items: groupByVenue(alertsByType.smoke || []),
+      },
+      {
+        key: "waterLeak",
+        title: "Water Leak Alert",
+        icon: "/alert-icon.png",
+        items: groupByVenue(alertsByType.waterLeak || []),
       },
       {
         key: "gass",

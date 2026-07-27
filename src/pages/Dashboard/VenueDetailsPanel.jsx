@@ -152,12 +152,15 @@ export default function VenueDetailsPanel({
   voltageAlert = false,
   aqiAlert = false,
   smokeAlert = false,
+  waterLeakAlert = false,
   glAlert = false,
   triggeredAlerts = [],
   deviceId = "",
   espOdour = 0,
   espAQI = null,
+  espSmokePct = null,
   espSmoke = null,
+  espWaterLeak = null,
   espGL = null,
   lastUpdateTime = null,
   espVoltage = null,
@@ -470,6 +473,10 @@ export default function VenueDetailsPanel({
   const displayHumidity = toInt(espHumidity);
   const displayOdour = toInt(espOdour);
   const displayAQI = espAQI === null || espAQI === undefined ? null : toInt(espAQI);
+  const displaySmokePct =
+    espSmokePct !== null && espSmokePct !== undefined && Number.isFinite(Number(espSmokePct))
+      ? Number(espSmokePct)
+      : null;
   const displayGL = espGL === null || espGL === undefined ? null : toInt(espGL);
   const isED = String(deviceType) === "ED";
 
@@ -536,6 +543,9 @@ export default function VenueDetailsPanel({
     );
     const effectiveSmokeAlert = resolveAlertState(
       category, triggeredAlerts, "smoke", smokeAlert
+    );
+    const effectiveWaterLeakAlert = resolveAlertState(
+      category, triggeredAlerts, "waterLeak", waterLeakAlert
     );
     const effectiveGlAlert = resolveAlertState(
       category, triggeredAlerts, "gass", glAlert
@@ -613,28 +623,49 @@ export default function VenueDetailsPanel({
     }
     if (String(deviceType) === "SMD") {
       const smokeDetected =
+        !!effectiveSmokeAlert ||
         espSmoke === true ||
         Number(espSmoke) >= 1 ||
         String(espSmoke).toLowerCase() === "detected";
       return [
         {
-          key: "aqi",
-          label: "AQI",
-          unit: "",
-          value: displayAQI ?? "--",
+          key: "smokePct",
+          label: "Smoke %",
+          unit: "%",
+          value: displaySmokePct !== null ? Math.round(displaySmokePct) : "--",
           img: null,
-          lucideIcon: <MetricIcon Icon={CloudIcon} tone="violet" size="sm" />,
-          alertFlag: !!effectiveAqiAlert,
+          lucideIcon: <MetricIcon Icon={LocalFireDepartmentIcon} tone="rose" size="sm" />,
+          alertFlag: smokeDetected,
           color: "red",
         },
         {
           key: "smoke",
-          label: "Smoke",
+          label: "Status",
           unit: "",
-          value: smokeDetected ? "Detected" : "Not Det.",
+          value: smokeDetected ? "Smoke Detected" : "Not Detected",
           img: null,
-          lucideIcon: <MetricIcon Icon={LocalFireDepartmentIcon} tone="rose" size="sm" />,
+          lucideIcon: <MetricIcon Icon={LocalFireDepartmentIcon} tone={smokeDetected ? "rose" : "teal"} size="sm" />,
           alertFlag: !!effectiveSmokeAlert || smokeDetected,
+          color: "red",
+        },
+      ];
+    }
+    if (String(deviceType) === "WLD") {
+      const leakDetected =
+        !!effectiveWaterLeakAlert ||
+        espWaterLeak === true ||
+        Number(espWaterLeak) >= 1 ||
+        String(espWaterLeak).toLowerCase() === "true" ||
+        String(espWaterLeak).toLowerCase() === "detected";
+      return [
+        {
+          key: "waterLeak",
+          label: "Status",
+          unit: "",
+          value: leakDetected ? "Water Leak Detected" : "Not Detected",
+          img: null,
+          lucideIcon: <MetricIcon Icon={WaterDropIcon} tone={leakDetected ? "rose" : "teal"} size="sm" />,
+          alertFlag: leakDetected,
           color: "red",
         },
       ];
@@ -757,6 +788,9 @@ export default function VenueDetailsPanel({
     if (displayHumidity !== null && displayHumidity !== undefined) snapshot.humidity = Number(displayHumidity);
     if (displayOdour !== null && displayOdour !== undefined) snapshot.odour = Number(displayOdour);
     if (displayAQI !== null && displayAQI !== undefined) snapshot.aqi = Number(displayAQI);
+    if (displaySmokePct !== null && displaySmokePct !== undefined) {
+      snapshot.smokePct = Number(displaySmokePct);
+    }
     if (displayGL !== null && displayGL !== undefined) snapshot.gas = Number(displayGL);
     if (espVoltage !== null && espVoltage !== undefined && Number.isFinite(Number(espVoltage))) {
       snapshot.voltage = Number(espVoltage);
@@ -793,6 +827,7 @@ export default function VenueDetailsPanel({
     displayHumidity,
     displayOdour,
     displayAQI,
+    displaySmokePct,
     displayGL,
     espVoltage,
     espPower,
