@@ -3,7 +3,7 @@ import React, { useMemo, useState } from "react";
 import GaugeContainer from "../../components/gauge/GaugeContainer";
 import PropTypes from "prop-types";
 import "../../styles/pages/Dashboard/dashboard-styles.css";
-import { CalendarDays, TimerIcon, CirclePlus, CalendarClock, Flame } from "lucide-react";
+import { CalendarDays, TimerIcon, CirclePlus, CalendarClock, Flame, ShieldCheck, CircleAlert } from "lucide-react";
 import PowerToggle from "../../components/PowerToggle";
 import Swal from "sweetalert2";
 import { useScheduler } from "../../contexts/SchedulerContext";
@@ -50,8 +50,19 @@ function SmokePctDisplay({ pct }) {
 }
 
 function SmokeStatusRow({ detected }) {
+  const StatusIcon = detected ? CircleAlert : ShieldCheck;
+
   return (
-    <div className="flex items-center justify-start gap-4">
+    <div className="flex items-center justify-start gap-3">
+      {/* Status icon */}
+      <div
+        className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100"
+      >
+        <StatusIcon
+          className="h-4 w-4 text-slate-500"
+          aria-hidden
+        />
+      </div>
       <div className="flex flex-col items-start">
         <div className="text-xs text-gray-500">Status</div>
         <div className={`text-sm font-semibold ${detected ? "text-rose-600" : "text-emerald-700"}`}>
