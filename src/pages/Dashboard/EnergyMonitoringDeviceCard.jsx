@@ -102,6 +102,36 @@ function TempHumidityVoltageAlerts({
   );
 }
 
+function formatPowerLabel(calculatedPower) {
+  const power = formatPower(calculatedPower);
+  if (!power) return "--";
+  const decimals = power.decPart ? `.${power.decPart}` : "";
+  return `${power.intPart}${decimals}${power.unit}`;
+}
+
+/** Shown when ED has no temperature/humidity conditions configured. */
+function VoltagePowerAmpereMetrics({ voltage, calculatedPower, ampereDisplay, voltageAlert }) {
+  return (
+    <div className="flex items-center justify-start gap-3">
+      <MetricAlertItem
+        label="Voltage"
+        value={`${voltage ?? "--"}V`}
+        hasAlert={voltageAlert}
+      />
+      <MetricAlertItem
+        label="Power"
+        value={formatPowerLabel(calculatedPower)}
+        hasAlert={false}
+      />
+      <MetricAlertItem
+        label="Ampere"
+        value={`${ampereDisplay}A`}
+        hasAlert={false}
+      />
+    </div>
+  );
+}
+
 function AmperePill({ value }) {
   return (
     <div className="flex items-center justify-center gap-3 bg-[#E5EBE4] rounded-l-2xl px-2 py-1">
@@ -201,6 +231,8 @@ const EnergyMonitoringDeviceCard = React.memo(function EnergyMonitoringDeviceCar
   temperatureAlert,
   humidityAlert,
   voltageAlert = false,
+  /** true when device was created with temperature + humidity conditions */
+  hasTempHumidity = true,
   category = "monitoring",
   onRefreshScheduler,
   deviceState = "OFF",
@@ -212,8 +244,12 @@ const EnergyMonitoringDeviceCard = React.memo(function EnergyMonitoringDeviceCar
   const toggleState = deviceState?.toLowerCase() || toggleMap?.[deviceId] || "off";
   const [loading, setLoading] = useState(false);
 
-  const effectiveTemperatureAlert = resolveAlertState(category, triggeredAlerts, "temperature", temperatureAlert);
-  const effectiveHumidityAlert = resolveAlertState(category, triggeredAlerts, "humidity", humidityAlert);
+  const effectiveTemperatureAlert = hasTempHumidity
+    ? resolveAlertState(category, triggeredAlerts, "temperature", temperatureAlert)
+    : false;
+  const effectiveHumidityAlert = hasTempHumidity
+    ? resolveAlertState(category, triggeredAlerts, "humidity", humidityAlert)
+    : false;
   const effectiveVoltageAlert = resolveAlertState(category, triggeredAlerts, "voltage", voltageAlert);
 
   // Prefer live ESP voltage; if ESP never sent it, use configure-condition voltage from device creation.
@@ -348,8 +384,7 @@ const EnergyMonitoringDeviceCard = React.memo(function EnergyMonitoringDeviceCar
   const displayStart = wsEvent?.startTime ? formatTime(wsEvent.startTime) : "--";
   const displayDuration = wsDuration || (wsEvent?.duration ?? "--");
   const displayEventType = wsEventType && wsEventType !== "NO_EVENT" ? wsEventType : "--";
-  const hasScheduleEvent =
-    Boolean(wsEvent) && wsEventType !== "NO_EVENT" && displayEventType !== "--";
+  const hasScheduleEvent = Boolean(wsEvent) && wsEventType !== "NO_EVENT" && displayEventType !== "--";
 
   const calculatedPower = useMemo(() => {
     const v = Number(displayVoltage);
@@ -426,15 +461,28 @@ const EnergyMonitoringDeviceCard = React.memo(function EnergyMonitoringDeviceCar
           </div>
 
           <div className="flex justify-between items-center">
-            <div className="w-[260px]">
-              <PowerRangeMeter value={espTemprature !== null ? Math.round(espTemprature) : 0} />
-            </div>
-            <TempHumidityAlerts
-              espTemprature={espTemprature}
-              espHumidity={espHumidity}
-              temperatureAlert={effectiveTemperatureAlert}
-              humidityAlert={effectiveHumidityAlert}
-            />
+            {hasTempHumidity ? (
+              <>
+                <div className="w-[260px]">
+                  <PowerRangeMeter value={espTemprature !== null ? Math.round(espTemprature) : 0} />
+                </div>
+                <TempHumidityAlerts
+                  espTemprature={espTemprature}
+                  espHumidity={espHumidity}
+                  temperatureAlert={effectiveTemperatureAlert}
+                  humidityAlert={effectiveHumidityAlert}
+                />
+              </>
+            ) : (
+              <div className="flex justify-around w-full">
+                <VoltagePowerAmpereMetrics
+                  voltage={displayVoltage}
+                  calculatedPower={calculatedPower}
+                  ampereDisplay={ampereDisplay}
+                  voltageAlert={effectiveVoltageAlert}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -466,15 +514,28 @@ const EnergyMonitoringDeviceCard = React.memo(function EnergyMonitoringDeviceCar
           </div>
 
           <div className="flex justify-between items-center pr-4">
-            <div className="w-[260px]">
-              <PowerRangeMeter value={espTemprature !== null ? Math.round(espTemprature) : 0} />
-            </div>
-            <TempHumidityAlerts
-              espTemprature={espTemprature}
-              espHumidity={espHumidity}
-              temperatureAlert={effectiveTemperatureAlert}
-              humidityAlert={effectiveHumidityAlert}
-            />
+            {hasTempHumidity ? (
+              <>
+                <div className="w-[260px]">
+                  <PowerRangeMeter value={espTemprature !== null ? Math.round(espTemprature) : 0} />
+                </div>
+                <TempHumidityAlerts
+                  espTemprature={espTemprature}
+                  espHumidity={espHumidity}
+                  temperatureAlert={effectiveTemperatureAlert}
+                  humidityAlert={effectiveHumidityAlert}
+                />
+              </>
+            ) : (
+              <div className="flex justify-around w-full">
+                <VoltagePowerAmpereMetrics
+                  voltage={displayVoltage}
+                  calculatedPower={calculatedPower}
+                  ampereDisplay={ampereDisplay}
+                  voltageAlert={effectiveVoltageAlert}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -501,14 +562,23 @@ const EnergyMonitoringDeviceCard = React.memo(function EnergyMonitoringDeviceCar
 </div>
 
         <div className="flex justify-around w-full">
-          <TempHumidityVoltageAlerts
-            espTemprature={espTemprature}
-            espHumidity={espHumidity}
-            espVoltage={displayVoltage}
-            temperatureAlert={effectiveTemperatureAlert}
-            humidityAlert={effectiveHumidityAlert}
-            voltageAlert={effectiveVoltageAlert}
-          />
+          {hasTempHumidity ? (
+            <TempHumidityVoltageAlerts
+              espTemprature={espTemprature}
+              espHumidity={espHumidity}
+              espVoltage={displayVoltage}
+              temperatureAlert={effectiveTemperatureAlert}
+              humidityAlert={effectiveHumidityAlert}
+              voltageAlert={effectiveVoltageAlert}
+            />
+          ) : (
+            <VoltagePowerAmpereMetrics
+              voltage={displayVoltage}
+              calculatedPower={calculatedPower}
+              ampereDisplay={ampereDisplay}
+              voltageAlert={effectiveVoltageAlert}
+            />
+          )}
         </div>
       </div>
 

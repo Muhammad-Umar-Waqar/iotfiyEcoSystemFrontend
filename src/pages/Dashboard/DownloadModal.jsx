@@ -410,8 +410,8 @@ export default function DownloadModal({
       <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-1 py-2">
         <DialogTitle sx={{ fontWeight: 700, color: "grey.900", pb: 0.5 }}>
           Export data
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            View and download sensor history for the selected date range.
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontSize: "0.7rem" }}>
+            View & download sensor history.
           </Typography>
         </DialogTitle>
         <img
@@ -638,7 +638,7 @@ export default function DownloadModal({
         )}
 
         <Box mt={2.5}>
-          <Box
+          {/* <Box
             display="flex"
             alignItems="center"
             justifyContent="space-between"
@@ -655,10 +655,42 @@ export default function DownloadModal({
                 size="small"
                 color="primary"
                 sx={{ fontSize: "0.7rem" }}
+                
               />
             )}
-          </Box>
+          </Box> */}
 
+{/* <Box
+  display="flex"
+  alignItems="center"
+  justifyContent="space-between"
+  gap={1}
+  flexWrap="nowrap"
+  mb={1.25}
+> */}
+<div className="flex items-center gap-1 flex-wrap mb-1.25">
+  
+  <Typography
+    variant="subtitle2"
+    sx={{
+      fontWeight: 700,
+      mb: 0, // remove bottom margin
+    }}
+  >
+    Results ({rows.length})
+  </Typography>
+
+  {intervalEnabled && intervalSuffix && rows.length > 0 && (
+    <Chip
+      label={`Grouped every ${intervalLabel} · mean`}
+      size="small"
+      color="primary"
+      sx={{ fontSize: "0.7rem" }}
+    />
+  )}
+  
+</div>
+{/* </Box> */}
           <Box
             sx={{
               maxHeight: 360,

@@ -166,6 +166,7 @@ export default function VenueDetailsPanel({
   espVoltage = null,
   espCurrent = null,
   espPower = null,
+  hasTempHumidity = true,
   isOnline = true,
   deviceState = "OFF", // NEW: WebSocket state
   scheduleData = null, // NEW: WebSocket schedule data for eventId
@@ -511,6 +512,25 @@ export default function VenueDetailsPanel({
 
   const lastUpdateDisplay = formatLastUpdate(lastUpdateTime);
 
+  function formatPowerDisplay(espPower, espVoltage, espCurrent) {
+    const power = Number(espPower);
+    const fallbackWatts =
+      Number.isFinite(Number(espVoltage)) && Number.isFinite(Number(espCurrent))
+        ? Number(espVoltage) * Number(espCurrent)
+        : null;
+    const watts = Number.isFinite(power) ? power : fallbackWatts;
+    if (!Number.isFinite(watts)) return "--";
+    if (watts >= 1000) return `${(watts / 1000).toFixed(2)} kW`;
+    return `${watts.toFixed(1)} W`;
+  }
+
+  function formatCurrentDisplay(current) {
+    if (current === null || current === undefined || current === "") return "--";
+    const n = Number(current);
+    if (!Number.isFinite(n)) return "--";
+    return parseFloat(n.toFixed(2)).toString();
+  }
+
   function formatUnitValue(espPower, espVoltage, espCurrent) {
     const power = Number(espPower);
     const fallbackWatts = Number.isFinite(Number(espVoltage)) && Number.isFinite(Number(espCurrent))
@@ -571,9 +591,46 @@ export default function VenueDetailsPanel({
 
     if (String(deviceType) === "ED") {
       // Alert badges for ED (same as EnergyMonitoringDeviceCard)
+      if (hasTempHumidity) {
+        return [
+          tempMetric,
+          humMetric,
+          {
+            key: "voltage",
+            label: "Voltage",
+            unit: "V",
+            value:
+              espVoltage !== null && espVoltage !== undefined
+                ? +Number(espVoltage).toFixed(1)
+                : "--",
+            img: null,
+            lucideIcon: <MetricIcon Icon={PowerIcon} tone="violet" size="sm" />,
+            alertFlag: !!effectiveVoltageAlert,
+            color: "red",
+          },
+        ];
+      }
       return [
-        tempMetric,
-        humMetric,
+        {
+          key: "current",
+          label: "Current",
+          unit: "A",
+          value: formatCurrentDisplay(espCurrent),
+          img: null,
+          lucideIcon: <MetricIcon Icon={BoltIcon} tone="amber" size="sm" />,
+          alertFlag: false,
+          color: "green",
+        },
+        {
+          key: "power",
+          label: "Power",
+          unit: "",
+          value: formatPowerDisplay(espPower, espVoltage, espCurrent),
+          img: null,
+          lucideIcon: <MetricIcon Icon={BoltIcon} tone="amber" size="sm" />,
+          alertFlag: false,
+          color: "green",
+        },
         {
           key: "voltage",
           label: "Voltage",
@@ -724,38 +781,71 @@ export default function VenueDetailsPanel({
   console.log("acHealthAlert", acHealthAlert);
 
   const emdExtraMetrics = isED
-    ? [
-        {
-          key: "unit",
-          label: "Unit",
-          unit: "",
-          value: formatUnitValue(espPower, espVoltage, espCurrent),
-          img: null,
-          lucideIcon: <MetricIcon Icon={SpeedIcon} tone="blue"  />,
-          alertFlag: false,
-          color: "green",
-        },
-        {
-          key: "temperature",
-          label: "Temperature",
-          unit: "°C",
-          value: displayTemp !== null ? displayTemp : "--",
-          img: null,
-          lucideIcon: <MetricIcon Icon={DeviceThermostatIcon} tone="blue" />,
-          alertFlag: false,
-          color: "green",
-        },
-        {
-          key: "humidity",
-          label: "Humidity",
-          unit: "%",
-          value: displayHumidity !== null ? displayHumidity : "--",
-          img: null,
-          lucideIcon: <MetricIcon Icon={WaterDropIcon} tone="blue"  />,
-          alertFlag: false,
-          color: "green",
-        },
-      ]
+    ? hasTempHumidity
+      ? [
+          {
+            key: "unit",
+            label: "Unit",
+            unit: "",
+            value: formatUnitValue(espPower, espVoltage, espCurrent),
+            img: null,
+            lucideIcon: <MetricIcon Icon={SpeedIcon} tone="blue"  />,
+            alertFlag: false,
+            color: "green",
+          },
+          {
+            key: "temperature",
+            label: "Temperature",
+            unit: "°C",
+            value: displayTemp !== null ? displayTemp : "--",
+            img: null,
+            lucideIcon: <MetricIcon Icon={DeviceThermostatIcon} tone="blue" />,
+            alertFlag: false,
+            color: "green",
+          },
+          {
+            key: "humidity",
+            label: "Humidity",
+            unit: "%",
+            value: displayHumidity !== null ? displayHumidity : "--",
+            img: null,
+            lucideIcon: <MetricIcon Icon={WaterDropIcon} tone="blue"  />,
+            alertFlag: false,
+            color: "green",
+          },
+        ]
+      : [
+          {
+            key: "unit",
+            label: "Unit",
+            unit: "",
+            value: formatUnitValue(espPower, espVoltage, espCurrent),
+            img: null,
+            lucideIcon: <MetricIcon Icon={SpeedIcon} tone="blue"  />,
+            alertFlag: false,
+            color: "green",
+          },
+          {
+            key: "current",
+            label: "Current",
+            unit: "A",
+            value: formatCurrentDisplay(espCurrent),
+            img: null,
+            lucideIcon: <MetricIcon Icon={BoltIcon} tone="amber" />,
+            alertFlag: false,
+            color: "green",
+          },
+          {
+            key: "power",
+            label: "Power",
+            unit: "",
+            value: formatPowerDisplay(espPower, espVoltage, espCurrent),
+            img: null,
+            lucideIcon: <MetricIcon Icon={BoltIcon} tone="amber" />,
+            alertFlag: false,
+            color: "green",
+          },
+        ]
     : [];
 
   const statusText = (flag) => (flag ? "Alert Detected" : "Not Detected");
@@ -795,7 +885,17 @@ export default function VenueDetailsPanel({
     if (espVoltage !== null && espVoltage !== undefined && Number.isFinite(Number(espVoltage))) {
       snapshot.voltage = Number(espVoltage);
     }
-    const powerVal = isAc ? (ac?.espPower ?? espPower) : espPower;
+    if (espCurrent !== null && espCurrent !== undefined && Number.isFinite(Number(espCurrent))) {
+      snapshot.current = Number(espCurrent);
+    }
+    const powerVal = isAc ? (ac?.espPower ?? espPower) : (() => {
+      const p = Number(espPower);
+      if (Number.isFinite(p)) return p;
+      if (Number.isFinite(Number(espVoltage)) && Number.isFinite(Number(espCurrent))) {
+        return Number(espVoltage) * Number(espCurrent);
+      }
+      return null;
+    })();
     if (powerVal != null && Number.isFinite(Number(powerVal))) snapshot.power = Number(powerVal);
     const energyVal = isAc ? (ac?.espEnergy ?? espEnergy) : espEnergy;
     if (energyVal != null && Number.isFinite(Number(energyVal))) {
@@ -830,6 +930,7 @@ export default function VenueDetailsPanel({
     displaySmokePct,
     displayGL,
     espVoltage,
+    espCurrent,
     espPower,
     espEnergy,
     isAc,

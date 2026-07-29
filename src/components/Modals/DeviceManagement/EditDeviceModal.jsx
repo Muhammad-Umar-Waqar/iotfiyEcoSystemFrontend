@@ -34,7 +34,19 @@ const DEVICE_CONDITIONS_MAP = {
   SMD: ["smoke"],
   WLD: [],
   GLD: ["temperature", "humidity", "gass"],
+  // UI still shows temp/humidity; only voltage+current are required (see REQUIRED_CONDITIONS_MAP)
   ED: ["temperature", "humidity", "voltage", "current"],
+  AC: [],
+};
+
+const REQUIRED_CONDITIONS_MAP = {
+  OD: ["temperature", "humidity", "odour"],
+  THD: ["temperature", "humidity"],
+  AQID: ["temperature", "humidity", "AQI"],
+  SMD: ["smoke"],
+  WLD: [],
+  GLD: ["temperature", "humidity", "gass"],
+  ED: ["voltage", "current"],
   AC: [],
 };
 
@@ -395,7 +407,7 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
 
       const filtered = payloadConditions.filter((c) => c.type && c.operator && c.value !== "");
 
-      const requiredTypes = DEVICE_CONDITIONS_MAP[formData.deviceType] || [];
+      const requiredTypes = REQUIRED_CONDITIONS_MAP[formData.deviceType] || [];
       const providedTypes = filtered.map((c) => c.type);
       for (const t of requiredTypes) {
         if (!providedTypes.includes(t)) {
@@ -791,7 +803,9 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
                     type="number"
                     placeholder={
                       cond.type === "temperature"
-                        ? "25"
+                        ? formData.deviceType === "ED" ? "optional" : "25"
+                        : cond.type === "humidity" && formData.deviceType === "ED"
+                          ? "optional"
                         : cond.type === "smoke"
                           ? "60"
                           : cond.type === "waterLeak"

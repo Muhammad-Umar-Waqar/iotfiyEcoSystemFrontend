@@ -39,6 +39,17 @@ function getConfiguredVoltage(conditions) {
   return Number.isFinite(n) ? n : null;
 }
 
+/** ED shows temp/humidity UI only when both conditions were saved at device creation. */
+function hasEdTempHumidityConditions(conditions) {
+  const list = Array.isArray(conditions) ? conditions : [];
+  const hasValue = (type) => {
+    const raw = list.find((c) => c?.type === type)?.value;
+    if (raw === undefined || raw === null || raw === "") return false;
+    return Number.isFinite(Number(raw));
+  };
+  return hasValue("temperature") && hasValue("humidity");
+}
+
 export default function Dashboard() {
   const dispatch = useDispatch();
   const location = useLocation();
@@ -505,6 +516,7 @@ export default function Dashboard() {
                     espGL:            liveData.gass ?? device?.espGL,
                     espVoltage:       liveData.voltage ?? device?.espVoltage,
                     configuredVoltage: getConfiguredVoltage(device?.conditions),
+                    hasTempHumidity:  hasEdTempHumidityConditions(device?.conditions),
                     espCurrent:       liveData.current ?? device?.espCurrent,
                     temperatureAlert: liveData.alerts?.some(a => a.type === 'temperature') ?? device?.temperatureAlert,
                     humidityAlert:    liveData.alerts?.some(a => a.type === 'humidity') ?? device?.humidityAlert,
@@ -794,6 +806,7 @@ export default function Dashboard() {
             }
             return getConfiguredVoltage(selectedDevice?.conditions);
           })(),
+          hasTempHumidity: hasEdTempHumidityConditions(selectedDevice?.conditions),
           espCurrent: liveData.espCurrent ?? liveData.current ?? selectedDevice?.espCurrent,
           espPower: liveData.espPower ?? selectedDevice?.espPower,
           espEnergy: liveData.espEnergy ?? selectedDevice?.espEnergy,
