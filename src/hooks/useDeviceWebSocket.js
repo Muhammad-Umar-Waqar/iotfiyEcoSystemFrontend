@@ -164,15 +164,34 @@ export const useDeviceWebSocket = (devices = []) => {
 
       // NEW: Add listener for schedule events
       socket.on(scheduleChannel, (scheduleData) => {
-        // console.log(`📅📅📅 [WEBSOCKET SCHEDULE] Device: ${deviceId}`);
-        console.log(`📅📅📅 [WEBSOCKET SCHEDULE] Raw data:`, scheduleData);
-        // console.log(`📅📅📅 [WEBSOCKET SCHEDULE] Type:`, scheduleData?.type);
-        // console.log(`📅📅📅 [WEBSOCKET SCHEDULE] Event:`, scheduleData?.event);
+        console.log(
+          `%c[SCHEDULE-WS] RECV ${deviceId}`,
+          "color:#0ea5e9;font-weight:bold",
+          {
+            channel: scheduleChannel,
+            type: scheduleData?.type,
+            eventId: scheduleData?.event?._id,
+            start: scheduleData?.event?.startTime,
+            end: scheduleData?.event?.endTime,
+            deviceStatus: scheduleData?.deviceStatus,
+            raw: scheduleData,
+          }
+        );
 
-        setDeviceScheduleMap(prev => ({
-          ...prev,
-          [deviceId]: scheduleData // { type: "CURRENT" | "NEXT" | "NO_EVENT", event: {...} }
-        }));
+        setDeviceScheduleMap(prev => {
+          const next = {
+            ...prev,
+            [deviceId]: scheduleData,
+          };
+          console.log(
+            `%c[SCHEDULE-WS] MAP KEYS`,
+            "color:#0369a1",
+            Object.keys(next),
+            `| ${deviceId} =>`,
+            next[deviceId]?.type
+          );
+          return next;
+        });
       });
 
       console.log(`🔔 Subscribed to: ${channel}, ${scheduleChannel}`);
@@ -186,10 +205,28 @@ export const useDeviceWebSocket = (devices = []) => {
       scheduleFallbackTriedRef.current.add(deviceId);
 
       fetchCurrentOrNextSchedule(deviceId).then((scheduleData) => {
+        console.log(
+          `%c[SCHEDULE-DEBUG][API-FALLBACK] ${deviceId}`,
+          "color:#a855f7;font-weight:bold",
+          scheduleData
+            ? {
+                type: scheduleData?.type,
+                eventId: scheduleData?.event?._id,
+                start: scheduleData?.event?.startTime,
+                end: scheduleData?.event?.endTime,
+              }
+            : "null (route missing / 404 / no data)"
+        );
         if (!scheduleData) return;
         setDeviceScheduleMap((prev) => {
           // Socket already filled this device — keep websocket as source of truth
-          if (prev[deviceId]) return prev;
+          if (prev[deviceId]) {
+            console.log(
+              `[SCHEDULE-DEBUG][API-FALLBACK] skip ${deviceId} — WS already has:`,
+              prev[deviceId]?.type
+            );
+            return prev;
+          }
           return { ...prev, [deviceId]: scheduleData };
         });
       });

@@ -127,6 +127,42 @@ const AcDeviceCard = ({
     effectiveSchedule?.type === "CURRENT" && !!effectiveSchedule?.event;
   const powerLocked = !isOnline || hasCurrentEvent;
 
+  console.log(
+    `%c[SCHEDULE-DEBUG][AC CARD] ${deviceId}`,
+    "color:#ef4444;font-weight:bold",
+    {
+      scheduleDataType: scheduleData?.type ?? "(null)",
+      scheduleEventId: scheduleData?.event?._id ?? null,
+      apiFallbackType: apiScheduleData?.type ?? "(null)",
+      apiEventId: apiScheduleData?.event?._id ?? null,
+      effectiveType: effectiveSchedule?.type ?? "(null)",
+      hasCurrentEvent,
+      powerLocked,
+      isOnline,
+      state: ac.state,
+    }
+  );
+
+  console.log(
+    `%c[AC-CARD ${deviceId}] schedule debug`,
+    "color:#16a34a;font-weight:bold",
+    {
+      wsSchedule: scheduleData
+        ? { type: scheduleData.type, eventId: scheduleData.event?._id }
+        : null,
+      apiSchedule: apiScheduleData
+        ? { type: apiScheduleData.type, eventId: apiScheduleData.event?._id }
+        : null,
+      effective: effectiveSchedule
+        ? { type: effectiveSchedule.type, eventId: effectiveSchedule.event?._id }
+        : null,
+      hasCurrentEvent,
+      powerLocked,
+      isOnline,
+      state: displayState,
+    }
+  );
+
   const healthAlert =
     ac.acHealthAlert ||
     (Array.isArray(alerts) && alerts.some((a) => a.type === "acHealth"));

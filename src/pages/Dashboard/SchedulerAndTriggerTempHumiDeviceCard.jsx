@@ -258,6 +258,31 @@ const SchedulerAndTriggerTempHumiDeviceCard = React.memo(function SchedulerDevic
     return null;
   }, [scheduleData, category]);
 
+  // DEBUG: compare what AC uses (ws || api) vs what THD modal uses (ws only)
+  const effectiveLikeAc = scheduleData || apiScheduleData;
+  const wouldAcShowCurrent =
+    effectiveLikeAc?.type === "CURRENT" && !!effectiveLikeAc?.event;
+
+  console.log(
+    `%c[THD-CARD ${deviceId}] schedule debug`,
+    "color:#ea580c;font-weight:bold",
+    {
+      category,
+      wsSchedule: scheduleData
+        ? { type: scheduleData.type, eventId: scheduleData.event?._id }
+        : null,
+      apiSchedule: apiScheduleData
+        ? { type: apiScheduleData.type, eventId: apiScheduleData.event?._id }
+        : null,
+      wsRunningEventId: wsRunningEvent?._id || null,
+      // If this is true but wsRunningEvent is null → THD ignores apiSchedule (unlike AC)
+      wouldAcShowCurrent,
+      modalWouldOpen: !!wsRunningEvent,
+      isOnline,
+      deviceState: toggleState,
+    }
+  );
+
   // ✅ For display purposes: Get events from context (fallback when WebSocket not available)
   const runningEvent = useMemo(() => {
     const result = getCurrentRunningEvent(displayEvents);
@@ -528,9 +553,22 @@ const SchedulerAndTriggerTempHumiDeviceCard = React.memo(function SchedulerDevic
   const hasScheduleEvent =
     Boolean(finalEvent) && finalEventType !== "NO_EVENT" && displayEventType !== "--";
 
-  console.log(`📅 [SchedulerDeviceCard ${deviceId}] WebSocket schedule:`, scheduleData);
-  console.log(`📅 [SchedulerDeviceCard ${deviceId}] API fallback schedule:`, apiScheduleData);
-  console.log(`📅 [SchedulerDeviceCard ${deviceId}] Final display - Start: ${displayStart}, Duration: ${displayDuration}, Type: ${displayEventType}`);
+  console.log(
+    `%c[SCHEDULE-DEBUG][THD CARD] ${deviceId}`,
+    "color:#f59e0b;font-weight:bold",
+    {
+      category,
+      scheduleDataType: scheduleData?.type ?? "(null)",
+      scheduleEventId: scheduleData?.event?._id ?? null,
+      apiFallbackType: apiScheduleData?.type ?? "(null)",
+      apiEventId: apiScheduleData?.event?._id ?? null,
+      wsRunningEventId: wsRunningEvent?._id ?? null,
+      hasScheduleEvent,
+      displayEventType,
+      isOnline,
+      deviceState: toggleState,
+    }
+  );
 
   if (category === "trigger") {
     

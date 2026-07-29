@@ -76,6 +76,35 @@ export default function Dashboard() {
   console.log('📶 Device Online Map:', deviceOnlineMap);
   console.log('📅 Device Schedule Map:', deviceScheduleMap);
 
+  // Compact schedule debug: only scheduling devices (AC + THD + others)
+  useEffect(() => {
+    const rows = freezerDevices
+      .filter((d) => d.category === "scheduling" || d.deviceType === "AC")
+      .map((d) => {
+        const id = d.deviceId;
+        const s = deviceScheduleMap[id];
+        return {
+          deviceId: id,
+          name: d.deviceName,
+          type: d.deviceType,
+          scheduleType: s?.type ?? "(empty — no WS/API yet)",
+          eventId: s?.event?._id ?? null,
+          window: s?.event
+            ? `${s.event.startTime}→${s.event.endTime}`
+            : null,
+          online: deviceOnlineMap[id] ?? false,
+          liveState: deviceDataMap[id]?.state ?? null,
+        };
+      });
+    if (rows.length) {
+      console.log(
+        "%c[SCHEDULE-DEBUG][PAGE MAP]",
+        "color:#16a34a;font-weight:bold",
+        rows
+      );
+    }
+  }, [freezerDevices, deviceScheduleMap, deviceOnlineMap, deviceDataMap]);
+
   // ── MOUNT: hydrate local state from context ───────────────────────────────
   useEffect(() => {
     if (ctxOrg?.id) {
