@@ -421,6 +421,19 @@ const EventModal = ({ open, onClose, onSave, deviceType = null }) => {
     "& .MuiInputLabel-root.Mui-focused": { color: "#3B82F6" },
   };
 
+  // Event modal is z-[1400]; MUI picker default (~1300) opens behind it.
+  const timePickerSlotProps = {
+    popper: {
+      sx: { zIndex: 1600 },
+    },
+    desktopPaper: {
+      sx: { zIndex: 1600 },
+    },
+    dialog: {
+      sx: { zIndex: 1600 },
+    },
+  };
+
   return createPortal(
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       {/* Backdrop — portaled to body so it centers on the viewport, not VenueDetailsPanel */}
@@ -466,6 +479,7 @@ const EventModal = ({ open, onClose, onSave, deviceType = null }) => {
                   onChange={setStart}
                   ampm={true}
                   sx={timePickerSx}
+                  slotProps={timePickerSlotProps}
                 />
                 <div className="text-slate-300 font-light text-lg flex-shrink-0">→</div>
                 <TimePicker
@@ -474,6 +488,7 @@ const EventModal = ({ open, onClose, onSave, deviceType = null }) => {
                   onChange={setEnd}
                   ampm={true}
                   sx={timePickerSx}
+                  slotProps={timePickerSlotProps}
                 />
               </div>
             </div>

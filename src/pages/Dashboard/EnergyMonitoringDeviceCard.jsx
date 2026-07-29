@@ -167,8 +167,8 @@ function PowerDisplay({ calculatedPower }) {
   const { intPart, decPart, unit } = power;
   return (
     <div className="flex items-end gap-x-2 mb-2">
-      <div className="flex flex-col items-center justify-center">
-        <div className="text-start text-sm text-gray-900">Power</div>
+      <div className="flex flex-col items-center justify-center gap-2">
+        <div className="text-start text-sm text-gray-700 font-semibold">Power</div>
         <img src="/power-icon.png" alt="Power" className="w-8" />
       </div>
       <div>

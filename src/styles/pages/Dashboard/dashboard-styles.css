@@ -417,3 +417,106 @@
     visibility: visible !important;
   }
 }
+
+/* Water Leakage card — subtle pipe / drip motion */
+@keyframes wld-pipe-drip {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  45% {
+    transform: translateY(3px);
+    opacity: 0.92;
+  }
+  70% {
+    transform: translateY(1px);
+    opacity: 1;
+  }
+}
+
+@keyframes wld-pipe-splash {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(2px) scale(1.06);
+  }
+}
+
+@keyframes wld-pipe-arc-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+
+@keyframes wld-pipe-flow {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateX(0);
+  }
+  50% {
+    opacity: 0.65;
+    transform: translateX(4px);
+  }
+}
+
+.wld-pipe-icon .wld-pipe-flow {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: wld-pipe-flow 2.8s ease-in-out infinite;
+}
+
+.wld-pipe-icon .wld-pipe-flow--late {
+  animation-delay: 0.45s;
+}
+
+.wld-pipe-icon--ok .wld-pipe-drop--calm {
+  transform-box: fill-box;
+  transform-origin: center top;
+  animation: wld-pipe-drip 2.4s ease-in-out infinite;
+}
+
+.wld-pipe-icon--ok .wld-pipe-arc--1 {
+  animation: wld-pipe-arc-pulse 2.6s ease-in-out infinite;
+}
+.wld-pipe-icon--ok .wld-pipe-arc--2 {
+  animation: wld-pipe-arc-pulse 2.6s ease-in-out 0.25s infinite;
+}
+.wld-pipe-icon--ok .wld-pipe-arc--3 {
+  animation: wld-pipe-arc-pulse 2.6s ease-in-out 0.5s infinite;
+}
+
+.wld-pipe-icon--leak .wld-pipe-splash {
+  transform-box: fill-box;
+  transform-origin: center top;
+  animation: wld-pipe-splash 1.1s ease-in-out infinite;
+}
+
+.wld-pipe-icon--leak .wld-pipe-arc--1 {
+  animation: wld-pipe-arc-pulse 1.2s ease-in-out infinite;
+}
+.wld-pipe-icon--leak .wld-pipe-arc--2 {
+  animation: wld-pipe-arc-pulse 1.2s ease-in-out 0.15s infinite;
+}
+.wld-pipe-icon--leak .wld-pipe-arc--3 {
+  animation: wld-pipe-arc-pulse 1.2s ease-in-out 0.3s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wld-pipe-icon .wld-pipe-flow,
+  .wld-pipe-icon .wld-pipe-drop--calm,
+  .wld-pipe-icon .wld-pipe-splash,
+  .wld-pipe-icon .wld-pipe-arc--1,
+  .wld-pipe-icon .wld-pipe-arc--2,
+  .wld-pipe-icon .wld-pipe-arc--3 {
+    animation: none !important;
+  }
+}
+

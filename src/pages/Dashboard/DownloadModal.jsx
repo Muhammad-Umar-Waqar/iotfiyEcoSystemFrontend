@@ -20,7 +20,6 @@ import {
   MenuItem,
   InputLabel,
   FormControl,
-  InputAdornment,
   Divider,
   Tooltip,
   Chip,
@@ -32,78 +31,91 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
 
-import { InfluxDB } from "@influxdata/influxdb-client";
-
-// Maps user-friendly unit labels → Flux duration suffixes
 const UNIT_OPTIONS = [
   { label: "Minutes", value: "m" },
-  { label: "Hours",   value: "h" },
-  { label: "Days",    value: "d" },
+  { label: "Hours", value: "h" },
+  { label: "Days", value: "d" },
 ];
+
+/**
+ * UI field configs. Fields without Mongo data stay in the table (empty).
+ * `mongoKey` maps a display field onto a Mongo column when names differ.
+ */
+const DEVICE_FIELDS_CONFIG = {
+  OD: {
+    temperature: { label: "Temperature (°C)", unit: "°C" },
+    humidity: { label: "Humidity (%)", unit: "%" },
+    NH3: { label: "NH₃ (ppm)", unit: "ppm" },
+    H2S: { label: "H₂S (ppm)", unit: "ppm" },
+    odor: { label: "Odor (%)", unit: "%", mongoKey: "odour" },
+  },
+  GLD: {
+    leakage: { label: "Gas Leakage", unit: "boolean" },
+    gass: { label: "Gas Level", unit: "" },
+    temperature: { label: "Temperature (°C)", unit: "°C" },
+    humidity: { label: "Humidity (%)", unit: "%" },
+  },
+  GD: {
+    leakage: { label: "Gas Leakage", unit: "boolean" },
+    gass: { label: "Gas Level", unit: "" },
+    temperature: { label: "Temperature (°C)", unit: "°C" },
+    humidity: { label: "Humidity (%)", unit: "%" },
+  },
+  THD: {
+    temperature: { label: "Temperature (°C)", unit: "°C" },
+    humidity: { label: "Humidity (%)", unit: "%" },
+  },
+  TD: {
+    temperature: { label: "Temperature (°C)", unit: "°C" },
+    humidity: { label: "Humidity (%)", unit: "%" },
+  },
+  AQID: {
+    AQI: { label: "Air Quality Index", unit: "AQI" },
+    temperature: { label: "Temperature (°C)", unit: "°C" },
+    humidity: { label: "Humidity (%)", unit: "%" },
+    PM1: { label: "PM1.0 (ug/m³)", unit: "ug/m³" },
+    PM25: { label: "PM2.5 (ug/m³)", unit: "ug/m³" },
+    PM10: { label: "PM10 (ug/m³)", unit: "ug/m³" },
+    Status: { label: "Status", unit: "", computed: true },
+  },
+  SMD: {
+    smoke: { label: "Smoke (%)", unit: "%" },
+  },
+  WLD: {
+    waterLeak: { label: "Water Leak", unit: "" },
+  },
+  ED: {
+    voltage: { label: "Voltage (V)", unit: "V" },
+    current: { label: "Current (A)", unit: "A" },
+    power: { label: "Power (W)", unit: "W", computed: true },
+    humidity: { label: "Humidity (%)", unit: "%" },
+    temperature: { label: "Temperature (°C)", unit: "°C" },
+  },
+  AC: {
+    temperature: { label: "Set Temperature (°C)", unit: "°C" },
+    current: { label: "Current (A)", unit: "A" },
+    voltage: { label: "Power / Voltage", unit: "" },
+  },
+};
+
+const AVG_FIELDS = ["voltage", "current", "humidity", "temperature"];
 
 export default function DownloadModal({
   open,
   onClose,
   measurement = null,
-  bucket = import.meta.env.VITE_INFLUX_BUCKET,
+  deviceId = null,
   deviceType = "",
 }) {
-  const DEVICE_FIELDS_CONFIG = {
-    OD: {
-      temperature: { label: "Temperature (°C)", unit: "°C" },
-      humidity:    { label: "Humidity (%)",      unit: "%" },
-      NH3:         { label: "NH₃ (ppm)",         unit: "ppm" },
-      H2S:         { label: "H₂S (ppm)",         unit: "ppm" },
-      odor:        { label: "Odor (%)",           unit: "%" },
-    },
-    GD: {
-      leakage:     { label: "Gas Leakage",        unit: "boolean" },
-      temperature: { label: "Temperature (°C)",   unit: "°C" },
-      humidity:    { label: "Humidity (%)",        unit: "%" },
-    },
-    TD: {
-      temperature: { label: "Temperature (°C)",   unit: "°C" },
-      humidity:    { label: "Humidity (%)",        unit: "%" },
-    },
-    AQID: {
-      AQI:         { label: "Air Quality Index",  unit: "AQI" },
-      temperature: { label: "Temperature (°C)",   unit: "°C" },
-      humidity:    { label: "Humidity (%)",        unit: "%" },
-      PM1:         { label: "PM1.0 (ug/m³)",      unit: "ug/m³" },
-      PM25:        { label: "PM2.5 (ug/m³)",      unit: "ug/m³" },
-      PM10:        { label: "PM10 (ug/m³)",       unit: "ug/m³" },
-      Status:      { label: "Status",             unit: "", computed: true },
-    },
-    SMD: {
-      smoke:       { label: "Smoke (%)",          unit: "%" },
-    },
-    WLD: {
-      waterLeak:   { label: "Water Leak",         unit: "" },
-    },
-    ED: {
-      voltage:     { label: "Voltage (V)",        unit: "V" },
-      current:     { label: "Current (A)",        unit: "A" },
-      power:       { label: "Power (W)",          unit: "W",   computed: true },
-      humidity:    { label: "Humidity (%)",        unit: "%" },
-      temperature: { label: "Temperature (°C)",   unit: "°C" },
-    },
-  };
+  const resolvedDeviceId = deviceId || measurement;
+  const typeKey = String(deviceType || "").toUpperCase();
+  const fieldConfig = DEVICE_FIELDS_CONFIG[typeKey] || {};
+  const fields = Object.keys(fieldConfig);
+  const isED = typeKey === "ED";
 
-  const isED = String(deviceType) === "ED";
-
-  const fields = Object.keys(DEVICE_FIELDS_CONFIG[deviceType] || {});
-  const influxFields = fields.filter(
-    (f) => !DEVICE_FIELDS_CONFIG[deviceType]?.[f]?.computed
-  );
-
-  const SUM_FIELDS = ["power"];
-  const AVG_FIELDS = ["voltage", "current", "humidity", "temperature"];
-
-  // Helper: derive AQI status from numeric AQI value
   const getAQIStatus = (aqi) => {
     const n = Number(aqi);
     if (!Number.isFinite(n)) return "";
-
     if (n <= 50) return "Good";
     if (n <= 100) return "Moderate";
     if (n <= 150) return "Unhealthy (Sensitive)";
@@ -112,24 +124,18 @@ export default function DownloadModal({
     return "Hazardous";
   };
 
-  // ── State ──────────────────────────────────────────────────────────────────
-  const [startDate,     setStartDate]     = useState(null);
-  const [endDate,       setEndDate]       = useState(null);
-  const [singleDay,     setSingleDay]     = useState(false);
-  const [loading,       setLoading]       = useState(false);
-  const [rows,          setRows]          = useState([]);
-  const [error,         setError]         = useState("");
-  const [totalUnits,    setTotalUnits]    = useState(null);
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+  const [singleDay, setSingleDay] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [rows, setRows] = useState([]);
+  const [error, setError] = useState("");
+  const [totalUnits, setTotalUnits] = useState(null);
 
-  const [intervalValue,   setIntervalValue]   = useState("");
-  const [intervalUnit,    setIntervalUnit]    = useState("h");
+  const [intervalValue, setIntervalValue] = useState("");
+  const [intervalUnit, setIntervalUnit] = useState("h");
   const [intervalEnabled, setIntervalEnabled] = useState(false);
 
-  const influxUrl   = import.meta.env.VITE_INFLUX_URL;
-  const influxToken = import.meta.env.VITE_INFLUX_TOKEN;
-  const influxOrg   = import.meta.env.VITE_INFLUX_ORG;
-
-  // Reset when modal opens
   useEffect(() => {
     if (open) {
       setSingleDay(true);
@@ -144,14 +150,7 @@ export default function DownloadModal({
     }
   }, [open]);
 
-  const getDateFrom = (d) => {
-    if (!d) return null;
-    if (typeof d === "object" && typeof d.toDate === "function") return d.toDate();
-    return new Date(d);
-  };
-
-  // ── Interval validation helper ─────────────────────────────────────────────
-  const intervalFluxSuffix = useMemo(() => {
+  const intervalSuffix = useMemo(() => {
     if (!intervalEnabled) return null;
     const n = parseInt(intervalValue, 10);
     if (!Number.isInteger(n) || n <= 0) return null;
@@ -159,87 +158,42 @@ export default function DownloadModal({
   }, [intervalEnabled, intervalValue, intervalUnit]);
 
   const intervalLabel = useMemo(() => {
-    if (!intervalFluxSuffix) return null;
+    if (!intervalSuffix) return null;
     const unitObj = UNIT_OPTIONS.find((u) => u.value === intervalUnit);
     return `${intervalValue} ${unitObj?.label ?? intervalUnit}`;
-  }, [intervalFluxSuffix, intervalValue, intervalUnit]);
+  }, [intervalSuffix, intervalValue, intervalUnit]);
 
-  // ── InfluxDB queries ───────────────────────────────────────────────────────
-  const queryInflux = async (startISO, endISO) => {
-    if (!influxUrl || !influxToken || !influxOrg) {
-      throw new Error("Influx env vars are not set (VITE_INFLUX_URL/TOKEN/ORG).");
-    }
-
-    const client   = new InfluxDB({ url: influxUrl, token: influxToken });
-    const queryApi = client.getQueryApi(influxOrg);
-
-    const fieldFilter = influxFields
-      .map((f) => `r._field == "${f}"`)
-      .join(" or ");
-
-    const aggLine = intervalFluxSuffix
-      ? `|> aggregateWindow(every: ${intervalFluxSuffix}, fn: mean, createEmpty: false)`
-      : "";
-
-    const flux = `
-from(bucket: "${bucket}")
-  |> range(start: time(v: "${startISO}"), stop: time(v: "${endISO}"))
-  |> filter(fn: (r) => r._measurement == "${measurement}" and (${fieldFilter}))
-  ${aggLine}
-  |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
-  |> keep(columns: ["_time", ${influxFields.map((f) => `"${f}"`).join(", ")}])
-  |> sort(columns: ["_time"])
-`;
-
-    return await queryApi.collectRows(flux);
+  const formatCell = (field, value) => {
+    if (value === undefined || value === null || value === "") return "";
+    if (field === "waterLeak") return value === true || value === 1 ? "Leak" : "OK";
+    if (field === "leakage") return value === true || value === 1 ? "Yes" : value === false || value === 0 ? "No" : "";
+    return value;
   };
 
-  const queryEnergy = async (startISO, endISO) => {
-    if (!influxUrl || !influxToken || !influxOrg) {
-      throw new Error("Influx env vars are not set (VITE_INFLUX_URL/TOKEN/ORG).");
-    }
-
-    const client   = new InfluxDB({ url: influxUrl, token: influxToken });
-    const queryApi = client.getQueryApi(influxOrg);
-
-    const flux = `
-from(bucket: "${bucket}")
-  |> range(start: time(v: "${startISO}"), stop: time(v: "${endISO}"))
-  |> filter(fn: (r) =>
-    r._measurement == "${measurement}" and
-    (r._field == "voltage" or r._field == "current")
-  )
-  |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
-  |> map(fn: (r) => ({
-    r with
-    _value: float(v: r.voltage) * float(v: r.current)
-  }))
-  |> integral(unit: 1h)
-`;
-
-    const rows = await queryApi.collectRows(flux);
-    if (!rows.length) return 0;
-    return +(rows[0]._value / 1000).toFixed(4);
-  };
-
-  // ── Fetch handler ──────────────────────────────────────────────────────────
   const handleFetch = async () => {
     setError("");
     setRows([]);
     setTotalUnits(null);
 
-    if (!startDate) { setError("Please select a start date."); return; }
+    if (!resolvedDeviceId) {
+      setError("Device id is missing.");
+      return;
+    }
+    if (!startDate) {
+      setError("Please select a start date.");
+      return;
+    }
 
-    // Always derive from local-time dayjs — toISOString() then correctly
-    // converts local midnight / local end-of-day into UTC for the query.
     const startDayjs = dayjs(startDate).startOf("day");
-    let   endDayjs;
-
+    let endDayjs;
     if (!singleDay) {
-      if (!endDate) { setError("Please select an end date or toggle Single Day."); return; }
-      endDayjs = dayjs(endDate).endOf("day");   // local 23:59:59.999 → UTC
+      if (!endDate) {
+        setError("Please select an end date or toggle Single Day.");
+        return;
+      }
+      endDayjs = dayjs(endDate).endOf("day");
     } else {
-      endDayjs = dayjs(startDate).endOf("day"); // same day, local 23:59:59.999 → UTC
+      endDayjs = dayjs(startDate).endOf("day");
     }
 
     if (intervalEnabled) {
@@ -250,43 +204,81 @@ from(bucket: "${bucket}")
       }
     }
 
+    const apiBase = import.meta.env.VITE_API_URL;
+    if (!apiBase) {
+      setError("VITE_API_URL is not set.");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("You must be logged in to download data.");
+      return;
+    }
+
     setLoading(true);
     try {
-      const startISO = startDayjs.toISOString();
-      const endISO   = endDayjs.toISOString();
+      const params = new URLSearchParams({
+        start: startDayjs.toISOString(),
+        end: endDayjs.toISOString(),
+      });
+      if (intervalEnabled && intervalSuffix) {
+        params.set("intervalValue", String(intervalValue));
+        params.set("intervalUnit", intervalUnit);
+      }
 
-      const [data, energy] = await Promise.all([
-        queryInflux(startISO, endISO),
-        isED ? queryEnergy(startISO, endISO) : Promise.resolve(null),
-      ]);
+      const res = await fetch(
+        `${apiBase}/device/${encodeURIComponent(resolvedDeviceId)}/sensor-download?${params}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.success) {
+        throw new Error(json.message || `Request failed (${res.status})`);
+      }
 
-      setTotalUnits(energy);
+      setTotalUnits(json.totalUnits ?? null);
 
-      const normalized = data.map((r) => {
-        const base = {
-          time: r._time,
-          ...influxFields.reduce((acc, f) => {
-            const value = r[f];
-            if (value !== undefined && value !== null && value !== "") {
-              const num = Number(value);
-              // Format numeric values to 2 decimal places
-              acc[f] = Number.isFinite(num) ? +num.toFixed(2) : value;
+      const mongoRows = Array.isArray(json.rows) ? json.rows : [];
+      const normalized = mongoRows.map((r) => {
+        const base = { time: r.time };
+
+        for (const f of fields) {
+          const cfg = fieldConfig[f];
+          if (cfg?.computed) continue;
+
+          const mongoKey = cfg?.mongoKey || f;
+          let value = r[mongoKey];
+          // Fallback: odor/odour either way
+          if ((value === undefined || value === null) && f === "odor") value = r.odour;
+          if ((value === undefined || value === null) && mongoKey === "odour") value = r.odor;
+
+          if (value !== undefined && value !== null && value !== "") {
+            if (typeof value === "boolean") {
+              base[f] = value;
             } else {
-              acc[f] = "";
+              const num = Number(value);
+              base[f] = Number.isFinite(num) ? +num.toFixed(2) : value;
             }
-            return acc;
-          }, {}),
-        };
+          } else {
+            base[f] = "";
+          }
+        }
 
-        if (deviceType === "AQID") {
-          base.Status = getAQIStatus(base.AQI);
+        if (typeKey === "AQID") {
+          base.Status = getAQIStatus(base.AQI ?? r.AQI);
         }
 
         if (isED) {
-          const v  = Number(r.voltage);
-          const c  = Number(r.current);
-          const pw = Number.isFinite(v) && Number.isFinite(c) ? v * c : null;
-          base.power = pw !== null ? +pw.toFixed(2) : "";
+          if (r.power != null && r.power !== "") {
+            base.power = Number(r.power);
+          } else {
+            const v = Number(r.voltage);
+            const c = Number(r.current);
+            base.power =
+              Number.isFinite(v) && Number.isFinite(c) ? +(v * c).toFixed(2) : "";
+          }
         }
 
         return base;
@@ -302,7 +294,6 @@ from(bucket: "${bucket}")
     }
   };
 
-  // ── Summary (ED footer) ───────────────────────────────────────────────────
   const summary = useMemo(() => {
     if (!rows.length || !isED) return null;
     const result = {};
@@ -323,32 +314,33 @@ from(bucket: "${bucket}")
     return result;
   }, [rows, totalUnits, isED]);
 
-  // ── CSV download ───────────────────────────────────────────────────────────
   const downloadCsv = () => {
-    if (!rows.length) { setError("No data to download. Fetch data first."); return; }
+    if (!rows.length) {
+      setError("No data to download. Fetch data first.");
+      return;
+    }
 
-    // FIX: dayjs(v) parses the UTC timestamp and formats in the browser's LOCAL
-    // timezone — so Pakistani users see PKT (UTC+5), not raw UTC strings.
     const formatTimeForCSV = (v) =>
       v ? dayjs(v).format("YYYY-MM-DD HH:mm:ss") : "";
 
     const escape = (v) => `"${String(v).replace(/"/g, '""')}"`;
-
-    const intervalHeader = intervalEnabled && intervalFluxSuffix ? ["Interval"] : [];
+    const intervalHeader = intervalEnabled && intervalSuffix ? ["Interval"] : [];
 
     const headerRow = [
       "Time (Local)",
       ...intervalHeader,
-      ...fields.map((f) => DEVICE_FIELDS_CONFIG[deviceType][f]?.label || f),
-    ].map(escape).join(",");
+      ...fields.map((f) => fieldConfig[f]?.label || f),
+    ]
+      .map(escape)
+      .join(",");
 
     const csvRows = [headerRow];
 
     for (const r of rows) {
       const line = [
         formatTimeForCSV(r.time),
-        ...(intervalEnabled && intervalFluxSuffix ? [intervalLabel] : []),
-        ...fields.map((f) => (r[f] === null || r[f] === undefined ? "" : r[f])),
+        ...(intervalEnabled && intervalSuffix ? [intervalLabel] : []),
+        ...fields.map((f) => formatCell(f, r[f])),
       ];
       csvRows.push(line.map(escape).join(","));
     }
@@ -356,7 +348,7 @@ from(bucket: "${bucket}")
     if (summary) {
       const summaryLine = [
         "SUMMARY",
-        ...(intervalEnabled && intervalFluxSuffix ? [""] : []),
+        ...(intervalEnabled && intervalSuffix ? [""] : []),
         ...fields.map((f, index) => {
           if (f === "power") return `Total: ${summary.power}`;
           if (AVG_FIELDS.includes(f)) return `Avg: ${summary[f]}`;
@@ -369,26 +361,26 @@ from(bucket: "${bucket}")
     }
 
     const csvBody = csvRows.join("\n");
-    const BOM     = "\uFEFF";
-    const blob    = new Blob([BOM + csvBody], { type: "text/csv;charset=utf-8;" });
-    const url     = URL.createObjectURL(blob);
-    const a       = document.createElement("a");
-    a.href        = url;
+    const BOM = "\uFEFF";
+    const blob = new Blob([BOM + csvBody], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
 
     const startPart = startDate ? dayjs(startDate).format("YYYY-MM-DD") : "start";
-    const endPart   = singleDay
+    const endPart = singleDay
       ? startPart
       : endDate
-      ? dayjs(endDate).format("YYYY-MM-DD")
-      : "end";
+        ? dayjs(endDate).format("YYYY-MM-DD")
+        : "end";
 
-    const intervalSuffix = intervalEnabled && intervalFluxSuffix ? `_every${intervalFluxSuffix}` : "";
-    a.download = `influx_${measurement}_${startPart}_to_${endPart}${intervalSuffix}.csv`;
+    const intervalFileSuffix =
+      intervalEnabled && intervalSuffix ? `_every${intervalSuffix}` : "";
+    a.download = `sensor_${resolvedDeviceId}_${startPart}_to_${endPart}${intervalFileSuffix}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
-  // ── Close handler ──────────────────────────────────────────────────────────
   const handleClose = () => {
     setRows([]);
     setError("");
@@ -402,170 +394,262 @@ from(bucket: "${bucket}")
     onClose?.();
   };
 
-  // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <Dialog open={!!open} onClose={handleClose} maxWidth="lg" fullWidth>
-      {/* Header */}
-      <div className="flex items-center justify-between py-2">
-        <DialogTitle sx={{ fontWeight: "bold", color: "grey.900" }}>
+    <Dialog
+      open={!!open}
+      onClose={handleClose}
+      maxWidth="lg"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 4,
+          overflow: "hidden",
+        },
+      }}
+    >
+      <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-1 py-2">
+        <DialogTitle sx={{ fontWeight: 700, color: "grey.900", pb: 0.5 }}>
           Export data
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            View and download sensor history for the selected date range.
+          </Typography>
         </DialogTitle>
         <img
           src="/logo-half.png"
           alt="IOTFIY Logo"
-          className="h-[3rem] md:h-[4rem] w-[5rem] md:w-[6rem] pr-5"
+          className="h-[3rem] md:h-[4rem] w-[5rem] md:w-[6rem] pr-5 opacity-90"
         />
       </div>
 
-      <DialogContent>
+      <DialogContent sx={{ px: { xs: 2, sm: 3 }, py: 3 }}>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-          {/* ── Row 1: date pickers + single day toggle ── */}
-          <Box display="flex" gap={2} alignItems="center" flexWrap="wrap" mb={2} mt={1}>
-            <DatePicker
-              label="Start date"
-              value={startDate}
-              onChange={(d) => {
-                const sd = d ? d.startOf("day") : null;
-                setStartDate(sd);
-                if (singleDay) setEndDate(sd);
+          <Box
+            sx={{
+              // border: "1px solid",
+              // borderColor: "divider",
+              // borderRadius: 3,
+              p: { xs: 1.5, sm: 2 },
+              // backgroundColor: "grey.50",
+              mb: 2,
+              mt: 1,
+            }}
+          >
+            <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 700 }}>
+              Date range
+            </Typography>
+            <Box
+              sx={{
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "center",
+                gap: 2,
               }}
-              renderInput={(params) => <TextField {...params} size="small" />}
-            />
-
-            <DatePicker
-              label="End date"
-              value={endDate}
-              onChange={(d) => setEndDate(d)}
-              disabled={singleDay}
-              renderInput={(params) => <TextField {...params} size="small" />}
-            />
-
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={singleDay}
-                  onChange={(e) => {
-                    const checked = e.target.checked;
-                    setSingleDay(checked);
-                    if (checked) {
-                      if (startDate) {
-                        setEndDate(
-                          startDate.startOf
-                            ? startDate.startOf("day")
-                            : dayjs(startDate).startOf("day")
-                        );
-                      } else {
-                        setEndDate(dayjs().startOf("day"));
-                        setStartDate(dayjs().startOf("day"));
-                      }
-                    }
+            >
+              <Box sx={{ minWidth: 210 }}>
+                <DatePicker
+                  label="Start date"
+                  value={startDate}
+                  onChange={(d) => {
+                    const sd = d ? d.startOf("day") : null;
+                    setStartDate(sd);
+                    if (singleDay) setEndDate(sd);
                   }}
+                  renderInput={(params) => <TextField {...params} size="small" fullWidth />}
                 />
-              }
-              label="Single day"
-            />
+              </Box>
+
+              <Box sx={{ minWidth: 210 }}>
+                <DatePicker
+                  label="End date"
+                  value={endDate}
+                  onChange={(d) => setEndDate(d)}
+                  disabled={singleDay}
+                  renderInput={(params) => <TextField {...params} size="small" fullWidth />}
+                />
+              </Box>
+
+              <Box sx={{ pl: 0.5 }}>
+                <FormControlLabel
+                  sx={{ m: 0 }}
+                  control={
+                    <Checkbox
+                      checked={singleDay}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setSingleDay(checked);
+                        if (checked) {
+                          if (startDate) {
+                            setEndDate(
+                              startDate.startOf
+                                ? startDate.startOf("day")
+                                : dayjs(startDate).startOf("day")
+                            );
+                          } else {
+                            setEndDate(dayjs().startOf("day"));
+                            setStartDate(dayjs().startOf("day"));
+                          }
+                        }
+                      }}
+                    />
+                  }
+                  label="Single day"
+                />
+              </Box>
+            </Box>
           </Box>
 
-          <Divider sx={{ mb: 2 }} />
+          <Divider sx={{ mb: 2.5 }} />
 
-          {/* ── Row 2: interval controls ── */}
-          <Box display="flex" gap={2} alignItems="center" flexWrap="wrap" mb={2}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={intervalEnabled}
-                  onChange={(e) => {
-                    setIntervalEnabled(e.target.checked);
-                    if (!e.target.checked) {
-                      setIntervalValue("");
-                      setIntervalUnit("h");
-                    }
-                  }}
-                />
-              }
-              label={
-                <Box display="flex" alignItems="center" gap={0.5}>
-                  <Typography variant="body2">Group by interval</Typography>
-                  <Tooltip
-                    title="Averages all readings within each time bucket. E.g. '1 Hour' on a single day returns 24 rows, each being the mean of that hour's data."
-                    placement="top"
-                    arrow
-                  >
-                    <InfoOutlinedIcon sx={{ fontSize: 16, color: "text.secondary", cursor: "help" }} />
-                  </Tooltip>
-                </Box>
-              }
-            />
-
-            {/* Number input */}
-            <TextField
-              label="Interval"
-              type="number"
-              size="small"
-              disabled={!intervalEnabled}
-              value={intervalValue}
-              onChange={(e) => {
-                const raw = e.target.value;
-                if (raw === "" || /^[1-9]\d*$/.test(raw)) setIntervalValue(raw);
+          <Box
+            sx={{
+              // border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 3,
+              p: { xs: 1.5, sm: 2 },
+              backgroundColor: "white",
+              mb: 1,
+            }}
+          >
+            <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 700 }}>
+              Grouping
+            </Typography>
+            <Box
+              sx={{
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "center",
+                gap: 2,
               }}
-              inputProps={{ min: 1, step: 1 }}
-              sx={{ width: 110 }}
-              placeholder="e.g. 1"
-            />
+            >
+              <Box sx={{ minWidth: 180 }}>
+                <FormControlLabel
+                  sx={{ m: 0 }}
+                  control={
+                    <Checkbox
+                      checked={intervalEnabled}
+                      onChange={(e) => {
+                        setIntervalEnabled(e.target.checked);
+                        if (!e.target.checked) {
+                          setIntervalValue("");
+                          setIntervalUnit("h");
+                        }
+                      }}
+                    />
+                  }
+                  label={
+                    <Box display="flex" alignItems="center" gap={0.5}>
+                      <Typography variant="body2">Group by interval</Typography>
+                      <Tooltip
+                        title="Averages all readings within each time bucket. E.g. '1 Hour' on a single day returns 24 rows, each being the mean of that hour's data."
+                        placement="top"
+                        arrow
+                      >
+                        <InfoOutlinedIcon
+                          sx={{ fontSize: 16, color: "text.secondary", cursor: "help" }}
+                        />
+                      </Tooltip>
+                    </Box>
+                  }
+                />
+              </Box>
 
-            {/* Unit dropdown */}
-            <FormControl size="small" disabled={!intervalEnabled} sx={{ minWidth: 120 }}>
-              <InputLabel>Unit</InputLabel>
-              <Select
-                label="Unit"
-                value={intervalUnit}
-                onChange={(e) => setIntervalUnit(e.target.value)}
+              <Box sx={{ minWidth: 110 }}>
+                <TextField
+                  label="Interval"
+                  type="number"
+                  size="small"
+                  disabled={!intervalEnabled}
+                  value={intervalValue}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    if (raw === "" || /^[1-9]\d*$/.test(raw)) setIntervalValue(raw);
+                  }}
+                  inputProps={{ min: 1, step: 1 }}
+                  sx={{ width: 110 }}
+                  placeholder="e.g. 1"
+                />
+              </Box>
+
+              <Box sx={{ minWidth: 130 }}>
+                <FormControl
+                  size="small"
+                  disabled={!intervalEnabled}
+                  sx={{ minWidth: 130 }}
+                >
+                  <InputLabel>Unit</InputLabel>
+                  <Select
+                    label="Unit"
+                    value={intervalUnit}
+                    onChange={(e) => setIntervalUnit(e.target.value)}
+                  >
+                    {UNIT_OPTIONS.map((opt) => (
+                      <MenuItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+
+              {intervalEnabled && intervalSuffix && (
+                <Chip
+                  label={`Avg per ${intervalLabel}`}
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                />
+              )}
+
+              {intervalEnabled && intervalValue && !intervalSuffix && (
+                <Typography variant="caption" color="error">
+                  Enter a valid positive integer.
+                </Typography>
+              )}
+
+              <Box flexGrow={1} />
+              <Button
+                variant="contained"
+                onClick={handleFetch}
+                disabled={loading}
+                sx={{ minWidth: 120, borderRadius: 3, px: 2.5 }}
               >
-                {UNIT_OPTIONS.map((opt) => (
-                  <MenuItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            {/* Live preview chip */}
-            {intervalEnabled && intervalFluxSuffix && (
-              <Chip
-                label={`Avg per ${intervalLabel}`}
-                size="small"
-                color="primary"
-                variant="outlined"
-              />
-            )}
-
-            {/* invalid interval warning */}
-            {intervalEnabled && intervalValue && !intervalFluxSuffix && (
-              <Typography variant="caption" color="error">
-                Enter a valid positive integer.
-              </Typography>
-            )}
-
-            <Box flexGrow={1} />
-            <Button variant="contained" onClick={handleFetch} disabled={loading}>
-              Show data
-            </Button>
+                Show data
+              </Button>
+            </Box>
           </Box>
         </LocalizationProvider>
 
         {error && (
-          <Typography color="error" variant="body2" mb={1}>
+          <Typography
+            color="error"
+            variant="body2"
+            sx={{
+              mb: 1.5,
+              mt: 0.5,
+              px: 1.5,
+              py: 1,
+              borderRadius: 2.5,
+              backgroundColor: "#fef2f2",
+              border: "1px solid #fecaca",
+            }}
+          >
             {error}
           </Typography>
         )}
 
-        {/* ── Results table ── */}
-        <Box mt={2}>
-          <Box display="flex" alignItems="center" gap={1} mb={1}>
-            <Typography variant="subtitle2">
+        <Box mt={2.5}>
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="space-between"
+            gap={1}
+            flexWrap="wrap"
+            mb={1.25}
+          >
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, marginBottom: 1 }}>
               Results ({rows.length})
             </Typography>
-            {intervalEnabled && intervalFluxSuffix && rows.length > 0 && (
+            {intervalEnabled && intervalSuffix && rows.length > 0 && (
               <Chip
                 label={`Grouped every ${intervalLabel} · mean`}
                 size="small"
@@ -578,16 +662,16 @@ from(bucket: "${bucket}")
           <Box
             sx={{
               maxHeight: 360,
-              minHeight: 120,
+              minHeight: 160,
               overflowY: "auto",
               border: 1,
               borderColor: "divider",
-              borderRadius: 1,
+              borderRadius: 3,
               position: "relative",
+              backgroundColor: "background.paper",
             }}
           >
             <Table stickyHeader size="small">
-              {/* Header */}
               <TableHead>
                 <TableRow>
                   <TableCell
@@ -599,17 +683,17 @@ from(bucket: "${bucket}")
                       zIndex: 2,
                     }}
                   >
-                    Time (Local)
-                    {intervalEnabled && intervalFluxSuffix && (
+                    Time
+                    {/* {intervalEnabled && intervalSuffix && (
                       <Typography
                         component="div"
                         variant="caption"
                         color="text.secondary"
                         sx={{ fontWeight: 400 }}
                       >
-                        (window end)
+                        (bucket start)
                       </Typography>
-                    )}
+                    )} */}
                   </TableCell>
                   {fields.map((f) => (
                     <TableCell
@@ -623,8 +707,8 @@ from(bucket: "${bucket}")
                         zIndex: 2,
                       }}
                     >
-                      {DEVICE_FIELDS_CONFIG[deviceType][f]?.label || f}
-                      {intervalEnabled && intervalFluxSuffix && (
+                      {fieldConfig[f]?.label || f}
+                      {intervalEnabled && intervalSuffix && !fieldConfig[f]?.computed && (
                         <Typography
                           component="div"
                           variant="caption"
@@ -639,28 +723,36 @@ from(bucket: "${bucket}")
                 </TableRow>
               </TableHead>
 
-              {/* Body */}
               <TableBody>
                 {rows.map((r, idx) => (
                   <TableRow
                     key={idx}
                     sx={{
                       "&:nth-of-type(odd)": { backgroundColor: "grey.100" },
-                      "&:hover":            { backgroundColor: "grey.200" },
+                      "&:hover": { backgroundColor: "grey.200" },
                     }}
                   >
-                    {/* FIX: dayjs(r.time) converts UTC → browser local timezone */}
                     <TableCell>{dayjs(r.time).format("YYYY-MM-DD HH:mm:ss")}</TableCell>
                     {fields.map((f) => (
                       <TableCell key={f} align="right">
-                        {r[f] !== undefined ? r[f] : ""}
+                        {formatCell(f, r[f])}
                       </TableCell>
                     ))}
                   </TableRow>
                 ))}
+                {!loading && rows.length === 0 && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={fields.length + 1}
+                      align="center"
+                      sx={{ py: 4, color: "text.secondary" }}
+                    >
+                      Select a date range and click `Show data` to preview records here.
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
 
-              {/* ED summary footer */}
               {summary && (
                 <TableHead>
                   <TableRow>
@@ -682,7 +774,7 @@ from(bucket: "${bucket}")
 
                     {fields.map((f) => {
                       const isPower = f === "power";
-                      const isAvg   = AVG_FIELDS.includes(f);
+                      const isAvg = AVG_FIELDS.includes(f);
                       return (
                         <TableCell
                           key={f}
@@ -722,19 +814,26 @@ from(bucket: "${bucket}")
             </Table>
 
             {loading && (
-              <Box display="flex" justifyContent="center" mt={2} py={1}>
-                <CircularProgress />
+              <Box display="flex" justifyContent="center" alignItems="center" py={3}>
+                <CircularProgress size={28} />
               </Box>
             )}
           </Box>
         </Box>
       </DialogContent>
 
-      <DialogActions>
-        <Button onClick={downloadCsv} disabled={!rows.length || loading}>
+      <DialogActions sx={{ px: 3, pb: 2.5, pt: 1.5, gap: 1 }}>
+        <Button onClick={handleClose} variant="outlined" sx={{ borderRadius: 3 }}>
+          Close
+        </Button>
+        <Button
+          onClick={downloadCsv}
+          disabled={!rows.length || loading}
+          variant="contained"
+          sx={{ borderRadius: 3, px: 2.5 }}
+        >
           Save CSV
         </Button>
-        <Button onClick={handleClose}>Close</Button>
       </DialogActions>
     </Dialog>
   );

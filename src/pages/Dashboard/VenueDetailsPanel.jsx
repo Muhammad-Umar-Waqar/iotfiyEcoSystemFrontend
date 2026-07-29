@@ -1226,8 +1226,8 @@ export default function VenueDetailsPanel({
       <DownloadModal
         open={downloadOpen}
         onClose={() => setDownloadOpen(false)}
+        deviceId={deviceId}
         measurement={deviceId}
-        bucket="Odour"
         deviceType={deviceType}
       />
 
