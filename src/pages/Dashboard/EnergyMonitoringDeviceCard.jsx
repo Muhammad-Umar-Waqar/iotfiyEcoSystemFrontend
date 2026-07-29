@@ -189,6 +189,7 @@ const EnergyMonitoringDeviceCard = React.memo(function EnergyMonitoringDeviceCar
   deviceId,
   deviceName,
   espVoltage,
+  configuredVoltage = null,
   espCurrent,
   espPower,
   espTemprature,
@@ -214,6 +215,17 @@ const EnergyMonitoringDeviceCard = React.memo(function EnergyMonitoringDeviceCar
   const effectiveTemperatureAlert = resolveAlertState(category, triggeredAlerts, "temperature", temperatureAlert);
   const effectiveHumidityAlert = resolveAlertState(category, triggeredAlerts, "humidity", humidityAlert);
   const effectiveVoltageAlert = resolveAlertState(category, triggeredAlerts, "voltage", voltageAlert);
+
+  // Prefer live ESP voltage; if ESP never sent it, use configure-condition voltage from device creation.
+  const displayVoltage = useMemo(() => {
+    if (espVoltage !== undefined && espVoltage !== null && espVoltage !== "" && Number.isFinite(Number(espVoltage))) {
+      return espVoltage;
+    }
+    if (configuredVoltage !== undefined && configuredVoltage !== null && configuredVoltage !== "" && Number.isFinite(Number(configuredVoltage))) {
+      return configuredVoltage;
+    }
+    return null;
+  }, [espVoltage, configuredVoltage]);
 
   const ampereDisplay = formatSmartNumber(espCurrent, 2);
 
@@ -340,11 +352,11 @@ const EnergyMonitoringDeviceCard = React.memo(function EnergyMonitoringDeviceCar
     Boolean(wsEvent) && wsEventType !== "NO_EVENT" && displayEventType !== "--";
 
   const calculatedPower = useMemo(() => {
-    const v = Number(espVoltage);
+    const v = Number(displayVoltage);
     const c = Number(espCurrent);
     if (!Number.isFinite(v) || !Number.isFinite(c)) return null;
     return v * c;
-  }, [espVoltage, espCurrent]);
+  }, [displayVoltage, espCurrent]);
 
   const lastUpdateStr = lastUpdateISO ? new Date(lastUpdateISO).toLocaleString() : "";
   const paddingClass = "px-4 py-3";
@@ -406,7 +418,7 @@ const EnergyMonitoringDeviceCard = React.memo(function EnergyMonitoringDeviceCar
             <div className="flex flex-col items-end mb-0.5 ml-2">
               <div className="text-sm text-gray-500">Voltage</div>
               <span className="text-2xl font-bold">
-                {espVoltage ?? "--"}<span className="font-normal">V</span>
+                {displayVoltage ?? "--"}<span className="font-normal">V</span>
               </span>
               <AlertIndicator hasAlert={effectiveVoltageAlert} />
               {/* <p className="h-2 w-[3rem] rounded-full bg-[#BAEACC]" /> */}
@@ -492,7 +504,7 @@ const EnergyMonitoringDeviceCard = React.memo(function EnergyMonitoringDeviceCar
           <TempHumidityVoltageAlerts
             espTemprature={espTemprature}
             espHumidity={espHumidity}
-            espVoltage={espVoltage}
+            espVoltage={displayVoltage}
             temperatureAlert={effectiveTemperatureAlert}
             humidityAlert={effectiveHumidityAlert}
             voltageAlert={effectiveVoltageAlert}

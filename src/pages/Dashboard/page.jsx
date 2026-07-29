@@ -31,6 +31,14 @@ import { useIsMobileforDashboardAndRightPanel } from "../../hooks/responsiveQuer
 
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:5050";
 
+/** Voltage set in configure conditions at device creation (ED fallback when ESP has no voltage). */
+function getConfiguredVoltage(conditions) {
+  const raw = (Array.isArray(conditions) ? conditions : []).find((c) => c?.type === "voltage")?.value;
+  if (raw === undefined || raw === null || raw === "") return null;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : null;
+}
+
 export default function Dashboard() {
   const dispatch = useDispatch();
   const location = useLocation();
@@ -496,6 +504,7 @@ export default function Dashboard() {
                         : device?.espWaterLeak,
                     espGL:            liveData.gass ?? device?.espGL,
                     espVoltage:       liveData.voltage ?? device?.espVoltage,
+                    configuredVoltage: getConfiguredVoltage(device?.conditions),
                     espCurrent:       liveData.current ?? device?.espCurrent,
                     temperatureAlert: liveData.alerts?.some(a => a.type === 'temperature') ?? device?.temperatureAlert,
                     humidityAlert:    liveData.alerts?.some(a => a.type === 'humidity') ?? device?.humidityAlert,
@@ -778,7 +787,13 @@ export default function Dashboard() {
               ? liveData.waterLeak
               : selectedDevice?.espWaterLeak,
           espGL: liveData.gass ?? selectedDevice?.espGL,
-          espVoltage: liveData.voltage ?? selectedDevice?.espVoltage,
+          espVoltage: (() => {
+            const fromEsp = liveData.voltage ?? selectedDevice?.espVoltage;
+            if (fromEsp !== undefined && fromEsp !== null && fromEsp !== "" && Number.isFinite(Number(fromEsp))) {
+              return fromEsp;
+            }
+            return getConfiguredVoltage(selectedDevice?.conditions);
+          })(),
           espCurrent: liveData.espCurrent ?? liveData.current ?? selectedDevice?.espCurrent,
           espPower: liveData.espPower ?? selectedDevice?.espPower,
           espEnergy: liveData.espEnergy ?? selectedDevice?.espEnergy,
