@@ -516,7 +516,7 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
 
   return (
     <>
-      <Dialog open={open} onClose={onClose} maxWidth="sm" >
+      <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
         <DialogTitle className="flex items-center justify-between">
           <span>Edit Device</span>
           <IconButton onClick={onClose} size="small" disabled={saving}>
