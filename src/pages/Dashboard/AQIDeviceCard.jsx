@@ -219,7 +219,7 @@ export default function AQIDeviceCard({
     Boolean(wsEvent) && wsEventType !== "NO_EVENT" && displayEventType !== "--";
 
   const lastUpdateStr = lastUpdateISO ? new Date(lastUpdateISO).toLocaleString() : "";
-  const paddingClass = category === "scheduling" ? "pl-4 py-2" : "px-4 py-2";
+  const paddingClass = category === "scheduling" ? "pl-4 " : "px-4 ";
 
   const schedulingFooter = category === "scheduling" && (
     <div className="pt-2 border-t border-gray-200">

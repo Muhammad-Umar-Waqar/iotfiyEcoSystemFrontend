@@ -56,7 +56,7 @@ export default function TemperatureHumidityDeviceCard({
   return (
     <div
       onClick={() => onCardSelect && onCardSelect()}
-      className={`freezer-card-container relative rounded-4xl bg-white min-h-[160px] p-4 ${cardSelectedClass} cursor-pointer`}
+      className={`freezer-card-container relative rounded-4xl bg-white min-h-[160px] px-4 py-2 ${cardSelectedClass} cursor-pointer`}
     >
       {/* top-right status pill */}
       {/* <div className="absolute top-0 right-0 flex items-center z-10">

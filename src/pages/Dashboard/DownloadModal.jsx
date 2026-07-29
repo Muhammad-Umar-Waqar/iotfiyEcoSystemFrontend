@@ -814,8 +814,18 @@ export default function DownloadModal({
             </Table>
 
             {loading && (
-              <Box display="flex" justifyContent="center" alignItems="center" py={3}>
-                <CircularProgress size={28} />
+              <Box
+                sx={{
+                  position: "absolute",
+                  inset: 0,
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  backgroundColor: "rgba(255,255,255,0.7)",
+                  zIndex: 5,
+                }}
+              >
+                <CircularProgress size={32} />
               </Box>
             )}
           </Box>

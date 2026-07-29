@@ -377,7 +377,7 @@ export default function OdourDeviceCard({
         style={isSelected ? { transform: "scale(1.01)" } : {}}
       >
         <div className="relative w-full h-full">
-          <div className="flex flex-col justify-around h-full py-2 px-4">
+          <div className="flex flex-col justify-between py-2 h-full px-4">
             <div className="device-id-section flex justify-between items-start">
               {deviceIdHeader}
               <div className={`ambient-pill ${odourAlert ? "bg-rose-700/20" : "bg-white/20"} border border-white/30 flex items-center`}>

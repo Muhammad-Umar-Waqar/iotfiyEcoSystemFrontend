@@ -182,7 +182,7 @@ export default function WaterLeakageDeviceCard({
       onClick={onCardSelect}
       className={`freezer-card-container rounded-4xl bg-white ${isSelected ? "shadow-lg" : ""} flex flex-col`}
     >
-      <div className="flex flex-1 items-center justify-between px-4 pt-3 pb-2">
+      <div className="flex flex-1 items-center justify-between px-4">
         <div className="flex h-full min-w-0 flex-1 flex-col justify-around pr-3">
           <div title={lastUpdateStr} className="flex min-w-0 flex-col items-start">
             <div className="flex items-center">
