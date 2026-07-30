@@ -34,7 +34,7 @@ const DEVICE_CONDITIONS_MAP = {
   SMD: ["smoke"],
   WLD: [],
   GLD: ["temperature", "humidity", "gass"],
-  // UI still shows temp/humidity; only voltage+current are required (see REQUIRED_CONDITIONS_MAP)
+  // UI still shows temp/humidity/voltage; only current is required (see REQUIRED_CONDITIONS_MAP)
   ED: ["temperature", "humidity", "voltage", "current"],
   AC: [],
 };
@@ -46,9 +46,11 @@ const REQUIRED_CONDITIONS_MAP = {
   SMD: ["smoke"],
   WLD: [],
   GLD: ["temperature", "humidity", "gass"],
-  ED: ["voltage", "current"],
+  ED: ["current"],
   AC: [],
 };
+
+const DEFAULT_ED_VOLTAGE = 225;
 
 const CONDITION_LABEL = {
   temperature: "Temperature",
@@ -459,6 +461,11 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
       }
 
       finalConditions = filtered;
+
+      // ED: if voltage left empty in configure conditions, default to 225V
+      if (formData.deviceType === "ED" && !finalConditions.some((c) => c.type === "voltage")) {
+        finalConditions.push({ type: "voltage", operator: "=", value: DEFAULT_ED_VOLTAGE });
+      }
     }
 
     const payload = {
@@ -758,7 +765,16 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
       </Dialog>
 
       {/* Conditions Modal */}
-      <Dialog open={condModalOpen} onClose={() => setCondModalOpen(false)} fullWidth maxWidth="sm">
+      <Dialog
+        open={condModalOpen}
+        onClose={(event, reason) => {
+          if (reason === "backdropClick" || reason === "escapeKeyDown") return;
+          setCondModalOpen(false);
+        }}
+        disableEscapeKeyDown
+        fullWidth
+        maxWidth="sm"
+      >
         <DialogTitle className="flex items-center justify-between">
           <span>Configure Conditions</span>
           <IconButton onClick={() => setCondModalOpen(false)} size="small">
@@ -806,6 +822,8 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
                         ? formData.deviceType === "ED" ? "optional" : "25"
                         : cond.type === "humidity" && formData.deviceType === "ED"
                           ? "optional"
+                        : cond.type === "voltage" && formData.deviceType === "ED"
+                          ? "225"
                         : cond.type === "smoke"
                           ? "60"
                           : cond.type === "waterLeak"

@@ -31,12 +31,14 @@ import { useIsMobileforDashboardAndRightPanel } from "../../hooks/responsiveQuer
 
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:5050";
 
-/** Voltage set in configure conditions at device creation (ED fallback when ESP has no voltage). */
+/** Voltage from configure conditions; defaults to 225V when not set. */
+const DEFAULT_CONFIGURED_VOLTAGE = 225;
+
 function getConfiguredVoltage(conditions) {
   const raw = (Array.isArray(conditions) ? conditions : []).find((c) => c?.type === "voltage")?.value;
-  if (raw === undefined || raw === null || raw === "") return null;
+  if (raw === undefined || raw === null || raw === "") return DEFAULT_CONFIGURED_VOLTAGE;
   const n = Number(raw);
-  return Number.isFinite(n) ? n : null;
+  return Number.isFinite(n) ? n : DEFAULT_CONFIGURED_VOLTAGE;
 }
 
 /** ED shows temp/humidity UI only when both conditions were saved at device creation. */

@@ -219,7 +219,7 @@ const EnergyMonitoringDeviceCard = React.memo(function EnergyMonitoringDeviceCar
   deviceId,
   deviceName,
   espVoltage,
-  configuredVoltage = null,
+  configuredVoltage = 225,
   espCurrent,
   espPower,
   espTemprature,

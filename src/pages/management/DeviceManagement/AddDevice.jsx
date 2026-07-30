@@ -22,7 +22,7 @@ const DEVICE_CONDITIONS_MAP = {
   SMD: ["smoke"],
   WLD: [],
   GLD: ["temperature", "humidity", "gass"],
-  // UI still shows temp/humidity; only voltage+current are required (see REQUIRED_CONDITIONS_MAP)
+  // UI still shows temp/humidity/voltage; only current is required (see REQUIRED_CONDITIONS_MAP)
   ED: ["temperature", "humidity", "voltage", "current"],
   AC: [],
 };
@@ -34,9 +34,11 @@ const REQUIRED_CONDITIONS_MAP = {
   SMD: ["smoke"],
   WLD: [],
   GLD: ["temperature", "humidity", "gass"],
-  ED: ["voltage", "current"],
+  ED: ["current"],
   AC: [],
 };
+
+const DEFAULT_ED_VOLTAGE = 225;
 
 const CONDITION_LABEL = {
   temperature: "Temperature",
@@ -270,6 +272,8 @@ const AddDevice = () => {
   }, [formData.deviceType]);
 
   const [condModalOpen, setCondModalOpen] = useState(false);
+  const [alertAccessModalOpen, setAlertAccessModalOpen] = useState(false);
+
   useEffect(() => {
     // AC / WLD have no threshold conditions — skip configure dialog
     if (formData.deviceType && formData.deviceType !== "AC" && formData.deviceType !== "WLD") {
@@ -278,6 +282,21 @@ const AddDevice = () => {
       setCondModalOpen(false);
     }
   }, [formData.deviceType]);
+
+  useEffect(() => {
+    const fields = ALERT_ACCESS_MAP[formData.deviceType] || [];
+    if (formData.category === "trigger" && formData.deviceType && fields.length > 0) {
+      setAlertAccessModalOpen(true);
+    } else {
+      setAlertAccessModalOpen(false);
+    }
+  }, [formData.category, formData.deviceType]);
+
+  /** Only Cross / Cancel / Save may close — ignore backdrop + Escape. */
+  const handleDialogClose = (setter) => (event, reason) => {
+    if (reason === "backdropClick" || reason === "escapeKeyDown") return;
+    setter(false);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -403,6 +422,11 @@ const AddDevice = () => {
       }
 
       finalConditions = filtered;
+
+      // ED: if voltage left empty in configure conditions, default to 225V
+      if (formData.deviceType === "ED" && !finalConditions.some((c) => c.type === "voltage")) {
+        finalConditions.push({ type: "voltage", operator: "=", value: DEFAULT_ED_VOLTAGE });
+      }
     }
 
     const payload = {
@@ -696,34 +720,6 @@ const AddDevice = () => {
                 )}
               </FormControl>
             )}
-
-            {formData.category === "trigger" && formData.deviceType && ALERT_ACCESS_MAP[formData.deviceType]?.length > 0 && (
-              <div className="mt-4 p-4 bg-white rounded-md border border-gray-200">
-                <h3 className="text-sm font-semibold text-gray-700 mb-3">Alert Access Configuration</h3>
-                <div className="space-y-2">
-                  {ALERT_ACCESS_MAP[formData.deviceType]?.map((accessField) => (
-                    <FormControlLabel
-                      key={accessField}
-                      control={
-                        <Checkbox
-                          checked={alertAccess[accessField]}
-                          onChange={() => handleAlertAccessChange(accessField)}
-                          disabled={!hasManagePermission}
-                          sx={{
-                            color: "var(--eco-primary)",
-                            "&.Mui-checked": {
-                              color: "var(--eco-primary)",
-                            },
-                          }}
-                        />
-                      }
-                      label={ALERT_ACCESS_LABELS[accessField]}
-                      sx={{ display: "flex", alignItems: "center" }}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
           </>
         )}
 
@@ -770,7 +766,13 @@ const AddDevice = () => {
       </div>
       </div>
 
-      <Dialog open={condModalOpen} onClose={() => setCondModalOpen(false)} fullWidth maxWidth="sm">
+      <Dialog
+        open={condModalOpen}
+        onClose={handleDialogClose(setCondModalOpen)}
+        disableEscapeKeyDown
+        fullWidth
+        maxWidth="sm"
+      >
         <DialogTitle className="flex items-center justify-between">
           <span>Configure Conditions</span>
           <IconButton onClick={() => setCondModalOpen(false)} size="small">
@@ -818,6 +820,8 @@ const AddDevice = () => {
                         ? formData.deviceType === "ED" ? "optional" : "25"
                         : cond.type === "humidity" && formData.deviceType === "ED"
                           ? "optional"
+                        : cond.type === "voltage" && formData.deviceType === "ED"
+                          ? "225"
                         : cond.type === "smoke"
                           ? "60"
                           : cond.type === "waterLeak"
@@ -848,6 +852,55 @@ const AddDevice = () => {
             variant="contained"
           >
             Save conditions
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={alertAccessModalOpen}
+        onClose={handleDialogClose(setAlertAccessModalOpen)}
+        disableEscapeKeyDown
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle className="flex items-center justify-between">
+          <span>Alert Access Configuration</span>
+          <IconButton onClick={() => setAlertAccessModalOpen(false)} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent dividers>
+          <div className="space-y-2">
+            {(ALERT_ACCESS_MAP[formData.deviceType] || []).map((accessField) => (
+              <FormControlLabel
+                key={accessField}
+                control={
+                  <Checkbox
+                    checked={alertAccess[accessField]}
+                    onChange={() => handleAlertAccessChange(accessField)}
+                    disabled={!hasManagePermission}
+                    sx={{
+                      color: "var(--eco-primary)",
+                      "&.Mui-checked": {
+                        color: "var(--eco-primary)",
+                      },
+                    }}
+                  />
+                }
+                label={ALERT_ACCESS_LABELS[accessField]}
+                sx={{ display: "flex", alignItems: "center" }}
+              />
+            ))}
+          </div>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={() => setAlertAccessModalOpen(false)} variant="outlined">
+            Cancel
+          </Button>
+          <Button onClick={() => setAlertAccessModalOpen(false)} variant="contained">
+            Save
           </Button>
         </DialogActions>
       </Dialog>
