@@ -1,6 +1,6 @@
 // src/pages/management/DeviceManagement/AddDevice.jsx
 import { useEffect, useState } from "react";
-import { Box, Building, Thermometer } from "lucide-react";
+import { Box, Building, Thermometer, Droplets, Zap, Activity, Wind, CloudFog, Flame, ShieldAlert, Bell } from "lucide-react";
 import InputField from "../../../components/Inputs/InputField";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchOrganizationsByOwner, fetchOrganizationsByUser } from "../../../slices/OrganizationSlice";
@@ -8,7 +8,7 @@ import { fetchVenuesByOrganization } from "../../../slices/VenueSlice";
 import { createDevice, fetchDevicesByVenue } from "../../../slices/DeviceSlice";
 import { useDeviceManagement } from "../../../contexts/DeviceManagementContext";
 import Swal from "sweetalert2";
-import { Select, MenuItem, FormControl, InputLabel, Dialog, DialogTitle, DialogContent, DialogActions, Button, IconButton, Checkbox, FormControlLabel } from "@mui/material";
+import { Select, MenuItem, FormControl, InputLabel, Dialog, DialogTitle, DialogContent, DialogActions, Button, IconButton, Checkbox } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 import { canManage } from "../../../utils/permissions";
 import { fetchAckitBrandOptions } from "../../../utils/ackitBrands";
@@ -134,6 +134,17 @@ const ALERT_ACCESS_LABELS = {
   glAlertAccess: "Gas Leakage Alert",
   voltageAlertAccess: "Voltage Alert",
   currentAlertAccess: "Current Alert",
+};
+
+const ALERT_ACCESS_ICONS = {
+  tempAlertAccess: Thermometer,
+  humiAlertAccess: Droplets,
+  odourAlertAccess: Wind,
+  aqiAlertAccess: CloudFog,
+  smokeAlertAccess: Flame,
+  glAlertAccess: Flame,
+  voltageAlertAccess: Zap,
+  currentAlertAccess: Activity,
 };
 
 const AddDevice = () => {
@@ -861,46 +872,110 @@ const AddDevice = () => {
         onClose={handleDialogClose(setAlertAccessModalOpen)}
         disableEscapeKeyDown
         fullWidth
-        maxWidth="sm"
+        maxWidth="xs"
+        PaperProps={{
+          sx: { borderRadius: "16px", overflow: "hidden" },
+        }}
       >
-        <DialogTitle className="flex items-center justify-between">
-          <span>Alert Access Configuration</span>
-          <IconButton onClick={() => setAlertAccessModalOpen(false)} size="small">
-            <CloseIcon />
-          </IconButton>
+        <DialogTitle sx={{ px: 2.5, pt: 2.5, pb: 1.5 }}>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-3 min-w-0">
+              <div
+                className="relative shrink-0 w-11 h-11 rounded-xl flex items-center justify-center"
+                style={{ background: "var(--eco-primary-soft, #E8F4F8)" }}
+              >
+                <ShieldAlert size={22} strokeWidth={2} style={{ color: "var(--eco-primary)" }} />
+                <span
+                  className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full flex items-center justify-center bg-white shadow-sm"
+                >
+                  <Bell size={11} strokeWidth={2.5} style={{ color: "var(--eco-primary)" }} />
+                </span>
+              </div>
+              <div className="min-w-0 pt-0.5">
+                <div className="text-base font-bold leading-tight text-slate-800">
+                  Alert Access Configuration
+                </div>
+                <div className="text-xs text-slate-500 mt-0.5">
+                  Select the alerts you want to enable
+                </div>
+              </div>
+            </div>
+            <IconButton onClick={() => setAlertAccessModalOpen(false)} size="small" sx={{ mt: -0.5 }}>
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </div>
         </DialogTitle>
 
-        <DialogContent dividers>
-          <div className="space-y-2">
-            {(ALERT_ACCESS_MAP[formData.deviceType] || []).map((accessField) => (
-              <FormControlLabel
-                key={accessField}
-                control={
+        <DialogContent dividers sx={{ px: 2.5, py: 2 }}>
+          <div className="space-y-2.5">
+            {(ALERT_ACCESS_MAP[formData.deviceType] || []).map((accessField) => {
+              const Icon = ALERT_ACCESS_ICONS[accessField] || Bell;
+              const checked = !!alertAccess[accessField];
+              return (
+                <button
+                  key={accessField}
+                  type="button"
+                  disabled={!hasManagePermission}
+                  onClick={() => handleAlertAccessChange(accessField)}
+                  className={`
+                    w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition
+                    ${checked ? "border-[var(--eco-primary)] bg-[var(--eco-primary-soft,#E8F4F8)]/60" : "border-slate-200 bg-white hover:border-slate-300"}
+                    ${!hasManagePermission ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}
+                  `}
+                >
                   <Checkbox
-                    checked={alertAccess[accessField]}
-                    onChange={() => handleAlertAccessChange(accessField)}
+                    checked={checked}
+                    tabIndex={-1}
+                    disableRipple
                     disabled={!hasManagePermission}
                     sx={{
-                      color: "var(--eco-primary)",
-                      "&.Mui-checked": {
-                        color: "var(--eco-primary)",
-                      },
+                      p: 0,
+                      color: "#CBD5E1",
+                      "&.Mui-checked": { color: "var(--eco-primary)" },
                     }}
                   />
-                }
-                label={ALERT_ACCESS_LABELS[accessField]}
-                sx={{ display: "flex", alignItems: "center" }}
-              />
-            ))}
+                  <span
+                    className="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center"
+                    style={{ background: "var(--eco-primary-soft, #E8F4F8)" }}
+                  >
+                    <Icon size={18} strokeWidth={2.25} style={{ color: "var(--eco-primary)" }} />
+                  </span>
+                  <span className="text-sm font-semibold text-slate-800">
+                    {ALERT_ACCESS_LABELS[accessField]}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </DialogContent>
 
-        <DialogActions>
-          <Button onClick={() => setAlertAccessModalOpen(false)} variant="outlined">
+        <DialogActions sx={{ px: 2.5, py: 2, gap: 1 }}>
+          <Button
+            onClick={() => setAlertAccessModalOpen(false)}
+            variant="outlined"
+            sx={{
+              textTransform: "none",
+              borderRadius: "10px",
+              borderColor: "#E2E8F0",
+              color: "#64748B",
+              px: 2,
+            }}
+          >
             Cancel
           </Button>
-          <Button onClick={() => setAlertAccessModalOpen(false)} variant="contained">
-            Save
+          <Button
+            onClick={() => setAlertAccessModalOpen(false)}
+            variant="contained"
+            sx={{
+              textTransform: "none",
+              borderRadius: "10px",
+              backgroundColor: "var(--eco-primary)",
+              boxShadow: "none",
+              px: 2.5,
+              "&:hover": { backgroundColor: "var(--eco-primary)", opacity: 0.92, boxShadow: "none" },
+            }}
+          >
+            Save Changes
           </Button>
         </DialogActions>
       </Dialog>

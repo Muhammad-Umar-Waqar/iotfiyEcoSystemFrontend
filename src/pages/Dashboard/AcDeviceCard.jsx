@@ -19,7 +19,7 @@ import "../../styles/pages/Dashboard/dashboard-styles.css";
 import FormattedValue from "../../components/FormattedValue";
 
 const AC_MODES = ["Cool", "Heat", "Dry", "FanOnly", "Auto"];
-const FAN_SPEEDS = ["Low", "Medium", "Ultra", "Turbo"];
+const FAN_SPEEDS = ["Low", "Medium", "High", "Ultra", "Turbo"];
 
 const formatTime = (time) => {
   if (!time) return "--:--";

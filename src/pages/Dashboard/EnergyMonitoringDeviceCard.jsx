@@ -585,7 +585,7 @@ const EnergyMonitoringDeviceCard = React.memo(function EnergyMonitoringDeviceCar
       <div className="px-4 pb-2">
         <div className="pt-2 border-t border-gray-200">
           {hasScheduleEvent ? (
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-start">
               <div className="flex items-center justify-center gap-2">
                 <CalendarDays className="w-6 h-6 text-gray-600" />
                 <div className="flex flex-col">
