@@ -97,6 +97,15 @@ export const useDeviceWebSocket = (devices = []) => {
       // Add new listener for device data
       socket.on(channel, (data) => {
         console.log(`📡 [${deviceId}] Received data:`, data);
+        if (
+          (data.deviceType === "AC" || data.acMode != null || data.setTemperature != null) &&
+          data.setTemperature != null
+        ) {
+          console.log(
+            `[AC-TEMP-UI] ${deviceId} WS setTemperature=${data.setTemperature} ` +
+              `acMode=${data.acMode ?? "-"} fan=${data.fanSpeed ?? "-"} state=${data.state ?? "-"}`
+          );
+        }
 
         // Update device data map
         setDeviceDataMap(prev => {
