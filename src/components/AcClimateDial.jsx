@@ -28,6 +28,7 @@ const MODE_OPTIONS = [
 const FAN_OPTIONS = [
   { value: "Low", label: "Low", Icon: Wind },
   { value: "Medium", label: "Medium", Icon: Fan },
+  { value: "High", label: "High", Icon: Gauge },
   { value: "Ultra", label: "Ultra", Icon: Gauge },
   { value: "Turbo", label: "Turbo", Icon: Zap },
 ];

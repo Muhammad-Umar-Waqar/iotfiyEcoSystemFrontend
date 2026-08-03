@@ -215,9 +215,20 @@ const AcDeviceCard = ({
     .filter(Boolean)
     .join(" · ");
 
-  const powerLabel = useMemo(() => {
-    if (ac.espPower == null || !Number.isFinite(Number(ac.espPower))) return "--";
-    return `${Math.round(Number(ac.espPower))} W`;
+  // ≤3 digits (0–999): Watts; 4+ digits (1000+): kW
+  const powerDisplay = useMemo(() => {
+    if (ac.espPower == null || !Number.isFinite(Number(ac.espPower))) {
+      return { value: "--", unit: "W" };
+    }
+    const watts = Math.round(Number(ac.espPower));
+    if (watts >= 1000) {
+      const kw = watts / 1000;
+      return {
+        value: Number.isInteger(kw) ? kw : Number(kw.toFixed(2)),
+        unit: "kW",
+      };
+    }
+    return { value: watts, unit: "W" };
   }, [ac.espPower]);
 
   const energyLabel = useMemo(() => {
@@ -289,7 +300,7 @@ const AcDeviceCard = ({
                 {s}
               </option>
             ))}
-          </select>
+          </select>12|ecoSystemServer  | (node:3388165) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
         </label>
       </div> */}
 
@@ -355,15 +366,10 @@ const AcDeviceCard = ({
         <span className="text-gray-500">|</span>
         <div className="flex items-center gap-1">
           <PowerIcon className="w-4 h-4 text-gray-500" />
-          {/* <strong>{powerLabel}</strong> */}
           <FormattedValue
-  value={
-    ac.espPower != null
-      ? Math.round(Number(ac.espPower))
-      : "--"
-  }
-  unit="W"
-/>
+            value={powerDisplay.value}
+            unit={powerDisplay.unit}
+          />
         </div>
       </div>
 
