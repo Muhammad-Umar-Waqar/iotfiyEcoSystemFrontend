@@ -23,6 +23,7 @@ export default function UserDeleteModal({ handleClose, handleDelete, userEmail }
     borderRadius: "8px",
     boxShadow: 24,
     p: 4,
+    
   };
 
   return (

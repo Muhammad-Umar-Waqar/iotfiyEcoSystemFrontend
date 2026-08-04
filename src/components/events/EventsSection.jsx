@@ -345,7 +345,7 @@ const EventsSection = ({
 
 
 
-      <Dialog open={deleteOpen} onClose={handleDeleteCancel}>
+<Dialog open={deleteOpen} onClose={handleDeleteCancel}>
         <DialogTitle>Delete event?</DialogTitle>
 
         <DialogContent dividers>

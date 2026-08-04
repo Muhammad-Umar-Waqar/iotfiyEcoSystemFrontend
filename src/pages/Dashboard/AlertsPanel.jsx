@@ -904,7 +904,7 @@ function DeviceAlertCard({ device }) {
           ) : (
             <CloudQueueRoundedIcon sx={{ fontSize: 13 }} />
           )}
-          {isLive ? "Live" : "API"}
+          {isLive ? "Live" : "Historical"}
         </span>
       </div>
 

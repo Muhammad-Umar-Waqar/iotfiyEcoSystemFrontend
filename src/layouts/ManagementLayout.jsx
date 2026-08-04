@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import AdminSidebar from '../components/AdminSidebar';
+import HelpChatWidget from '../components/HelpChatWidget';
 import { useIsMobile } from '../hooks/responsiveQuery';
 
 const ManagementLayout = () => {
@@ -29,6 +30,9 @@ const ManagementLayout = () => {
           <Outlet context={{ adminActiveTab, setAdminActiveTab }} />
         </div>
       </main>
+
+      {/* Step 1: UI-only help chat (RAG wired later) */}
+      <HelpChatWidget />
     </div>
   );
 };
