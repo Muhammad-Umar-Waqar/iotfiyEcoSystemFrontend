@@ -1260,8 +1260,8 @@ const OTADeviceList = ({ selectedVersion, onVersionSelect }) => {
         ) : filteredDevices.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-1.5 text-slate-400 py-10">
             <WifiOff size={22} className="text-slate-300" />
-            <span className="text-sm font-medium text-slate-500">No online {DEVICE_TYPES[deviceType]} devices</span>
-            <span className="text-xs text-slate-400">Devices appear here when connected</span>
+            <span className="text-sm font-medium text-slate-500 text-center">No online {DEVICE_TYPES[deviceType]} devices</span>
+            <span className="text-xs text-slate-400 text-center">Devices appear here when connected</span>
           </div>
         ) : (
           <div className="space-y-1.5 pb-2">

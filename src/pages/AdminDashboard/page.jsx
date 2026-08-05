@@ -2782,7 +2782,6 @@ function DataTable({ columns, rows, onRowClick }) {
                   color: C.textSoft,
                   letterSpacing: '0.05em',
                   textTransform: 'uppercase',
-                  whiteSpace: 'nowrap',
                   background: C.bg,
                   borderBottom: `1px solid ${C.border}`,
                   borderTopLeftRadius: ci === 0 ? 12 : 0,
@@ -2817,6 +2816,7 @@ function DataTable({ columns, rows, onRowClick }) {
                 style={{
                   cursor: onRowClick ? 'pointer' : 'default',
                   transition: 'background 0.1s',
+                  background: 'white',
                 }}
                 onMouseEnter={e => {
                   e.currentTarget.style.background = C.bg;
