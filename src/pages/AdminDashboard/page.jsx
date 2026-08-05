@@ -2759,43 +2759,72 @@ function AdminListPanel({ header, children }) {
    ============================================================ */
 function DataTable({ columns, rows, onRowClick }) {
   return (
-    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, overflow: 'hidden' }}>
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 500 }}>
-          <thead>
-            <tr style={{ background: C.bg, borderBottom: `1px solid ${C.border}` }}>
-              {columns.map(c => (
-                <th key={c.key} style={{ padding: '10px 16px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: C.textSoft, letterSpacing: '0.05em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
-                  {c.header}
-                </th>
-              ))}
-              {onRowClick && <th style={{ width: 40 }} />}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row, ri) => (
-              <tr
-                key={row.id || ri}
-                onClick={() => onRowClick && onRowClick(row)}
-                style={{ borderBottom: ri < rows.length - 1 ? `1px solid ${C.border}` : 'none', cursor: onRowClick ? 'pointer' : 'default', transition: 'background 0.1s' }}
-                onMouseEnter={e => { if (onRowClick) e.currentTarget.style.background = C.bg; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+    <div
+      style={{
+        background: C.surface,
+        border: `1px solid ${C.border}`,
+        borderRadius: 12,
+        minWidth: 500,
+      }}
+    >
+      <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0 }}>
+        <thead>
+          <tr>
+            {columns.map(c => (
+              <th
+                key={c.key}
+                className="eco-admin-sticky-th"
+                style={{
+                  padding: '10px 16px',
+                  textAlign: 'left',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: C.textSoft,
+                  letterSpacing: '0.05em',
+                  textTransform: 'uppercase',
+                  whiteSpace: 'nowrap',
+                  background: C.bg,
+                  borderBottom: `1px solid ${C.border}`,
+                }}
               >
-                {columns.map(c => (
-                  <td key={c.key} style={{ padding: '12px 16px', fontSize: 13, color: C.textMid, whiteSpace: 'nowrap' }}>
-                    {c.render ? c.render(row) : row[c.key]}
-                  </td>
-                ))}
-                {onRowClick && (
-                  <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                    <ChevronRight size={14} color={C.textSoft} />
-                  </td>
-                )}
-              </tr>
+                {c.header}
+              </th>
             ))}
-          </tbody>
-        </table>
-      </div>
+            {onRowClick && (
+              <th
+                className="eco-admin-sticky-th"
+                style={{
+                  width: 40,
+                  background: C.bg,
+                  borderBottom: `1px solid ${C.border}`,
+                }}
+              />
+            )}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, ri) => (
+            <tr
+              key={row.id || ri}
+              onClick={() => onRowClick && onRowClick(row)}
+              style={{ borderBottom: ri < rows.length - 1 ? `1px solid ${C.border}` : 'none', cursor: onRowClick ? 'pointer' : 'default', transition: 'background 0.1s' }}
+              onMouseEnter={e => { if (onRowClick) e.currentTarget.style.background = C.bg; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+            >
+              {columns.map(c => (
+                <td key={c.key} style={{ padding: '12px 16px', fontSize: 13, color: C.textMid, whiteSpace: 'nowrap' }}>
+                  {c.render ? c.render(row) : row[c.key]}
+                </td>
+              ))}
+              {onRowClick && (
+                <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                  <ChevronRight size={14} color={C.textSoft} />
+                </td>
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
       {rows.length === 0 && (
         <div style={{ padding: '40px 20px', textAlign: 'center', color: C.textSoft, fontSize: 13 }}>No records found</div>
       )}
@@ -2808,19 +2837,36 @@ function DataTable({ columns, rows, onRowClick }) {
    ============================================================ */
 function ManagersTable({ managers, onRowClick, onStatusClick, updatingManagerId }) {
   return (
-    <div style={{ overflowX: 'auto', minHeight: 0 }}>
-      <div style={{ minWidth: 900, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, overflow: 'hidden' }}>
-        {/* Header */}
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 90px 1fr 1fr 1fr 1fr 90px', padding: '9px 20px', background: C.bg, borderBottom: `1px solid ${C.border}`, gap: 12 }}>
-          {['Manager', 'Plan', 'Orgs', 'Venues', 'Devices', 'Users', 'Status'].map(h => (
-            <div key={h} style={{ fontSize: 11, fontWeight: 600, color: C.textSoft, letterSpacing: '0.05em', textTransform: 'uppercase' }}>{h}</div>
-          ))}
-        </div>
+    <div
+      style={{
+        minWidth: 900,
+        background: C.surface,
+        border: `1px solid ${C.border}`,
+        borderRadius: 12,
+      }}
+    >
+      {/* Header — sticky while rows scroll */}
+      <div
+        className="eco-admin-sticky-th"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '2fr 90px 1fr 1fr 1fr 1fr 90px',
+          padding: '9px 20px',
+          background: C.bg,
+          borderBottom: `1px solid ${C.border}`,
+          gap: 12,
+          borderRadius: '12px 12px 0 0',
+        }}
+      >
+        {['Manager', 'Plan', 'Orgs', 'Venues', 'Devices', 'Users', 'Status'].map(h => (
+          <div key={h} style={{ fontSize: 11, fontWeight: 600, color: C.textSoft, letterSpacing: '0.05em', textTransform: 'uppercase' }}>{h}</div>
+        ))}
+      </div>
 
-        {managers.map((m, ri) => {
-          const sc = statusColors(m.status);
-          const pc = planColors(m.planType);
-          return (
+      {managers.map((m, ri) => {
+        const sc = statusColors(m.status);
+        const pc = planColors(m.planType);
+        return (
             <div
               key={m.id}
               onClick={() => onRowClick(m)}
@@ -2905,7 +2951,6 @@ function ManagersTable({ managers, onRowClick, onStatusClick, updatingManagerId 
             </div>
           );
         })}
-      </div>
     </div>
   );
 }
