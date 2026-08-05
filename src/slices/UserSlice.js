@@ -10,8 +10,10 @@ export const createSubUser = createAsyncThunk(
       const response = await api.post("/auth/register-user", userData);
       return response.data;
     } catch (error) {
+      const data = error.response?.data;
+      const zodMsg = Array.isArray(data?.errors) ? data.errors[0]?.message : null;
       return rejectWithValue(
-        error.response?.data?.message || error.message || "Failed to create user"
+        data?.message || zodMsg || error.message || "Failed to create user"
       );
     }
   }

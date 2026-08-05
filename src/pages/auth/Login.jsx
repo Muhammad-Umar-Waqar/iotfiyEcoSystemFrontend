@@ -530,14 +530,14 @@ const Login = () => {
         <div className="p-10 lg:py-10 lg:px-18 w-full">
           <NavLink
             to="/"
-            className="inline-flex items-center gap-2.5 mb-6 text-sm font-medium text-slate-600 hover:text-[#178D8F] transition-colors group"
+            className="inline-flex items-center gap-2.5 mb-6 text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors group"
             aria-label="Back to home"
           >
-            <span className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-slate-200 bg-slate-50 shadow-sm group-hover:border-[#178D8F]/40 group-hover:bg-[#178D8F]/10 group-hover:shadow-md transition-all duration-200">
+            <span className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-slate-200 bg-slate-50 shadow-sm group-hover:border-blue-200 group-hover:bg-blue-50 group-hover:shadow-md transition-all duration-200">
               <ArrowLeft
                 size={18}
                 strokeWidth={2.25}
-                className="text-slate-600 group-hover:text-[#178D8F] group-hover:-translate-x-0.5 transition-all duration-200"
+                className="text-slate-600 group-hover:text-blue-600 group-hover:-translate-x-0.5 transition-all duration-200"
               />
             </span>
             <span className="hidden sm:inline">Back to home</span>

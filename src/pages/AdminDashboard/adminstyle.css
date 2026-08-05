@@ -6,3 +6,30 @@
 .tabScroll::-webkit-scrollbar {
   display: none;                /* Chrome, Safari */
 }
+
+/* Admin Management / Plans: fill viewport height, scroll content, hide bar */
+.eco-admin-page {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+.eco-admin-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.eco-admin-scroll::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+  background: transparent;
+}

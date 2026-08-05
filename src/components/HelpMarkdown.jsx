@@ -1,6 +1,7 @@
 /**
  * Lightweight markdown → React for help chat bubbles.
- * Supports: headings, bold, italics, code, unordered + numbered lists, paragraphs.
+ * Supports: headings, bold, italics, code, unordered + numbered lists
+ * (with nested bullets under a numbered item so 1/2/3 stay continuous).
  */
 function inlineFormat(text) {
   const nodes = [];
@@ -32,13 +33,29 @@ function inlineFormat(text) {
   return nodes;
 }
 
+function renderListItem(item, i) {
+  return (
+    <li key={i}>
+      <div className="eco-help-md-li-main">{inlineFormat(item.text)}</div>
+      {item.children?.length ? (
+        <ul className="eco-help-md-ul eco-help-md-ul--nested">
+          {item.children.map((child, j) => (
+            <li key={j}>{inlineFormat(child)}</li>
+          ))}
+        </ul>
+      ) : null}
+    </li>
+  );
+}
+
 export default function HelpMarkdown({ text }) {
   const raw = String(text || "");
   if (!raw.trim()) return null;
 
   const lines = raw.replace(/\r\n/g, "\n").split("\n");
   const blocks = [];
-  let listBuf = []; // { ordered: boolean, items: string[] }
+  // { ordered: boolean, text: string, children?: string[] }
+  let listBuf = [];
   let key = 0;
 
   const flushList = () => {
@@ -48,24 +65,23 @@ export default function HelpMarkdown({ text }) {
     const className = ordered ? "eco-help-md-ol" : "eco-help-md-ul";
     blocks.push(
       <Tag key={key++} className={className}>
-        {listBuf.map((item, i) => (
-          <li key={i}>{inlineFormat(item.text)}</li>
-        ))}
+        {listBuf.map((item, i) => renderListItem(item, i))}
       </Tag>
     );
     listBuf = [];
   };
 
-  const pushListItem = (ordered, text) => {
+  const pushTopItem = (ordered, text) => {
     if (listBuf.length && listBuf[0].ordered !== ordered) {
       flushList();
     }
-    listBuf.push({ ordered, text });
+    listBuf.push({ ordered, text, children: [] });
   };
 
   for (const line of lines) {
     const heading = line.match(/^(#{1,3})\s+(.+)$/);
     const bullet = line.match(/^\s*[-*•]\s+(.+)$/);
+    // Ignore the written number — <ol> auto-numbers 1,2,3… (fixes LLM repeating "1.")
     const numbered = line.match(/^\s*\d+[.)]\s+(.+)$/);
 
     if (heading) {
@@ -80,13 +96,25 @@ export default function HelpMarkdown({ text }) {
       continue;
     }
 
-    if (bullet) {
-      pushListItem(false, bullet[1]);
+    if (numbered) {
+      pushTopItem(true, numbered[1]);
       continue;
     }
 
-    if (numbered) {
-      pushListItem(true, numbered[1]);
+    if (bullet) {
+      // Nest under current ordered item instead of breaking the <ol> (keeps 1,2,3 continuous)
+      if (listBuf.length && listBuf[0].ordered === true) {
+        const last = listBuf[listBuf.length - 1];
+        if (!last.children) last.children = [];
+        last.children.push(bullet[1]);
+        continue;
+      }
+      pushTopItem(false, bullet[1]);
+      continue;
+    }
+
+    // Blank line inside an ordered list with open item: keep list open (don't flush)
+    if (!line.trim() && listBuf.length && listBuf[0].ordered) {
       continue;
     }
 

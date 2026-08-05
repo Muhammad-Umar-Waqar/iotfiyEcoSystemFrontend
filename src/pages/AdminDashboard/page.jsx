@@ -2659,7 +2659,8 @@ function TopBar({ breadcrumbs }) {
       height: 56, display: 'flex', alignItems: 'center',
       padding: '0 24px', borderBottom: `1px solid ${C.border}`,
       background: C.surface, gap: 16,
-      position: 'sticky', top: 0, zIndex: 10,
+      flexShrink: 0,
+      zIndex: 10,
     }}>
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
         {breadcrumbs.map((b, i) => (
@@ -3460,10 +3461,10 @@ const toggleManagerStatus = useCallback(async (manager) => {
      RENDER
   ═══════════════════════════════════════════════════════════ */
   return (
-    <>
+    <div className="eco-admin-page">
       <TopBar breadcrumbs={crumbs()} />
 
-      <main style={{ flex: 1, padding: '24px 28px', overflowY: 'auto' }}>
+      <main className="eco-admin-scroll" style={{ padding: '24px 28px' }}>
 
         {/* ══ MANAGERS LIST ══ */}
         {view === 'managers' && (
@@ -3676,6 +3677,6 @@ const toggleManagerStatus = useCallback(async (manager) => {
       {editTarget && (
         <EditDrawer title={editTarget.title} fields={editTarget.fields} onClose={() => setEditTarget(null)} />
       )}
-    </>
+    </div>
   );
 }

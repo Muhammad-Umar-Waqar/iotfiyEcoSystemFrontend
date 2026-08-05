@@ -878,7 +878,8 @@ export default function Plans() {
   };
 
   return (
-    <div className="min-h-screen p-6 lg:p-8" style={{ background: C.bg }}>
+    <div className="eco-admin-page" style={{ background: C.bg }}>
+      <div className="eco-admin-scroll p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
 
         {/* ── Page header ── */}
@@ -1033,6 +1034,7 @@ export default function Plans() {
             )}
           </>
         )}
+      </div>
       </div>
 
       {/* ── Drawers & modals ── */}

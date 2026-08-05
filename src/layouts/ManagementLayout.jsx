@@ -24,14 +24,26 @@ const ManagementLayout = () => {
         <Sidebar />
       )}
 
-      {/* Mobile: scroll Add forms when tall; scrollbar hidden. Desktop: lock to viewport. */}
-      <main className="z-10 flex-1 min-h-0 overflow-hidden bg-transparent p-2 pb-[4.5rem] md:pb-2">
-        <div className="MainContentArea eco-mgmt-page-scroll h-full min-h-0 overflow-y-auto md:overflow-hidden">
+      {/*
+        Admin: lock shell height and let each admin page scroll internally (hidden bar).
+        Manager/user: mobile page scroll for tall Add forms; desktop locks to nested list scroll.
+      */}
+      <main
+        className={`z-10 flex-1 min-h-0 overflow-hidden bg-transparent p-2 ${
+          isAdmin ? 'pb-[4.5rem] md:pb-2' : 'pb-[4.5rem] md:pb-2'
+        }`}
+      >
+        <div
+          className={
+            isAdmin
+              ? 'MainContentArea h-full min-h-0 overflow-hidden'
+              : 'MainContentArea eco-mgmt-page-scroll h-full min-h-0 overflow-y-auto md:overflow-hidden'
+          }
+        >
           <Outlet context={{ adminActiveTab, setAdminActiveTab }} />
         </div>
       </main>
 
-      {/* Step 1: UI-only help chat (RAG wired later) */}
       <HelpChatWidget />
     </div>
   );

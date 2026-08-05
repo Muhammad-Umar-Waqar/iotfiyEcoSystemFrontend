@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Minimize2, RotateCcw, Send } from "lucide-react";
+import { Check, Mic, Minimize2, RotateCcw, Send, X } from "lucide-react";
 import HelpMarkdown from "./HelpMarkdown";
 import "./HelpChatWidget.css";
 
@@ -7,12 +7,30 @@ const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5054";
 const FAB_SIZE = 60;
 const FAB_POS_KEY = "eco-help-fab-pos";
 const DRAG_THRESHOLD = 6;
+const VOICE_BAR_COUNT = 24;
+
+function pickRecorderMime() {
+  const candidates = [
+    "audio/webm;codecs=opus",
+    "audio/webm",
+    "audio/mp4",
+  ];
+  for (const t of candidates) {
+    if (
+      typeof MediaRecorder !== "undefined" &&
+      MediaRecorder.isTypeSupported?.(t)
+    ) {
+      return t;
+    }
+  }
+  return "";
+}
 
 const SERVICE_UNAVAILABLE =
   "Currently the service is unavailable. Sorry for the inconvenience — please try again.";
 
 const WELCOME =
-  "Hi! I'm the ecoSystem assistant. Ask me about devices, alerts, AC controls, schedules, and how to use the app.";
+  "Hi! I'm Eco — your ecoSystem assistant. Ask about your devices (live power, temperature), venues, team members, or how features work.";
 
 function defaultFabPos() {
   const margin = 20;
@@ -64,10 +82,23 @@ export default function HelpChatWidget() {
     typeof window !== "undefined" ? loadFabPos() : { x: 0, y: 0 }
   );
   const [dragging, setDragging] = useState(false);
+  const [listening, setListening] = useState(false);
+  const [voiceLevels, setVoiceLevels] = useState(() =>
+    Array(VOICE_BAR_COUNT).fill(0)
+  );
+  const [micError, setMicError] = useState("");
+  const [transcribing, setTranscribing] = useState(false);
 
   const listRef = useRef(null);
   const inputRef = useRef(null);
   const dragRef = useRef(null);
+  const mediaStreamRef = useRef(null);
+  const audioCtxRef = useRef(null);
+  const analyserRef = useRef(null);
+  const rafRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const chunksRef = useRef([]);
+  const confirmLockRef = useRef(false);
 
   useEffect(() => {
     if (!open) return;
@@ -90,12 +121,230 @@ export default function HelpChatWidget() {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
+  const stopVisualizer = () => {
+    if (rafRef.current != null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+    analyserRef.current = null;
+    if (audioCtxRef.current) {
+      try {
+        audioCtxRef.current.close();
+      } catch {
+        /* ignore */
+      }
+      audioCtxRef.current = null;
+    }
+    setVoiceLevels(Array(VOICE_BAR_COUNT).fill(0));
+  };
+
+  const stopMediaTracks = () => {
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+      mediaStreamRef.current = null;
+    }
+  };
+
+  const discardRecorder = () => {
+    const rec = mediaRecorderRef.current;
+    if (rec && rec.state !== "inactive") {
+      try {
+        rec.ondataavailable = null;
+        rec.onstop = null;
+        rec.stop();
+      } catch {
+        /* ignore */
+      }
+    }
+    mediaRecorderRef.current = null;
+    chunksRef.current = [];
+  };
+
+  const stopRecorderAndGetBlob = () =>
+    new Promise((resolve) => {
+      const rec = mediaRecorderRef.current;
+      if (!rec || rec.state === "inactive") {
+        mediaRecorderRef.current = null;
+        resolve(null);
+        return;
+      }
+      rec.onstop = () => {
+        const type = rec.mimeType || "audio/webm";
+        const blob = new Blob(chunksRef.current, { type });
+        chunksRef.current = [];
+        mediaRecorderRef.current = null;
+        resolve(blob.size > 0 ? blob : null);
+      };
+      try {
+        rec.stop();
+      } catch {
+        mediaRecorderRef.current = null;
+        chunksRef.current = [];
+        resolve(null);
+      }
+    });
+
+  const stopVoiceSession = () => {
+    confirmLockRef.current = false;
+    discardRecorder();
+    stopVisualizer();
+    stopMediaTracks();
+    setListening(false);
+    setTranscribing(false);
+  };
+
+  useEffect(() => () => stopVoiceSession(), []);
+
+  const tickVoiceLevels = () => {
+    const analyser = analyserRef.current;
+    if (!analyser) return;
+
+    const data = new Uint8Array(analyser.fftSize);
+    analyser.getByteTimeDomainData(data);
+
+    let sum = 0;
+    for (let i = 0; i < data.length; i += 1) {
+      const v = (data[i] - 128) / 128;
+      sum += v * v;
+    }
+    const rms = Math.sqrt(sum / data.length);
+    // Quiet room ≈ 0; loud speech pushes toward 1
+    const level = Math.min(1, Math.max(0, (rms - 0.015) * 9));
+
+    const now = performance.now();
+    const next = Array.from({ length: VOICE_BAR_COUNT }, (_, i) => {
+      const t = i / (VOICE_BAR_COUNT - 1);
+      const envelope = Math.sin(Math.PI * t); // taller in the middle
+      const wobble =
+        0.55 + 0.45 * Math.sin(now / 95 + i * 0.55) * (0.35 + level);
+      return level * envelope * wobble;
+    });
+    setVoiceLevels(next);
+    rafRef.current = requestAnimationFrame(tickVoiceLevels);
+  };
+
+  const startListening = async () => {
+    if (busy || listening || transcribing) return;
+    setMicError("");
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+        },
+      });
+      mediaStreamRef.current = stream;
+
+      // Same stream → two jobs: (1) live waves (2) record file for STT
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AudioCtx();
+      audioCtxRef.current = ctx;
+      if (ctx.state === "suspended") await ctx.resume();
+
+      const source = ctx.createMediaStreamSource(stream);
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 512;
+      analyser.smoothingTimeConstant = 0.55;
+      source.connect(analyser);
+      analyserRef.current = analyser;
+
+      chunksRef.current = [];
+      const mime = pickRecorderMime();
+      const rec = mime
+        ? new MediaRecorder(stream, { mimeType: mime })
+        : new MediaRecorder(stream);
+      mediaRecorderRef.current = rec;
+      rec.ondataavailable = (e) => {
+        if (e.data?.size) chunksRef.current.push(e.data);
+      };
+      rec.start(250);
+
+      setListening(true);
+      rafRef.current = requestAnimationFrame(tickVoiceLevels);
+    } catch (err) {
+      console.error("[HelpChat] mic", err?.message || err);
+      stopVoiceSession();
+      setMicError("Microphone access is needed for voice input.");
+    }
+  };
+
+  const cancelListening = () => {
+    if (transcribing) return;
+    stopVoiceSession();
+    setTimeout(() => inputRef.current?.focus(), 50);
+  };
+
+  const confirmListening = async () => {
+    if (confirmLockRef.current || transcribing || !listening) return;
+    confirmLockRef.current = true;
+    setMicError("");
+    setTranscribing(true);
+    stopVisualizer();
+
+    const blob = await stopRecorderAndGetBlob();
+    stopMediaTracks();
+    setListening(false);
+
+    if (!blob || blob.size < 250) {
+      confirmLockRef.current = false;
+      setTranscribing(false);
+      setMicError("Could not hear anything clearly. Please try again.");
+      setTimeout(() => inputRef.current?.focus(), 50);
+      return;
+    }
+
+    try {
+      const form = new FormData();
+      const ext = blob.type.includes("mp4") ? "mp4" : "webm";
+      form.append("audio", blob, `voice.${ext}`);
+
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE}/help/transcribe`, {
+        method: "POST",
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        credentials: "include",
+        body: form,
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || SERVICE_UNAVAILABLE);
+      }
+
+      const text = String(data.text || "").trim();
+      setTranscribing(false);
+      confirmLockRef.current = false;
+
+      if (!text) {
+        setMicError(
+          data.message ||
+            "Could not hear anything clearly. Please try again."
+        );
+        setTimeout(() => inputRef.current?.focus(), 50);
+        return;
+      }
+
+      setInput(text);
+      // Auto-send like Fiverr — voice becomes a normal chat message
+      await sendMessage(text);
+    } catch (err) {
+      console.error("[HelpChat] transcribe", err?.message || err);
+      confirmLockRef.current = false;
+      setTranscribing(false);
+      setMicError(SERVICE_UNAVAILABLE);
+      setTimeout(() => inputRef.current?.focus(), 50);
+    }
+  };
+
   const openPanel = () => {
     setClosing(false);
     setOpen(true);
   };
 
   const closePanel = () => {
+    stopVoiceSession();
     setClosing(true);
     setTimeout(() => {
       setOpen(false);
@@ -104,8 +353,10 @@ export default function HelpChatWidget() {
   };
 
   const resetChat = () => {
+    stopVoiceSession();
     setMessages([{ id: `welcome-${Date.now()}`, role: "bot", text: WELCOME }]);
     setInput("");
+    setMicError("");
   };
 
   const appendBotToken = (botId, token) => {
@@ -166,8 +417,8 @@ export default function HelpChatWidget() {
     openPanel();
   };
 
-  const send = async () => {
-    const text = input.trim();
+  const sendMessage = async (overrideText) => {
+    const text = String(overrideText ?? input).trim();
     if (!text || busy) return;
 
     const userMsg = { id: `u-${Date.now()}`, role: "user", text };
@@ -280,7 +531,7 @@ export default function HelpChatWidget() {
   const onKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      send();
+      sendMessage();
     }
   };
 
@@ -294,7 +545,7 @@ export default function HelpChatWidget() {
         >
           <header className="eco-help-header">
             <div className="eco-help-header-left">
-              <span className="eco-help-title">EcoSystem Support</span>
+              <span className="eco-help-title">Eco Assistant</span>
               <img
                 src="/logo-half.png"
                 alt=""
@@ -360,29 +611,92 @@ export default function HelpChatWidget() {
           </div>
 
           <footer className="eco-help-footer">
-            <div className="eco-help-input-wrap">
-              <input
-                ref={inputRef}
-                type="text"
-                className="eco-help-input"
-                placeholder="Message..."
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={onKeyDown}
-                disabled={busy}
-                autoComplete="off"
-              />
-              <button
-                type="button"
-                className="eco-help-send"
-                title="Send"
-                onClick={send}
-                disabled={busy || !input.trim()}
+            {listening || transcribing ? (
+              <div
+                className="eco-help-voice-wrap"
+                role="status"
+                aria-label={transcribing ? "Transcribing" : "Listening"}
               >
-                <Send size={18} strokeWidth={2} />
-              </button>
-            </div>
-            <p className="eco-help-powered">Powered by ecoSystem Assistant</p>
+                <button
+                  type="button"
+                  className="eco-help-voice-cancel"
+                  title="Cancel"
+                  aria-label="Cancel voice input"
+                  onClick={cancelListening}
+                  disabled={transcribing}
+                >
+                  <X size={16} strokeWidth={2.5} />
+                </button>
+
+                <div className="eco-help-voice-viz" aria-hidden>
+                  {voiceLevels.map((level, i) => (
+                    <span
+                      key={i}
+                      className="eco-help-voice-bar"
+                      style={{
+                        transform: `scaleY(${Math.max(0.08, level)})`,
+                      }}
+                    />
+                  ))}
+                </div>
+
+                <span className="eco-help-voice-label">
+                  {transcribing ? "Transcribing…" : "Listening"}
+                </span>
+
+                <button
+                  type="button"
+                  className="eco-help-voice-confirm"
+                  title="Done"
+                  aria-label="Confirm voice input"
+                  onClick={confirmListening}
+                  disabled={transcribing}
+                >
+                  <Check size={16} strokeWidth={2.75} />
+                </button>
+              </div>
+            ) : (
+              <div className="eco-help-input-wrap">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  className="eco-help-input"
+                  placeholder="Ask a question..."
+                  value={input}
+                  onChange={(e) => {
+                    setInput(e.target.value);
+                    if (micError) setMicError("");
+                  }}
+                  onKeyDown={onKeyDown}
+                  disabled={busy}
+                  autoComplete="off"
+                />
+                <button
+                  type="button"
+                  className="eco-help-mic"
+                  title="Voice input"
+                  aria-label="Start voice input"
+                  onClick={startListening}
+                  disabled={busy}
+                >
+                  <Mic size={18} strokeWidth={2} />
+                </button>
+                <button
+                  type="button"
+                  className="eco-help-send"
+                  title="Send"
+                  onClick={() => sendMessage()}
+                  disabled={busy || !input.trim()}
+                >
+                  <Send size={18} strokeWidth={2} />
+                </button>
+              </div>
+            )}
+            {micError ? (
+              <p className="eco-help-mic-error">{micError}</p>
+            ) : (
+              <p className="eco-help-powered">Powered by ecoSystem Assistant</p>
+            )}
           </footer>
         </div>
       )}
