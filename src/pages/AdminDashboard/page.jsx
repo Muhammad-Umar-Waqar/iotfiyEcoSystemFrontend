@@ -2770,7 +2770,7 @@ function DataTable({ columns, rows, onRowClick }) {
       <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0 }}>
         <thead>
           <tr>
-            {columns.map(c => (
+            {columns.map((c, ci) => (
               <th
                 key={c.key}
                 className="eco-admin-sticky-th"
@@ -2785,6 +2785,9 @@ function DataTable({ columns, rows, onRowClick }) {
                   whiteSpace: 'nowrap',
                   background: C.bg,
                   borderBottom: `1px solid ${C.border}`,
+                  borderTopLeftRadius: ci === 0 ? 12 : 0,
+                  borderTopRightRadius:
+                    !onRowClick && ci === columns.length - 1 ? 12 : 0,
                 }}
               >
                 {c.header}
@@ -2797,32 +2800,59 @@ function DataTable({ columns, rows, onRowClick }) {
                   width: 40,
                   background: C.bg,
                   borderBottom: `1px solid ${C.border}`,
+                  borderTopRightRadius: 12,
                 }}
               />
             )}
           </tr>
         </thead>
         <tbody>
-          {rows.map((row, ri) => (
-            <tr
-              key={row.id || ri}
-              onClick={() => onRowClick && onRowClick(row)}
-              style={{ borderBottom: ri < rows.length - 1 ? `1px solid ${C.border}` : 'none', cursor: onRowClick ? 'pointer' : 'default', transition: 'background 0.1s' }}
-              onMouseEnter={e => { if (onRowClick) e.currentTarget.style.background = C.bg; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-            >
-              {columns.map(c => (
-                <td key={c.key} style={{ padding: '12px 16px', fontSize: 13, color: C.textMid, whiteSpace: 'nowrap' }}>
-                  {c.render ? c.render(row) : row[c.key]}
-                </td>
-              ))}
-              {onRowClick && (
-                <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                  <ChevronRight size={14} color={C.textSoft} />
-                </td>
-              )}
-            </tr>
-          ))}
+          {rows.map((row, ri) => {
+            const isLast = ri === rows.length - 1;
+            const rowBorder = isLast ? 'none' : `1px solid ${C.border}`;
+            return (
+              <tr
+                key={row.id || ri}
+                onClick={() => onRowClick && onRowClick(row)}
+                style={{
+                  cursor: onRowClick ? 'pointer' : 'default',
+                  transition: 'background 0.1s',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = C.bg;
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = 'transparent';
+                }}
+              >
+                {columns.map(c => (
+                  <td
+                    key={c.key}
+                    style={{
+                      padding: '14px 16px',
+                      fontSize: 13,
+                      color: C.textMid,
+                      whiteSpace: 'nowrap',
+                      borderBottom: rowBorder,
+                    }}
+                  >
+                    {c.render ? c.render(row) : row[c.key]}
+                  </td>
+                ))}
+                {onRowClick && (
+                  <td
+                    style={{
+                      padding: '14px 16px',
+                      textAlign: 'right',
+                      borderBottom: rowBorder,
+                    }}
+                  >
+                    <ChevronRight size={14} color={C.textSoft} />
+                  </td>
+                )}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
       {rows.length === 0 && (
