@@ -1,52 +1,57 @@
 .tabScroll {
-  scrollbar-width: none;        /* Firefox */
-  -ms-overflow-style: none;     /* IE/Edge legacy */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .tabScroll::-webkit-scrollbar {
-  display: none;                /* Chrome, Safari */
+  display: none;
 }
 
-/* Admin shell: fill viewport, no page-level scroll */
+/*
+  Admin Management list scroll (Managers / Orgs / Venues / Devices).
+  Critical: use flex-basis 0% so panels take REMAINING height, not content height.
+  Otherwise the list grows and the whole page appears to scroll.
+*/
 .eco-admin-page {
   height: 100%;
+  max-height: 100%;
+  width: 100%;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: hidden !important;
   background: #f8fafc;
 }
 
-/* Main column under TopBar — does NOT scroll as a whole */
 .eco-admin-main {
-  flex: 1 1 auto;
+  flex: 1 1 0%;
   min-height: 0;
+  max-height: 100%;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: hidden !important;
   padding: 24px 28px;
 }
 
-/* One Management tab: header fixed, list scrolls */
 .eco-admin-tab-panel {
-  flex: 1 1 auto;
+  flex: 1 1 0%;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: hidden !important;
 }
 
 .eco-admin-tab-header {
-  flex-shrink: 0;
+  flex: 0 0 auto;
 }
 
-/* Only the list/table area scrolls; scrollbar hidden */
 .eco-admin-list-scroll {
-  flex: 1 1 auto;
+  flex: 1 1 0%;
   min-height: 0;
-  overflow-x: auto;
-  overflow-y: auto;
+  overflow-x: auto !important;
+  overflow-y: auto !important;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
@@ -58,12 +63,12 @@
   background: transparent;
 }
 
-/* Detail views / Plan page content that still needs full-panel scroll */
+/* Detail drill-down / Plans: panel scroll (not full document) */
 .eco-admin-scroll {
-  flex: 1 1 auto;
+  flex: 1 1 0%;
   min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
   overscroll-behavior: contain;
   -ms-overflow-style: none;
   scrollbar-width: none;

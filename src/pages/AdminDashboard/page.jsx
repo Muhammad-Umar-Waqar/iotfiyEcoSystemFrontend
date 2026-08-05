@@ -2737,9 +2737,19 @@ function SectionTitle({ title, subtitle, action }) {
    ============================================================ */
 function AdminListPanel({ header, children }) {
   return (
-    <div className="eco-admin-tab-panel">
-      <div className="eco-admin-tab-header">{header}</div>
-      <div className="eco-admin-list-scroll">{children}</div>
+    <div
+      className="eco-admin-tab-panel"
+      style={{ flex: '1 1 0%', minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+    >
+      <div className="eco-admin-tab-header" style={{ flexShrink: 0 }}>
+        {header}
+      </div>
+      <div
+        className="eco-admin-list-scroll"
+        style={{ flex: '1 1 0%', minHeight: 0, overflowY: 'auto', overflowX: 'auto' }}
+      >
+        {children}
+      </div>
     </div>
   );
 }
@@ -2798,7 +2808,7 @@ function DataTable({ columns, rows, onRowClick }) {
    ============================================================ */
 function ManagersTable({ managers, onRowClick, onStatusClick, updatingManagerId }) {
   return (
-    <div style={{ overflowX: 'auto' }}>
+    <div style={{ overflowX: 'auto', minHeight: 0 }}>
       <div style={{ minWidth: 900, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, overflow: 'hidden' }}>
         {/* Header */}
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 90px 1fr 1fr 1fr 1fr 90px', padding: '9px 20px', background: C.bg, borderBottom: `1px solid ${C.border}`, gap: 12 }}>
@@ -2810,7 +2820,6 @@ function ManagersTable({ managers, onRowClick, onStatusClick, updatingManagerId 
         {managers.map((m, ri) => {
           const sc = statusColors(m.status);
           const pc = planColors(m.planType);
-          console.log("<><>m>", m)
           return (
             <div
               key={m.id}
@@ -3473,10 +3482,16 @@ const toggleManagerStatus = useCallback(async (manager) => {
      RENDER
   ═══════════════════════════════════════════════════════════ */
   return (
-    <div className="eco-admin-page">
+    <div
+      className="eco-admin-page"
+      style={{ height: '100%', maxHeight: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
+    >
       <TopBar breadcrumbs={crumbs()} />
 
-      <main className="eco-admin-main">
+      <main
+        className="eco-admin-main"
+        style={{ flex: '1 1 0%', minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
+      >
 
         {/* ══ MANAGERS LIST ══ */}
         {view === 'managers' && (
