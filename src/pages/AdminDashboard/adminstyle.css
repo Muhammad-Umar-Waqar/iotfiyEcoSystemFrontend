@@ -7,7 +7,7 @@
   display: none;                /* Chrome, Safari */
 }
 
-/* Admin Management / Plans: fill viewport height, scroll content, hide bar */
+/* Admin shell: fill viewport, no page-level scroll */
 .eco-admin-page {
   height: 100%;
   min-height: 0;
@@ -17,6 +17,48 @@
   background: #f8fafc;
 }
 
+/* Main column under TopBar — does NOT scroll as a whole */
+.eco-admin-main {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 24px 28px;
+}
+
+/* One Management tab: header fixed, list scrolls */
+.eco-admin-tab-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.eco-admin-tab-header {
+  flex-shrink: 0;
+}
+
+/* Only the list/table area scrolls; scrollbar hidden */
+.eco-admin-list-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.eco-admin-list-scroll::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+  background: transparent;
+}
+
+/* Detail views / Plan page content that still needs full-panel scroll */
 .eco-admin-scroll {
   flex: 1 1 auto;
   min-height: 0;
@@ -32,4 +74,10 @@
   width: 0;
   height: 0;
   background: transparent;
+}
+
+@media (max-width: 640px) {
+  .eco-admin-main {
+    padding: 16px 14px;
+  }
 }

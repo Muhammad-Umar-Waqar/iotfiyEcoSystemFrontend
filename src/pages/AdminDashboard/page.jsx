@@ -2733,6 +2733,18 @@ function SectionTitle({ title, subtitle, action }) {
 }
 
 /* ============================================================
+   ADMIN LIST PANEL — header fixed, only list scrolls
+   ============================================================ */
+function AdminListPanel({ header, children }) {
+  return (
+    <div className="eco-admin-tab-panel">
+      <div className="eco-admin-tab-header">{header}</div>
+      <div className="eco-admin-list-scroll">{children}</div>
+    </div>
+  );
+}
+
+/* ============================================================
    DATA TABLE — generic
    ============================================================ */
 function DataTable({ columns, rows, onRowClick }) {
@@ -3464,22 +3476,25 @@ const toggleManagerStatus = useCallback(async (manager) => {
     <div className="eco-admin-page">
       <TopBar breadcrumbs={crumbs()} />
 
-      <main className="eco-admin-scroll" style={{ padding: '24px 28px' }}>
+      <main className="eco-admin-main">
 
         {/* ══ MANAGERS LIST ══ */}
         {view === 'managers' && (
-          <>
-            <SummaryStrip items={[
-              { label: 'Total managers', value: managersStats.total,    icon: Users,        color: C.accent },
-              { label: 'Active',         value: managersStats.active,   icon: CheckCircle2, color: C.green  },
-              { label: 'Inactive',       value: managersStats.inactive, icon: AlertCircle,  color: C.red    },
-            ]} />
-            <SectionTitle title="All managers" subtitle="Click a manager to view their account details and usage" />
-
+          <AdminListPanel
+            header={
+              <>
+                <SummaryStrip items={[
+                  { label: 'Total managers', value: managersStats.total,    icon: Users,        color: C.accent },
+                  { label: 'Active',         value: managersStats.active,   icon: CheckCircle2, color: C.green  },
+                  { label: 'Inactive',       value: managersStats.inactive, icon: AlertCircle,  color: C.red    },
+                ]} />
+                <SectionTitle title="All managers" subtitle="Click a manager to view their account details and usage" />
+              </>
+            }
+          >
             {managersLoading && <SkeletonRows count={4} />}
             {managersError   && <ErrorCard message={managersError} onRetry={fetchManagers} />}
             {!managersLoading && !managersError && (
-              // <ManagersTable managers={managers} onRowClick={openManager} />
               <ManagersTable
                 managers={managers}
                 onRowClick={openManager}
@@ -3487,19 +3502,23 @@ const toggleManagerStatus = useCallback(async (manager) => {
                 updatingManagerId={updatingManagerId}
               />
             )}
-          </>
+          </AdminListPanel>
         )}
 
         {/* ══ TOP-LEVEL ORGS ══ */}
         {view === 'orgs' && (
-          <>
-            <SummaryStrip items={[
-              { label: 'Total organizations', value: allOrgsTotal,                                        icon: Building2, color: C.accent },
-              { label: 'Total venues',        value: allOrgs.reduce((s, o) => s + o.venues,  0),          icon: MapPin,    color: C.blue   },
-              { label: 'Total devices',       value: allOrgs.reduce((s, o) => s + o.devices, 0),          icon: Cpu,       color: C.purple },
-            ]} />
-            <SectionTitle title="All organizations" subtitle="Every organization across all managers on the platform" />
-
+          <AdminListPanel
+            header={
+              <>
+                <SummaryStrip items={[
+                  { label: 'Total organizations', value: allOrgsTotal,                                        icon: Building2, color: C.accent },
+                  { label: 'Total venues',        value: allOrgs.reduce((s, o) => s + o.venues,  0),          icon: MapPin,    color: C.blue   },
+                  { label: 'Total devices',       value: allOrgs.reduce((s, o) => s + o.devices, 0),          icon: Cpu,       color: C.purple },
+                ]} />
+                <SectionTitle title="All organizations" subtitle="Every organization across all managers on the platform" />
+              </>
+            }
+          >
             {allOrgsLoading && <SkeletonRows count={4} />}
             {allOrgsError   && <ErrorCard message={allOrgsError} onRetry={fetchAllOrgs} />}
             {!allOrgsLoading && !allOrgsError && (
@@ -3522,19 +3541,23 @@ const toggleManagerStatus = useCallback(async (manager) => {
                 rows={allOrgs}
               />
             )}
-          </>
+          </AdminListPanel>
         )}
 
         {/* ══ TOP-LEVEL VENUES ══ */}
         {view === 'venues' && (
-          <>
-            <SummaryStrip items={[
-              { label: 'Total venues',  value: allVenuesTotal,                                          icon: MapPin, color: C.accent },
-              { label: 'With devices',  value: allVenues.filter(v => v.devices > 0).length,             icon: Cpu,    color: C.green  },
-              { label: 'Empty venues',  value: allVenues.filter(v => v.devices === 0).length,           icon: MapPin, color: C.amber  },
-            ]} />
-            <SectionTitle title="All venues" subtitle="Every venue across all organizations on the platform" />
-
+          <AdminListPanel
+            header={
+              <>
+                <SummaryStrip items={[
+                  { label: 'Total venues',  value: allVenuesTotal,                                          icon: MapPin, color: C.accent },
+                  { label: 'With devices',  value: allVenues.filter(v => v.devices > 0).length,             icon: Cpu,    color: C.green  },
+                  { label: 'Empty venues',  value: allVenues.filter(v => v.devices === 0).length,           icon: MapPin, color: C.amber  },
+                ]} />
+                <SectionTitle title="All venues" subtitle="Every venue across all organizations on the platform" />
+              </>
+            }
+          >
             {allVenuesLoading && <SkeletonRows count={4} />}
             {allVenuesError   && <ErrorCard message={allVenuesError} onRetry={fetchAllVenues} />}
             {!allVenuesLoading && !allVenuesError && (
@@ -3547,30 +3570,34 @@ const toggleManagerStatus = useCallback(async (manager) => {
                 rows={allVenues}
               />
             )}
-          </>
+          </AdminListPanel>
         )}
 
         {/* ══ TOP-LEVEL DEVICES ══ */}
         {view === 'devices' && (
-          <>
-            <SummaryStrip items={[
-              { label: 'Total devices', value: allDevicesStats.total,   icon: Cpu,    color: C.accent },
-              { label: 'Online',        value: allDevicesStats.online,  icon: Wifi,    color: C.green  },
-              { label: 'Offline',       value: allDevicesStats.offline, icon: WifiOff, color: C.red    },
-            ]} />
-            <SectionTitle title="All devices" subtitle="Every IoT device deployed across the platform" />
-
+          <AdminListPanel
+            header={
+              <>
+                <SummaryStrip items={[
+                  { label: 'Total devices', value: allDevicesStats.total,   icon: Cpu,    color: C.accent },
+                  { label: 'Online',        value: allDevicesStats.online,  icon: Wifi,    color: C.green  },
+                  { label: 'Offline',       value: allDevicesStats.offline, icon: WifiOff, color: C.red    },
+                ]} />
+                <SectionTitle title="All devices" subtitle="Every IoT device deployed across the platform" />
+              </>
+            }
+          >
             {allDevicesLoading && <SkeletonRows count={5} />}
             {allDevicesError   && <ErrorCard message={allDevicesError} onRetry={fetchAllDevices} />}
             {!allDevicesLoading && !allDevicesError && (
               <DataTable columns={DEVICE_COLS} rows={allDevices} />
             )}
-          </>
+          </AdminListPanel>
         )}
 
         {/* ══ MANAGER DETAIL ══ */}
         {view === 'managerDetail' && (
-          <>
+          <div className="eco-admin-scroll">
             {managerDetailLoading && <Spinner />}
             {managerDetailError   && <ErrorCard message={managerDetailError} onRetry={() => fetchManagerDetail(managerId)} />}
 
@@ -3618,12 +3645,12 @@ const toggleManagerStatus = useCallback(async (manager) => {
                 )}
               </>
             )}
-          </>
+          </div>
         )}
 
         {/* ══ SUB-USER DETAIL ══ */}
         {view === 'userDetail' && (
-          <>
+          <div className="eco-admin-scroll">
             {userDetailLoading && <Spinner />}
             {userDetailError   && <ErrorCard message={userDetailError} onRetry={() => fetchUserDetail(userId)} />}
 
@@ -3670,7 +3697,7 @@ const toggleManagerStatus = useCallback(async (manager) => {
                 <DataTable columns={DEVICE_COLS} rows={userDetail.devices} />
               </>
             )}
-          </>
+          </div>
         )}
       </main>
 
