@@ -28,7 +28,11 @@ const ManagementLayout = () => {
         Admin: lock shell height and let each admin page scroll internally (hidden bar).
         Manager/user: mobile page scroll for tall Add forms; desktop locks to nested list scroll.
       */}
-      <main className="z-10 flex-1 min-h-0 overflow-hidden bg-transparent p-2 pb-[4.5rem] md:pb-2">
+      <main
+        className={`z-10 flex-1 min-h-0 overflow-hidden bg-transparent p-2 md:pb-2 ${
+          isAdmin ? 'pb-1' : 'pb-[4.5rem]'
+        }`}
+      >
         <div
           className={
             isAdmin

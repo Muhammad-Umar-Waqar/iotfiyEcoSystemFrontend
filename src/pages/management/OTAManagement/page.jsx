@@ -81,7 +81,7 @@ const OTAManagement = () => {
         Stacked on mobile (existing MUI Drawer handles mobile nav for DeviceList)
       */}
       <div className="flex flex-col md:flex-row gap-4 md:gap-0 h-full min-h-0 p-4 md:p-0 rounded-[20px]">
-        <div className="md:flex-1 md:min-w-0 h-full min-h-0 overflow-hidden">
+        <div className="md:flex-1 md:min-w-0 min-h-0 overflow-hidden">
           <OTADeviceList
             key={refreshTrigger}
             selectedVersion={selectedVersion}
