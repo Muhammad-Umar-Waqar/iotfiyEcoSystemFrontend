@@ -196,6 +196,120 @@
   color: #0f172a;
 }
 
+.eco-help-icon-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.eco-help-icon-btn--live {
+  color: #dc2626;
+  background: #fef2f2;
+}
+
+.eco-help-icon-btn--live:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.eco-help-live-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.85rem;
+  background: linear-gradient(90deg, #ecfdf5, #f0fdfa);
+  border-bottom: 1px solid #ccfbf1;
+  font-size: 0.78rem;
+  font-weight: 550;
+  color: #0f766e;
+}
+
+.eco-help-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #14b8a6;
+  box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.55);
+  animation: ecoHelpLivePulse 1.4s ease-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes ecoHelpLivePulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(20, 184, 166, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(20, 184, 166, 0);
+  }
+}
+
+.eco-help-live-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.eco-help-live-end {
+  border: none;
+  background: transparent;
+  color: #b91c1c;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 650;
+  cursor: pointer;
+  padding: 0.15rem 0.35rem;
+  border-radius: 6px;
+}
+
+.eco-help-live-end:hover {
+  background: #fee2e2;
+}
+
+.eco-help-live-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  align-items: stretch;
+}
+
+.eco-help-live-hint {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: #64748b;
+  text-align: center;
+}
+
+.eco-help-live-hint strong {
+  color: #0f766e;
+  font-weight: 650;
+}
+
+.eco-help-live-end-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: none;
+  border-radius: 999px;
+  padding: 0.65rem 1rem;
+  background: #0f172a;
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+}
+
+.eco-help-live-end-btn:hover {
+  background: #1e293b;
+}
+
 .eco-help-messages {
   flex: 1;
   min-height: 0;

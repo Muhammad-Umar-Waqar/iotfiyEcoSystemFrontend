@@ -1,6 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, Mic, Minimize2, RotateCcw, Send, X } from "lucide-react";
+import {
+  Check,
+  Mic,
+  Minimize2,
+  Phone,
+  PhoneOff,
+  RotateCcw,
+  Send,
+  X,
+} from "lucide-react";
 import HelpMarkdown from "./HelpMarkdown";
+import { startEcoLiveVoice } from "../hooks/useEcoLiveVoice";
 import "./HelpChatWidget.css";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5054";
@@ -88,6 +98,9 @@ export default function HelpChatWidget() {
   );
   const [micError, setMicError] = useState("");
   const [transcribing, setTranscribing] = useState(false);
+  const [liveVoice, setLiveVoice] = useState(false);
+  const [liveStatus, setLiveStatus] = useState("");
+  const [liveStarting, setLiveStarting] = useState(false);
 
   const listRef = useRef(null);
   const inputRef = useRef(null);
@@ -99,12 +112,25 @@ export default function HelpChatWidget() {
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
   const confirmLockRef = useRef(false);
+  const liveSessionRef = useRef(null);
 
   useEffect(() => {
     if (!open) return;
     const el = listRef.current;
     if (el) el.scrollTop = el.scrollHeight;
-  }, [messages, open, busy]);
+  }, [messages, open, busy, liveStatus]);
+
+  const stopLiveVoice = () => {
+    try {
+      liveSessionRef.current?.stop?.();
+    } catch {
+      /* ignore */
+    }
+    liveSessionRef.current = null;
+    setLiveVoice(false);
+    setLiveStarting(false);
+    setLiveStatus("");
+  };
 
   useEffect(() => {
     if (open && !closing) {
@@ -193,7 +219,18 @@ export default function HelpChatWidget() {
     setTranscribing(false);
   };
 
-  useEffect(() => () => stopVoiceSession(), []);
+  useEffect(
+    () => () => {
+      stopVoiceSession();
+      try {
+        liveSessionRef.current?.stop?.();
+      } catch {
+        /* ignore */
+      }
+      liveSessionRef.current = null;
+    },
+    []
+  );
 
   const tickVoiceLevels = () => {
     const analyser = analyserRef.current;
@@ -224,7 +261,7 @@ export default function HelpChatWidget() {
   };
 
   const startListening = async () => {
-    if (busy || listening || transcribing) return;
+    if (busy || listening || transcribing || liveVoice || liveStarting) return;
     setMicError("");
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -345,6 +382,7 @@ export default function HelpChatWidget() {
 
   const closePanel = () => {
     stopVoiceSession();
+    stopLiveVoice();
     setClosing(true);
     setTimeout(() => {
       setOpen(false);
@@ -354,9 +392,62 @@ export default function HelpChatWidget() {
 
   const resetChat = () => {
     stopVoiceSession();
+    stopLiveVoice();
     setMessages([{ id: `welcome-${Date.now()}`, role: "bot", text: WELCOME }]);
     setInput("");
     setMicError("");
+  };
+
+  const appendLiveChatMessage = ({ role, text }) => {
+    const trimmed = String(text || "").trim();
+    if (!trimmed) return;
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `live-${role}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        role: role === "user" ? "user" : "bot",
+        text: trimmed,
+        live: true,
+      },
+    ]);
+  };
+
+  const toggleLiveVoice = async () => {
+    if (liveVoice || liveStarting) {
+      stopLiveVoice();
+      return;
+    }
+    if (busy || listening || transcribing) return;
+
+    stopVoiceSession();
+    setMicError("");
+    setLiveStarting(true);
+    setLiveStatus("Connecting…");
+
+    try {
+      const session = await startEcoLiveVoice({
+        onChatMessage: appendLiveChatMessage,
+        onStatus: (s) => setLiveStatus(s || ""),
+        onError: (msg) => {
+          setMicError(msg || SERVICE_UNAVAILABLE);
+          stopLiveVoice();
+        },
+        onEnded: () => {
+          // Auto hang-up (thanks / end call) — sync UI; stop() already ran.
+          liveSessionRef.current = null;
+          setLiveVoice(false);
+          setLiveStarting(false);
+          setLiveStatus("");
+        },
+      });
+      liveSessionRef.current = session;
+      setLiveVoice(true);
+      setLiveStarting(false);
+    } catch (err) {
+      console.error("[HelpChat] live voice", err?.message || err);
+      stopLiveVoice();
+      setMicError(err?.message || SERVICE_UNAVAILABLE);
+    }
   };
 
   const appendBotToken = (botId, token) => {
@@ -419,7 +510,7 @@ export default function HelpChatWidget() {
 
   const sendMessage = async (overrideText) => {
     const text = String(overrideText ?? input).trim();
-    if (!text || busy) return;
+    if (!text || busy || liveVoice || liveStarting) return;
 
     const userMsg = { id: `u-${Date.now()}`, role: "user", text };
     const historyPayload = [...messages, userMsg]
@@ -555,6 +646,30 @@ export default function HelpChatWidget() {
             <div className="eco-help-header-actions">
               <button
                 type="button"
+                className={`eco-help-icon-btn ${
+                  liveVoice || liveStarting ? "eco-help-icon-btn--live" : ""
+                }`}
+                title={
+                  liveVoice || liveStarting
+                    ? "End live voice (Hey Eco)"
+                    : "Start live voice — Hey Eco"
+                }
+                aria-label={
+                  liveVoice || liveStarting
+                    ? "End live voice"
+                    : "Start live voice"
+                }
+                onClick={toggleLiveVoice}
+                disabled={busy || listening || transcribing}
+              >
+                {liveVoice || liveStarting ? (
+                  <PhoneOff size={16} strokeWidth={2} />
+                ) : (
+                  <Phone size={16} strokeWidth={2} />
+                )}
+              </button>
+              <button
+                type="button"
                 className="eco-help-icon-btn"
                 title="Reset chat"
                 onClick={resetChat}
@@ -571,6 +686,22 @@ export default function HelpChatWidget() {
               </button>
             </div>
           </header>
+
+          {liveVoice || liveStarting ? (
+            <div className="eco-help-live-bar" role="status">
+              <span className="eco-help-live-dot" aria-hidden />
+              <span className="eco-help-live-text">
+                {liveStatus || "Live voice"}
+              </span>
+              <button
+                type="button"
+                className="eco-help-live-end"
+                onClick={stopLiveVoice}
+              >
+                End
+              </button>
+            </div>
+          ) : null}
 
           <div className="eco-help-messages" ref={listRef}>
             {messages.map((m) =>
@@ -611,7 +742,22 @@ export default function HelpChatWidget() {
           </div>
 
           <footer className="eco-help-footer">
-            {listening || transcribing ? (
+            {liveVoice || liveStarting ? (
+              <div className="eco-help-live-footer" role="status">
+                <p className="eco-help-live-hint">
+                  Live voice on — say <strong>Hey Eco</strong>, then ask. End
+                  the call to return to normal chat.
+                </p>
+                <button
+                  type="button"
+                  className="eco-help-live-end-btn"
+                  onClick={stopLiveVoice}
+                >
+                  <PhoneOff size={16} strokeWidth={2.25} />
+                  End live voice
+                </button>
+              </div>
+            ) : listening || transcribing ? (
               <div
                 className="eco-help-voice-wrap"
                 role="status"
