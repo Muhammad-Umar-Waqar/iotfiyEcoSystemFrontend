@@ -67,6 +67,139 @@
   border-radius: 999px;
   background: #fff;
   box-shadow: 0 0 0 3px #14b8a6;
+  transition: box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.eco-help-fab-wave {
+  position: absolute;
+  inset: -6px;
+  border-radius: 999px;
+  border: 2px solid rgba(20, 184, 166, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(calc(1 + (var(--eco-fab-level, 0) * 0.35)));
+  transition: transform 80ms linear, opacity 0.2s ease;
+}
+
+.eco-help-fab--connecting .eco-help-fab-ring {
+  box-shadow: 0 0 0 3px #f59e0b;
+  animation: ecoHelpFabPulseRing 1s ease-in-out infinite;
+}
+
+.eco-help-fab--connecting .eco-help-fab-spinner {
+  opacity: 1;
+  animation: ecoHelpFabSpin 0.85s linear infinite;
+}
+
+.eco-help-fab--connecting .eco-help-fab-wave--a {
+  opacity: 0.7;
+  border-color: rgba(245, 158, 11, 0.55);
+  animation: ecoHelpFabWave 1.15s ease-out infinite;
+}
+
+.eco-help-fab--connecting .eco-help-fab-wave--b {
+  opacity: 0.45;
+  border-color: rgba(245, 158, 11, 0.35);
+  animation: ecoHelpFabWave 1.15s ease-out 0.28s infinite;
+}
+
+.eco-help-fab--connecting .eco-help-fab-wave--c {
+  opacity: 0.3;
+  border-color: rgba(245, 158, 11, 0.22);
+  animation: ecoHelpFabWave 1.15s ease-out 0.55s infinite;
+}
+
+.eco-help-fab-spinner {
+  position: absolute;
+  inset: -8px;
+  border-radius: 999px;
+  opacity: 0;
+  pointer-events: none;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 220deg,
+    #f59e0b 300deg,
+    #fbbf24 360deg
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+}
+
+.eco-help-fab--ready .eco-help-fab-ring {
+  box-shadow: 0 0 0 3px #14b8a6;
+  animation: ecoHelpFabBreathe 2.4s ease-in-out infinite;
+}
+
+.eco-help-fab--live .eco-help-fab-ring {
+  box-shadow: 0 0 0 3px #0d9488;
+}
+
+.eco-help-fab--live .eco-help-fab-wave {
+  opacity: calc(0.25 + var(--eco-fab-level, 0) * 0.75);
+}
+
+.eco-help-fab--live .eco-help-fab-wave--a {
+  inset: -4px;
+}
+.eco-help-fab--live .eco-help-fab-wave--b {
+  inset: -10px;
+  border-color: rgba(20, 184, 166, 0.28);
+  transform: scale(calc(1.05 + (var(--eco-fab-level, 0) * 0.45)));
+}
+.eco-help-fab--live .eco-help-fab-wave--c {
+  inset: -16px;
+  border-color: rgba(13, 148, 136, 0.2);
+  transform: scale(calc(1.1 + (var(--eco-fab-level, 0) * 0.55)));
+}
+
+.eco-help-fab--speaking .eco-help-fab-ring {
+  box-shadow: 0 0 0 3px #0284c7;
+}
+.eco-help-fab--speaking .eco-help-fab-wave {
+  border-color: rgba(2, 132, 199, 0.4);
+}
+
+.eco-help-fab--needs-mic .eco-help-fab-ring {
+  box-shadow: 0 0 0 3px #ef4444;
+  animation: ecoHelpFabBreathe 1.4s ease-in-out infinite;
+}
+
+@keyframes ecoHelpFabWave {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(1.55);
+    opacity: 0;
+  }
+}
+
+@keyframes ecoHelpFabBreathe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px #14b8a6;
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(20, 184, 166, 0.35);
+  }
+}
+
+@keyframes ecoHelpFabPulseRing {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px #f59e0b;
+  }
+  50% {
+    box-shadow: 0 0 0 7px rgba(245, 158, 11, 0.4);
+  }
+}
+
+@keyframes ecoHelpFabSpin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .eco-help-fab-inner {
@@ -231,6 +364,10 @@
   box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.55);
   animation: ecoHelpLivePulse 1.4s ease-out infinite;
   flex-shrink: 0;
+}
+
+.eco-help-live-dot--pulse {
+  animation: ecoHelpLivePulse 0.9s ease-out infinite;
 }
 
 @keyframes ecoHelpLivePulse {

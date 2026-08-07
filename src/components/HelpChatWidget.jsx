@@ -101,6 +101,9 @@ export default function HelpChatWidget() {
   const [liveVoice, setLiveVoice] = useState(false);
   const [liveStatus, setLiveStatus] = useState("");
   const [liveStarting, setLiveStarting] = useState(false);
+  const [livePhase, setLivePhase] = useState("idle"); // idle|connecting|ready|active|speaking|needs_permission
+  const [fabMicLevel, setFabMicLevel] = useState(0);
+  const [liveConversationActive, setLiveConversationActive] = useState(false);
 
   const listRef = useRef(null);
   const inputRef = useRef(null);
@@ -113,6 +116,7 @@ export default function HelpChatWidget() {
   const chunksRef = useRef([]);
   const confirmLockRef = useRef(false);
   const liveSessionRef = useRef(null);
+  const liveStartingRef = useRef(false);
 
   useEffect(() => {
     if (!open) return;
@@ -127,10 +131,147 @@ export default function HelpChatWidget() {
       /* ignore */
     }
     liveSessionRef.current = null;
+    liveStartingRef.current = false;
     setLiveVoice(false);
     setLiveStarting(false);
     setLiveStatus("");
+    setLivePhase("idle");
+    setFabMicLevel(0);
+    setLiveConversationActive(false);
   };
+
+  const appendLiveChatMessage = ({ role, text }) => {
+    const trimmed = String(text || "").trim();
+    if (!trimmed) return;
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `live-${role}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        role: role === "user" ? "user" : "bot",
+        text: trimmed,
+        live: true,
+      },
+    ]);
+  };
+
+  const startAlwaysOnLiveVoice = async ({ fromUserGesture = false } = {}) => {
+    if (liveSessionRef.current || liveStartingRef.current) return false;
+    if (!localStorage.getItem("token")) {
+      setLivePhase("idle");
+      setLiveStatus("");
+      return false;
+    }
+    if (busy || listening || transcribing) {
+      setLivePhase((p) => (p === "connecting" ? "idle" : p));
+      return false;
+    }
+
+    stopVoiceSession();
+    setMicError("");
+    liveStartingRef.current = true;
+    setLiveStarting(true);
+    setLivePhase("connecting");
+    setLiveStatus("Connecting…");
+
+    try {
+      const session = await startEcoLiveVoice({
+        requireWakeWord: true,
+        autoMode: true,
+        onChatMessage: appendLiveChatMessage,
+        onStatus: (s) => setLiveStatus(s || ""),
+        onPhase: (p) => {
+          setLivePhase(p || "ready");
+          setLiveConversationActive(p === "active" || p === "speaking");
+        },
+        onMicLevel: (level) => setFabMicLevel(Number(level) || 0),
+        onError: (msg) => {
+          const m = String(msg || "");
+          if (/permission|not allowed|denied/i.test(m) || !fromUserGesture) {
+            setLivePhase("needs_permission");
+            setMicError("Tap the Eco icon to enable microphone for Hey Eco.");
+          } else {
+            setMicError(m || SERVICE_UNAVAILABLE);
+            setLivePhase("idle");
+          }
+          liveSessionRef.current = null;
+          setLiveVoice(false);
+          liveStartingRef.current = false;
+          setLiveStarting(false);
+          setLiveConversationActive(false);
+        },
+        onEnded: () => {
+          liveSessionRef.current = null;
+          setLiveVoice(false);
+          liveStartingRef.current = false;
+          setLiveStarting(false);
+          setLiveStatus("");
+          setLivePhase("idle");
+          setFabMicLevel(0);
+          setLiveConversationActive(false);
+        },
+      });
+      liveSessionRef.current = session;
+      setLiveVoice(true);
+      liveStartingRef.current = false;
+      setLiveStarting(false);
+      setLivePhase((p) => (p === "connecting" ? "ready" : p));
+      setMicError("");
+      return true;
+    } catch (err) {
+      console.error("[HelpChat] live voice", err?.message || err);
+      const m = String(err?.message || "");
+      liveSessionRef.current = null;
+      setLiveVoice(false);
+      liveStartingRef.current = false;
+      setLiveStarting(false);
+      setLiveConversationActive(false);
+      if (/permission|not allowed|denied|secure/i.test(m) || !fromUserGesture) {
+        setLivePhase("needs_permission");
+        setMicError(
+          "Tap the Eco icon once to enable always-on voice (Hey Eco)."
+        );
+      } else {
+        setLivePhase("idle");
+        setMicError(m || SERVICE_UNAVAILABLE);
+      }
+      return false;
+    }
+  };
+
+  // Always-on: connect on login/reload. Avoid stuck orange ring (React Strict Mode
+  // remount used to cancel the timer after setting "connecting" permanently).
+  useEffect(() => {
+    if (!localStorage.getItem("token")) return;
+    let cancelled = false;
+
+    setLivePhase("connecting");
+    setLiveStatus("Connecting…");
+
+    const startTimer = setTimeout(() => {
+      if (cancelled) return;
+      startAlwaysOnLiveVoice({ fromUserGesture: false });
+    }, 350);
+
+    // Safety: never leave orange spinner spinning forever
+    const safetyTimer = setTimeout(() => {
+      if (cancelled || liveSessionRef.current) return;
+      liveStartingRef.current = false;
+      setLiveStarting(false);
+      setLivePhase((p) => {
+        if (p !== "connecting") return p;
+        return "needs_permission";
+      });
+      setLiveStatus("");
+      setMicError("Tap the Eco icon once to enable always-on voice (Hey Eco).");
+    }, 20000);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(startTimer);
+      clearTimeout(safetyTimer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (open && !closing) {
@@ -381,8 +522,8 @@ export default function HelpChatWidget() {
   };
 
   const closePanel = () => {
+    // Minimize only — keep live speech-to-speech session alive
     stopVoiceSession();
-    stopLiveVoice();
     setClosing(true);
     setTimeout(() => {
       setOpen(false);
@@ -398,56 +539,12 @@ export default function HelpChatWidget() {
     setMicError("");
   };
 
-  const appendLiveChatMessage = ({ role, text }) => {
-    const trimmed = String(text || "").trim();
-    if (!trimmed) return;
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: `live-${role}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        role: role === "user" ? "user" : "bot",
-        text: trimmed,
-        live: true,
-      },
-    ]);
-  };
-
   const toggleLiveVoice = async () => {
     if (liveVoice || liveStarting) {
       stopLiveVoice();
       return;
     }
-    if (busy || listening || transcribing) return;
-
-    stopVoiceSession();
-    setMicError("");
-    setLiveStarting(true);
-    setLiveStatus("Connecting…");
-
-    try {
-      const session = await startEcoLiveVoice({
-        onChatMessage: appendLiveChatMessage,
-        onStatus: (s) => setLiveStatus(s || ""),
-        onError: (msg) => {
-          setMicError(msg || SERVICE_UNAVAILABLE);
-          stopLiveVoice();
-        },
-        onEnded: () => {
-          // Auto hang-up (thanks / end call) — sync UI; stop() already ran.
-          liveSessionRef.current = null;
-          setLiveVoice(false);
-          setLiveStarting(false);
-          setLiveStatus("");
-        },
-      });
-      liveSessionRef.current = session;
-      setLiveVoice(true);
-      setLiveStarting(false);
-    } catch (err) {
-      console.error("[HelpChat] live voice", err?.message || err);
-      stopLiveVoice();
-      setMicError(err?.message || SERVICE_UNAVAILABLE);
-    }
+    await startAlwaysOnLiveVoice({ fromUserGesture: true });
   };
 
   const appendBotToken = (botId, token) => {
@@ -505,12 +602,17 @@ export default function HelpChatWidget() {
       });
       return;
     }
+    // First tap may be needed to grant mic for always-on Hey Eco
+    if (livePhase === "needs_permission" || livePhase === "idle") {
+      startAlwaysOnLiveVoice({ fromUserGesture: true });
+    }
     openPanel();
   };
 
   const sendMessage = async (overrideText) => {
     const text = String(overrideText ?? input).trim();
-    if (!text || busy || liveVoice || liveStarting) return;
+    // Text chat stays available while Eco is only waiting for "Hey Eco"
+    if (!text || busy || liveConversationActive) return;
 
     const userMsg = { id: `u-${Date.now()}`, role: "user", text };
     const historyPayload = [...messages, userMsg]
@@ -651,13 +753,13 @@ export default function HelpChatWidget() {
                 }`}
                 title={
                   liveVoice || liveStarting
-                    ? "End live voice (Hey Eco)"
-                    : "Start live voice — Hey Eco"
+                    ? "Disconnect Eco always-on voice"
+                    : "Connect Eco always-on voice"
                 }
                 aria-label={
                   liveVoice || liveStarting
-                    ? "End live voice"
-                    : "Start live voice"
+                    ? "Disconnect Eco voice"
+                    : "Connect Eco voice"
                 }
                 onClick={toggleLiveVoice}
                 disabled={busy || listening || transcribing}
@@ -687,19 +789,34 @@ export default function HelpChatWidget() {
             </div>
           </header>
 
-          {liveVoice || liveStarting ? (
+          {liveVoice || liveStarting || livePhase === "needs_permission" ? (
             <div className="eco-help-live-bar" role="status">
-              <span className="eco-help-live-dot" aria-hidden />
+              <span
+                className={`eco-help-live-dot ${
+                  livePhase === "connecting" ? "eco-help-live-dot--pulse" : ""
+                }`}
+                aria-hidden
+              />
               <span className="eco-help-live-text">
-                {liveStatus || "Live voice"}
+                {livePhase === "connecting"
+                  ? "Connecting Eco voice…"
+                  : livePhase === "needs_permission"
+                    ? "Tap Eco icon to enable mic"
+                    : livePhase === "speaking"
+                      ? "Eco is speaking…"
+                      : livePhase === "active"
+                        ? "Listening…"
+                        : liveStatus || "Say Hey Eco"}
               </span>
-              <button
-                type="button"
-                className="eco-help-live-end"
-                onClick={stopLiveVoice}
-              >
-                End
-              </button>
+              {liveVoice ? (
+                <button
+                  type="button"
+                  className="eco-help-live-end"
+                  onClick={stopLiveVoice}
+                >
+                  Disconnect
+                </button>
+              ) : null}
             </div>
           ) : null}
 
@@ -742,11 +859,11 @@ export default function HelpChatWidget() {
           </div>
 
           <footer className="eco-help-footer">
-            {liveVoice || liveStarting ? (
+            {liveConversationActive ? (
               <div className="eco-help-live-footer" role="status">
                 <p className="eco-help-live-hint">
-                  Live voice on — say <strong>Hey Eco</strong>, then ask. End
-                  the call to return to normal chat.
+                  Eco is in a voice conversation — say goodbye to sleep, or{" "}
+                  <strong>Disconnect</strong>. Text chat unlocks after that.
                 </p>
                 <button
                   type="button"
@@ -754,7 +871,7 @@ export default function HelpChatWidget() {
                   onClick={stopLiveVoice}
                 >
                   <PhoneOff size={16} strokeWidth={2.25} />
-                  End live voice
+                  Disconnect Eco voice
                 </button>
               </div>
             ) : listening || transcribing ? (
@@ -820,10 +937,14 @@ export default function HelpChatWidget() {
                 <button
                   type="button"
                   className="eco-help-mic"
-                  title="Voice input"
+                  title={
+                    liveVoice
+                      ? "Mic STT paused while Eco voice is connected — say Hey Eco"
+                      : "Voice input"
+                  }
                   aria-label="Start voice input"
                   onClick={startListening}
-                  disabled={busy}
+                  disabled={busy || liveVoice}
                 >
                   <Mic size={18} strokeWidth={2} />
                 </button>
@@ -850,15 +971,49 @@ export default function HelpChatWidget() {
       {!open && !closing && (
         <button
           type="button"
-          className={`eco-help-fab ${dragging ? "eco-help-fab--dragging" : "eco-help-fab--enter"}`}
-          style={{ left: fabPos.x, top: fabPos.y }}
+          className={[
+            "eco-help-fab",
+            dragging ? "eco-help-fab--dragging" : "eco-help-fab--enter",
+            livePhase === "connecting" ? "eco-help-fab--connecting" : "",
+            livePhase === "ready" ? "eco-help-fab--ready" : "",
+            livePhase === "active" || livePhase === "speaking"
+              ? "eco-help-fab--live"
+              : "",
+            livePhase === "speaking" ? "eco-help-fab--speaking" : "",
+            livePhase === "needs_permission" ? "eco-help-fab--needs-mic" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+          style={{
+            left: fabPos.x,
+            top: fabPos.y,
+            ["--eco-fab-level"]: String(Math.min(1, fabMicLevel || 0)),
+          }}
           onPointerDown={onFabPointerDown}
           onPointerMove={onFabPointerMove}
           onPointerUp={endFabPointer}
           onPointerCancel={endFabPointer}
-          aria-label="Open support chat (drag to move)"
-          title="ecoSystem Support — drag to move"
+          aria-label={
+            livePhase === "needs_permission"
+              ? "Enable Eco voice microphone"
+              : "Open Eco assistant (drag to move)"
+          }
+          title={
+            livePhase === "connecting"
+              ? "Connecting Eco voice…"
+              : livePhase === "ready"
+                ? "Say Hey Eco — or tap to open chat"
+                : livePhase === "active" || livePhase === "speaking"
+                  ? "Eco is listening — tap to open chat"
+                  : livePhase === "needs_permission"
+                    ? "Tap to enable microphone for Hey Eco"
+                    : "ecoSystem Support — drag to move"
+          }
         >
+          <span className="eco-help-fab-wave eco-help-fab-wave--a" aria-hidden />
+          <span className="eco-help-fab-wave eco-help-fab-wave--b" aria-hidden />
+          <span className="eco-help-fab-wave eco-help-fab-wave--c" aria-hidden />
+          <span className="eco-help-fab-spinner" aria-hidden />
           <span className="eco-help-fab-ring" />
           <span className="eco-help-fab-inner">
             <img

@@ -1,6 +1,7 @@
 // src/components/Modals/OrganizationManagement/EditModal.jsx
 import React from "react";
 import { Box, Button, Typography, Modal, Stack } from "@mui/material";
+import { Building2 } from "lucide-react";
 import InputField from "../../Inputs/InputField";
 
 export default function OrganizationEditModal({
@@ -12,17 +13,13 @@ export default function OrganizationEditModal({
 }) {
   const [orgName, setOrgName] = React.useState(organizationName || "");
 
-  // Sync when modal opens or organizationName changes
   React.useEffect(() => {
     if (open) setOrgName(organizationName || "");
   }, [open, organizationName]);
 
   const onUpdate = () => {
     const trimmed = (orgName || "").trim();
-    if (!trimmed) {
-      // optionally show a nicer toast
-      return;
-    }
+    if (!trimmed) return;
     handleEdit && handleEdit(organizationId, trimmed);
   };
 
@@ -34,20 +31,19 @@ export default function OrganizationEditModal({
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          // responsive width: nearly full on phones, fixed on larger screens
-          width: { xs: "90%", sm: 500 },
+          width: { xs: "90%", sm: 480 },
           maxWidth: "95%",
-          maxHeight: "90vh",
-          overflowY: "auto",
           bgcolor: "background.paper",
           borderRadius: "8px",
           boxShadow: 24,
-          // responsive padding
-          p: { xs: 2, sm: 4 },
+          p: { xs: 2.5, sm: 3 },
           outline: "none",
+          display: "flex",
+          flexDirection: "column",
+          gap: 2,
         }}
       >
-        <Typography id="edit-org-title" variant="h6" fontWeight="bold" mb={2}>
+        <Typography id="edit-org-title" variant="h6" fontWeight="bold">
           Edit Organization
         </Typography>
 
@@ -59,28 +55,19 @@ export default function OrganizationEditModal({
           value={orgName}
           onchange={(e) => setOrgName(e.target.value)}
           placeholder="Organization Name"
-          icon={<Box size={18} className="text-gray-400" />}
+          icon={<Building2 size={18} className="text-gray-400" />}
         />
 
         <Stack
           direction={{ xs: "column", sm: "row" }}
-          spacing={2}
+          spacing={1.5}
           justifyContent="flex-end"
-          mt={3}
+          sx={{ pt: 0.5 }}
         >
-          <Button
-            onClick={handleClose}
-            variant="outlined"
-            fullWidth={{ xs: true, sm: false }}
-          >
+          <Button onClick={handleClose} variant="outlined">
             Cancel
           </Button>
-          <Button
-            onClick={onUpdate}
-            variant="contained"
-            color="primary"
-            fullWidth={{ xs: true, sm: false }}
-          >
+          <Button onClick={onUpdate} variant="contained" color="primary">
             Update
           </Button>
         </Stack>
