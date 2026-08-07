@@ -320,8 +320,17 @@ export default function DownloadModal({
       return;
     }
 
-    const formatTimeForCSV = (v) =>
-      v ? dayjs(v).format("YYYY-MM-DD HH:mm:ss") : "";
+    /**
+     * Excel auto-converts "YYYY-MM-DD HH:mm:ss" to a date serial.
+     * Narrow columns then show ######## (data is there, just not visible).
+     * Force a text formula so the timestamp always displays as written.
+     */
+    const formatTimeForCSV = (v) => {
+      if (!v) return "";
+      const d = dayjs(v);
+      if (!d.isValid()) return String(v);
+      return `="${d.format("YYYY-MM-DD HH:mm:ss")}"`;
+    };
 
     const escape = (v) => `"${String(v).replace(/"/g, '""')}"`;
     const intervalHeader = intervalEnabled && intervalSuffix ? ["Interval"] : [];
