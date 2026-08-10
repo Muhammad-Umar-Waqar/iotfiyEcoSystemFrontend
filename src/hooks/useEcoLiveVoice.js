@@ -21,26 +21,24 @@ function looksLikeWakePhrase(text) {
     .replace(/\s+/g, " ")
     .trim();
   if (!t) return false;
-  // Islamic / Urdu greetings (with or without "Eco")
-  if (
-    /ass?alam\s*u?\s*(alaikum|alikum|alekum)/.test(t) ||
-    /ass?alamualaikum/.test(t) ||
-    /sala+m\s*(alaikum|alikum|alekum)/.test(t) ||
-    /\b(salam|salaam|assalam)\b/.test(t)
-  ) {
-    return true;
-  }
-  if (/\b(hey|hi|hello|hola|salam|assalam|yo)\s+(there\s+)?eco\b/.test(t)) {
-    return true;
-  }
-  if (/\b(are you|r you|is this|this is)\s+eco\b/.test(t)) return true;
-  if (/\b(wake up|listen|start)\s+eco\b/.test(t)) return true;
-  if (/\bgreetings?\b.*\beco\b/.test(t) || /\beco\b.*\bgreetings?\b/.test(t)) {
-    return true;
-  }
-  if (/\bok(ay)?\s+eco\b/.test(t)) return true;
-  // Bare "Eco" / "Eco?" / "Eco, …" at start of utterance
-  if (/^eco\b/.test(t)) return true;
+
+  // Islamic greeting — Eco NOT required.
+  // Covers STT variants: Asalam o Alaikum, Salam Alaikum, Assalamualaikum,
+  // salaam, asalam, assalam, salam alekum, etc. (exact full phrase not required).
+  const hasSalam =
+    /\b(a+s+)?s+a+l+a+a*m\b/.test(t) ||
+    /ass?a?l+a+m/.test(t) ||
+    /sala+m\s*(?:[ou]|oo|wa)?\s*(alaikum|alikum|alekum|alaykum|ualaikum)/.test(
+      t
+    ) ||
+    /ass?a?l+a+m\s*(?:[ou]|oo|wa)?\s*(alaikum|alikum|alekum|alaykum)/.test(t) ||
+    /ass?a?lamualaikum|assalamu\s*alaikum|asalamualaikum/.test(t);
+
+  if (hasSalam) return true;
+
+  // Eco wake — saying Eco (alone or with hey/hi/hello/…) starts the session.
+  if (/\beco\b/.test(t)) return true;
+
   return false;
 }
 
