@@ -9,6 +9,11 @@ const END_LIVE_SESSION_TOOL = "endLiveVoiceSession";
 const INPUT_SAMPLE_RATE = 16000;
 const OUTPUT_SAMPLE_RATE = 24000;
 
+/** Simple browser console logs for voice → text debugging (DevTools). */
+function voiceLog(...args) {
+  console.log("[EcoVoice]", ...args);
+}
+
 function looksLikeWakePhrase(text) {
   const t = String(text || "")
     .toLowerCase()
@@ -150,6 +155,7 @@ function createPcmPlayer(sampleRate = OUTPUT_SAMPLE_RATE) {
  */
 export async function startEcoLiveVoice(opts = {}) {
   const { onStatus } = opts;
+  voiceLog("startEcoLiveVoice…");
   onStatus?.("Connecting…");
   opts.onPhase?.("connecting");
   const sessionRes = await fetch(`${API_BASE}/help/realtime/session`, {
@@ -162,6 +168,11 @@ export async function startEcoLiveVoice(opts = {}) {
   if (!sessionRes.ok || !sessionData.success || !sessionData.clientSecret) {
     throw new Error(sessionData.message || "Could not start live voice session.");
   }
+  voiceLog("session OK", {
+    provider: sessionData.provider,
+    model: sessionData.model,
+    requireWakeWord: Boolean(opts.requireWakeWord),
+  });
   if (sessionData.provider === "openai") {
     return startOpenAILiveVoice(sessionData, opts);
   }
@@ -350,13 +361,19 @@ async function startGeminiLiveVoice(sessionData, opts) {
   };
   const handleUserUtterance = (t) => {
     if (!t) return;
+    voiceLog("user utterance (final):", t);
     if (requireWakeWord && !awakened) {
-      if (looksLikeWakePhrase(t)) {
+      const wake = looksLikeWakePhrase(t);
+      voiceLog("wake check:", { text: t, matched: wake, awakened });
+      if (wake) {
         awakened = true;
         setPhase("active");
         onStatus?.("Listening…");
         lastUserTranscript = t;
         onChatMessage?.({ role: "user", text: t, live: true });
+        voiceLog("WAKE OK → conversation active");
+      } else {
+        voiceLog("wake NOT matched — ignored (waiting for Hey Eco)");
       }
       // Before wake: ignore other speech in the chat UI
       return;
@@ -367,7 +384,21 @@ async function startGeminiLiveVoice(sessionData, opts) {
   };
   const handleMessage = async (message) => {
     if (closed || !message) return;
+    // Raw message shape (keys only) so we can see what Gemini sends first time
+    try {
+      voiceLog("raw msg keys:", Object.keys(message), {
+        hasServerContent: Boolean(message.serverContent),
+        hasToolCall: Boolean(message.toolCall),
+        setupComplete: Boolean(message.setupComplete),
+      });
+    } catch {
+      /* ignore */
+    }
     if (message.toolCall?.functionCalls?.length) {
+      voiceLog(
+        "toolCall:",
+        message.toolCall.functionCalls.map((fc) => fc.name)
+      );
       if (!awakened && requireWakeWord) {
         // Ignore tool calls before wake
         const responses = message.toolCall.functionCalls.map((fc) => ({
@@ -384,12 +415,14 @@ async function startGeminiLiveVoice(sessionData, opts) {
     const sc = message.serverContent;
     if (!sc) {
       if (message.setupComplete) {
+        voiceLog("setupComplete — waiting for speech");
         setPhase(requireWakeWord ? "ready" : "active");
         onStatus?.(requireWakeWord ? "Say Hey Eco" : "Listening…");
       }
       return;
     }
     if (sc.interrupted) {
+      voiceLog("interrupted");
       try {
         player.stop();
       } catch {
@@ -398,21 +431,31 @@ async function startGeminiLiveVoice(sessionData, opts) {
       player = createPcmPlayer(OUTPUT_SAMPLE_RATE);
     }
     if (sc.inputTranscription?.text) {
-      userBuf += sc.inputTranscription.text;
+      const chunk = sc.inputTranscription.text;
+      userBuf += chunk;
+      voiceLog("STT delta:", JSON.stringify(chunk), "| buf:", JSON.stringify(userBuf));
       // Early wake detect while speaking
       if (requireWakeWord && !awakened && looksLikeWakePhrase(userBuf)) {
         awakened = true;
         setPhase("active");
         onStatus?.("Listening…");
+        voiceLog("WAKE matched on partial buf:", userBuf);
       }
       if (sc.inputTranscription.finished === true || sc.turnComplete) {
         const t = userBuf.trim();
         userBuf = "";
+        voiceLog("STT finished:", t, {
+          finished: sc.inputTranscription.finished === true,
+          turnComplete: Boolean(sc.turnComplete),
+        });
         handleUserUtterance(t);
       }
     }
     if (sc.outputTranscription?.text) {
-      if (awakened) assistantBuf += sc.outputTranscription.text;
+      if (awakened) {
+        assistantBuf += sc.outputTranscription.text;
+        voiceLog("assistant STT delta:", sc.outputTranscription.text);
+      }
     }
     const parts = sc.modelTurn?.parts || [];
     for (const part of parts) {
@@ -428,12 +471,14 @@ async function startGeminiLiveVoice(sessionData, opts) {
       const spoken = assistantBuf.trim();
       assistantBuf = "";
       if (spoken && awakened) {
+        voiceLog("assistant spoken (final):", spoken);
         lastAssistantSpoken = spoken;
         await formatAndPushBot(spoken);
       }
       if (userBuf.trim()) {
         const t = userBuf.trim();
         userBuf = "";
+        voiceLog("flush leftover userBuf on turnComplete:", t);
         handleUserUtterance(t);
       }
       if (pendingEnd) {
@@ -454,7 +499,10 @@ async function startGeminiLiveVoice(sessionData, opts) {
       responseModalities: [Modality.AUDIO],
     },
     callbacks: {
-      onopen: () => onStatus?.("Connected — say Hey Eco"),
+      onopen: () => {
+        voiceLog("Gemini Live connected");
+        onStatus?.("Connected — say Hey Eco");
+      },
       onmessage: (msg) => {
         handleMessage(msg).catch((err) =>
           console.error("[EcoLiveVoice:gemini]", err)
@@ -462,13 +510,16 @@ async function startGeminiLiveVoice(sessionData, opts) {
       },
       onerror: (e) => {
         console.error("[EcoLiveVoice:gemini]", e);
+        voiceLog("onerror", e?.message || e);
         onError?.(e?.message || "Live voice error. Please try again.");
       },
       onclose: () => {
+        voiceLog("Gemini Live closed");
         if (!closed) stop();
       },
     },
   });
+  voiceLog("mic start — getUserMedia");
   // Mic → PCM 16k → Gemini
   mediaStream = await navigator.mediaDevices.getUserMedia({
     audio: {
@@ -477,6 +528,7 @@ async function startGeminiLiveVoice(sessionData, opts) {
       channelCount: 1,
     },
   });
+  voiceLog("mic OK tracks:", mediaStream.getAudioTracks().map((t) => t.label || t.kind));
   audioCtx = new AudioContext({ sampleRate: INPUT_SAMPLE_RATE });
   if (audioCtx.state === "suspended") await audioCtx.resume();
   source = audioCtx.createMediaStreamSource(mediaStream);
@@ -673,6 +725,7 @@ async function startOpenAILiveVoice(sessionData, opts) {
     if (!event?.type || closed) return;
     if (event.type === "conversation.item.input_audio_transcription.completed") {
       const t = String(event.transcript || "").trim();
+      voiceLog("OpenAI STT final:", t);
       if (t) {
         lastUserTranscript = t;
         onChatMessage?.({ role: "user", text: t, live: true });
@@ -682,6 +735,7 @@ async function startOpenAILiveVoice(sessionData, opts) {
       assistantTranscriptBuf += event.delta || "";
     } else if (event.type === "response.output_audio_transcript.done") {
       const spoken = String(event.transcript || assistantTranscriptBuf || "").trim();
+      voiceLog("OpenAI assistant spoken:", spoken);
       assistantTranscriptBuf = "";
       if (spoken) {
         lastAssistantSpoken = spoken;
