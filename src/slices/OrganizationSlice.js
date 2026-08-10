@@ -59,7 +59,7 @@ export const createOrganization = createAsyncThunk(
   }
 );
 
-// update organization - Note: Backend controller has updateOrganization but no route exposed
+// update organization
 export const updateOrganization = createAsyncThunk(
   "Organizations/update",
   async ({ id, name }, { rejectWithValue }) => {
@@ -67,7 +67,6 @@ export const updateOrganization = createAsyncThunk(
       const token = localStorage.getItem("token");
       if (!token) return rejectWithValue("No authentication token found");
 
-      // TODO: Backend needs to add update route in organizationRoutes.js
       const res = await fetch(`${BASE}/organization/update/${id}`, {
         method: "PUT",
         credentials: "include",
