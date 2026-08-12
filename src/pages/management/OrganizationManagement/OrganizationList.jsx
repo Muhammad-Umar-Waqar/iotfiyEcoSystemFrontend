@@ -12,7 +12,6 @@ import {
 import OrganizationDeleteModal from "../../../components/Modals/OrganizationManagement/DeleteModal";
 import OrganizationEditModal from "../../../components/Modals/OrganizationManagement/EditModal";
 import { canManage } from "../../../utils/permissions";
-import SubscriptionUsageIndicator from "../../../components/SubscriptionUsageIndicator";
 
 import "../../../styles/pages/management-pages.css";
 import TableSkeleton from "../../../components/skeletons/TableSkeleton";

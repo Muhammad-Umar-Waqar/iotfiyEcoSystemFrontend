@@ -8,6 +8,8 @@ import {
   clearPendingPlan, clearPendingCustomPlan,
   purchaseSubscription,
 } from '../../slices/subscriptionSlice';
+import { fetchCurrentUser } from '../../slices/authSlice';
+import { getHomePathForUser } from '../../utils/authRoutes';
 
 // ─── design tokens (aligned with dashboard / home) ─────────────────────────────
 const T = {
@@ -565,19 +567,40 @@ const SelectPlan = () => {
 
   useEffect(() => { fetchPlans(); }, []);
 
+  // Logged-in non-managers (or managers who already have a plan) leave this page
   useEffect(() => {
-    if (isAuthenticated && pendingPlan && plans.length > 0) {
+    if (!isAuthenticated || !user) return;
+    if (user.role === "user") {
+      navigate(getHomePathForUser(user), { replace: true });
+      return;
+    }
+    if (user.role === "admin") {
+      navigate("/admin/management", { replace: true });
+      return;
+    }
+    if (user.role === "manager" && user.currentSubscription) {
+      navigate(getHomePathForUser(user), { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
+
+  useEffect(() => {
+    if (
+      isAuthenticated &&
+      user?.role === "manager" &&
+      pendingPlan &&
+      plans.length > 0
+    ) {
       const plan = plans.find(p => p._id === pendingPlan.planId);
       if (plan) { dispatch(clearPendingPlan()); handleSelectPlan(plan); }
     }
-  }, [isAuthenticated, pendingPlan, plans.length]);
+  }, [isAuthenticated, user?.role, pendingPlan, plans.length]);
 
   useEffect(() => {
-    if (isAuthenticated && pendingCustomPlan) {
+    if (isAuthenticated && user?.role === "manager" && pendingCustomPlan) {
       setCustomPlanData(pendingCustomPlan);
       setCustomPlanModalOpen(true);
     }
-  }, [isAuthenticated, pendingCustomPlan]);
+  }, [isAuthenticated, user?.role, pendingCustomPlan]);
 
   const fetchPlans = async () => {
     try {
@@ -597,12 +620,17 @@ const SelectPlan = () => {
       navigate('/login', { state: { from: '/select-plan' } });
       return;
     }
+    if (user?.role !== "manager") {
+      navigate(getHomePathForUser(user), { replace: true });
+      return;
+    }
     setPurchasingPlanId(plan._id);
     try {
       const result = await dispatch(purchaseSubscription({ planId: plan._id }));
       if (purchaseSubscription.fulfilled.match(result)) {
-        Swal.fire({ icon: 'success', title: 'Subscription Activated', text: 'Your plan is now active!', timer: 3000, showConfirmButton: false });
-        navigate('/management');
+        const me = await dispatch(fetchCurrentUser()).unwrap();
+        Swal.fire({ icon: 'success', title: 'Subscription Activated', text: 'Your plan is now active!', timer: 2000, showConfirmButton: false });
+        navigate(getHomePathForUser(me?.user || user), { replace: true });
       } else throw new Error(result.payload?.message || 'Activation failed.');
     } catch (err) {
       Swal.fire({ icon: 'error', title: 'Purchase Failed', text: err.message });
@@ -636,6 +664,10 @@ const SelectPlan = () => {
     if (!isAuthenticated) {
       dispatch(setPendingCustomPlan(customPlanData));
       navigate('/login', { state: { from: '/select-plan' } }); return;
+    }
+    if (user?.role !== "manager" && user?.role !== "admin") {
+      navigate(getHomePathForUser(user), { replace: true });
+      return;
     }
     setCreatingCustom(true);
     try {

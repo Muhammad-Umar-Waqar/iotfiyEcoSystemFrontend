@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { fetchCurrentUser } from "../../../slices/authSlice";
 import { fetchOrganizationsByOwner } from "../../../slices/OrganizationSlice";
 import { fetchSubUsers } from "../../../slices/UserSlice";
 import {
@@ -15,6 +16,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import "../../../styles/pages/management-pages.css";
+import Swal from "sweetalert2";
 
 
 // --- Donut Ring SVG Component ---
@@ -44,7 +46,11 @@ const DonutRing = ({ percentage, color, size = 88 }) => {
 };
 
 // --- Status Badge ---
-const StatusBadge = ({ isActive }) => (
+const StatusBadge = ({ isActive, status }) => {
+  const expired = status === "expired" || (!isActive && status);
+  const label = status === "expired" ? "Expired" : isActive ? "Active" : status || "Inactive";
+  const ok = isActive && status !== "expired";
+  return (
   <span
     style={{
       display: "inline-flex",
@@ -56,8 +62,8 @@ const StatusBadge = ({ isActive }) => (
       fontWeight: 600,
       letterSpacing: "0.05em",
       textTransform: "uppercase",
-      background: isActive ? "rgba(16,185,129,0.15)" : "rgba(244,63,94,0.15)",
-      color: isActive ? "#059669" : "#E11D48",
+      background: ok ? "rgba(16,185,129,0.15)" : "rgba(244,63,94,0.15)",
+      color: ok ? "#059669" : "#E11D48",
     }}
   >
     <span
@@ -65,13 +71,14 @@ const StatusBadge = ({ isActive }) => (
         width: 6,
         height: 6,
         borderRadius: "50%",
-        background: isActive ? "#10B981" : "#F43F5E",
+        background: ok ? "#10B981" : "#F43F5E",
         display: "inline-block",
       }}
     />
-    {isActive ? "Active" : "Inactive"}
+    {label}
   </span>
-);
+  );
+};
 
 // --- Metric Card ---
 const MetricCard = ({ icon: Icon, label, used, total, remaining, accentColor, ringColor }) => {
@@ -214,6 +221,26 @@ const SubscriptionAnalytics = () => {
   const [subscriptionData, setSubscriptionData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [renewing, setRenewing] = useState(false);
+  const [plans, setPlans] = useState([]);
+  const [showPlanPicker, setShowPlanPicker] = useState(false);
+  const [purchasingId, setPurchasingId] = useState(null);
+
+  const refreshUsage = async () => {
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/subscription/usage`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    if (!res.ok) throw new Error("Failed to fetch");
+    const data = await res.json();
+    setSubscriptionData(data);
+    return data;
+  };
 
   useEffect(() => {
     if (!isManager || !user?.id) return;
@@ -222,20 +249,7 @@ const SubscriptionAnalytics = () => {
       try {
         await dispatch(fetchOrganizationsByOwner(user.id));
         await dispatch(fetchSubUsers(user.id));
-
-        const res = await fetch(
-          `${import.meta.env.VITE_API_URL}/subscription/usage`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        if (!res.ok) throw new Error("Failed to fetch");
-        const data = await res.json();
-        console.log("Fetched subscription data:", data);
-        setSubscriptionData(data);
+        await refreshUsage();
       } catch (err) {
         console.error("Failed to fetch subscription data:", err);
         setError(err.message);
@@ -245,7 +259,105 @@ const SubscriptionAnalytics = () => {
     };
 
     fetchData();
-  }, [dispatch, user, isManager]);
+  }, [dispatch, user, isManager, token]);
+
+  const handleRenewPrevious = async () => {
+    try {
+      setRenewing(true);
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/subscription/renew`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: "{}",
+        }
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Renew failed");
+      }
+      await dispatch(fetchCurrentUser());
+      await refreshUsage();
+      setShowPlanPicker(false);
+      Swal.fire({
+        icon: "success",
+        title: "Renewed",
+        text: data.message || "Your subscription is active again.",
+        timer: 2200,
+        showConfirmButton: false,
+      });
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Renew failed",
+        text: err.message || "Please try again.",
+      });
+    } finally {
+      setRenewing(false);
+    }
+  };
+
+  const openPlanPicker = async () => {
+    try {
+      setShowPlanPicker(true);
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/subscription/get-all-plans`
+      );
+      const data = await res.json().catch(() => ({}));
+      const list = Array.isArray(data)
+        ? data
+        : data.plans || data.data || [];
+      setPlans(list);
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Could not load plans",
+        text: err.message || "Please try again.",
+      });
+    }
+  };
+
+  const handlePurchasePlan = async (planId) => {
+    try {
+      setPurchasingId(planId);
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/subscription/purchase`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ planId }),
+        }
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Purchase failed");
+      }
+      await dispatch(fetchCurrentUser());
+      await refreshUsage();
+      setShowPlanPicker(false);
+      Swal.fire({
+        icon: "success",
+        title: "Plan activated",
+        text: data.message || "Your new plan is active.",
+        timer: 2200,
+        showConfirmButton: false,
+      });
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Purchase failed",
+        text: err.message || "Please try again.",
+      });
+    } finally {
+      setPurchasingId(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -280,14 +392,17 @@ const SubscriptionAnalytics = () => {
   const sub = subscriptionData?.subscription;
   const usage = subscriptionData?.usage;
   const overallOk = subscriptionData?.overallStatus?.isWithinLimit;
+  const isExpired = Boolean(sub && sub.status && sub.status !== "active");
 
   const startDate = sub?.startDate ? new Date(sub.startDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : null;
   const endDate = sub?.endDate ? new Date(sub.endDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : null;
 
   // Days remaining
-  const daysLeft = sub?.endDate
+  const daysLeft = sub?.endDate && !isExpired
     ? Math.max(0, Math.ceil((new Date(sub.endDate) - new Date()) / (1000 * 60 * 60 * 24)))
-    : null;
+    : isExpired
+      ? 0
+      : null;
 
   const metrics = [
     {
@@ -443,7 +558,7 @@ const SubscriptionAnalytics = () => {
                 >
                   {sub?.planName || "—"}
                 </h2>
-                <StatusBadge isActive={sub?.isActive} />
+                <StatusBadge isActive={sub?.isActive} status={sub?.status} />
               </div>
 
               <div
@@ -503,6 +618,116 @@ const SubscriptionAnalytics = () => {
             )}
           </div>
         </div>
+
+        {isExpired && (
+          <div
+            style={{
+              background: "#FFF1F2",
+              border: "1px solid #FECDD3",
+              borderRadius: "16px",
+              padding: "20px 22px",
+              marginBottom: "24px",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 14 }}>
+              <AlertCircle size={20} color="#E11D48" style={{ marginTop: 2 }} />
+              <div>
+                <div style={{ fontWeight: 700, color: "#9F1239", marginBottom: 4 }}>
+                  Subscription expired
+                </div>
+                <p style={{ margin: 0, fontSize: 13, color: "#BE123C" }}>
+                  Renew your previous plan for the fastest access, or choose another plan below.
+                </p>
+              </div>
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+              <button
+                type="button"
+                onClick={handleRenewPrevious}
+                disabled={renewing}
+                style={{
+                  background: "#0D5CA4",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 10,
+                  padding: "10px 16px",
+                  fontWeight: 600,
+                  fontSize: 13,
+                  cursor: renewing ? "wait" : "pointer",
+                  opacity: renewing ? 0.7 : 1,
+                }}
+              >
+                {renewing ? "Renewing…" : `Renew ${sub?.planName || "previous plan"}`}
+              </button>
+              <button
+                type="button"
+                onClick={openPlanPicker}
+                style={{
+                  background: "#fff",
+                  color: "#0D5CA4",
+                  border: "1px solid #93C5FD",
+                  borderRadius: 10,
+                  padding: "10px 16px",
+                  fontWeight: 600,
+                  fontSize: 13,
+                  cursor: "pointer",
+                }}
+              >
+                Choose another plan
+              </button>
+            </div>
+
+            {showPlanPicker && (
+              <div style={{ marginTop: 16, display: "grid", gap: 10 }}>
+                {plans.length === 0 ? (
+                  <p style={{ margin: 0, fontSize: 13, color: "#64748B" }}>Loading plans…</p>
+                ) : (
+                  plans.map((p) => (
+                    <div
+                      key={p._id}
+                      style={{
+                        background: "#fff",
+                        border: "1px solid #E2E8F0",
+                        borderRadius: 12,
+                        padding: "12px 14px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: 12,
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontWeight: 700, color: "#0F172A" }}>{p.name}</div>
+                        <div style={{ fontSize: 12, color: "#64748B" }}>
+                          ${p.price} / {p.durationDays} days · {p.maxOrganizations} orgs ·{" "}
+                          {p.maxDevices} devices
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handlePurchasePlan(p._id)}
+                        disabled={Boolean(purchasingId)}
+                        style={{
+                          background: "#0292FF",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: 8,
+                          padding: "8px 12px",
+                          fontWeight: 600,
+                          fontSize: 12,
+                          cursor: purchasingId ? "wait" : "pointer",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {purchasingId === p._id ? "Activating…" : "Select"}
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Overall status banner */}
         {(hasNearLimit || hasHighUsage) && (

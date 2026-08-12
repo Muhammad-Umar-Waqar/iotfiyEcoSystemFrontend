@@ -6,7 +6,6 @@
 // import { useDispatch, useSelector } from "react-redux";
 // import { fetchOrganizationsByOwner, fetchOrganizationsByUser } from "../../../slices/OrganizationSlice";
 // import { canManage } from "../../../utils/permissions";
-// import SubscriptionUsageIndicator from "../../../components/SubscriptionUsageIndicator";
 // import "../../../styles/pages/management-pages.css";
 // import TableSkeleton from "../../../components/skeletons/TableSkeleton";
 // import {
@@ -264,11 +263,6 @@
 //         </div>
 //       )}
 
-//       {/* Subscription Usage Indicator */}
-//       <SubscriptionUsageIndicator
-//         resourceType="venue"
-//         currentCount={displayedVenues.length}
-//       />
 
 //       <div className="mb-4">
 //         <div className="flex items-center justify-between">
@@ -489,7 +483,6 @@ import {
   fetchOrganizationsByUser,
 } from "../../../slices/OrganizationSlice";
 import { canManage } from "../../../utils/permissions";
-import SubscriptionUsageIndicator from "../../../components/SubscriptionUsageIndicator";
 import "../../../styles/pages/management-pages.css";
 import TableSkeleton from "../../../components/skeletons/TableSkeleton";
 import {
@@ -751,11 +744,6 @@ const VenueList = ({ onVenueSelect, selectedVenue }) => {
           </IconButton>
         </div>
       )}
-
-      <SubscriptionUsageIndicator
-        resourceType="venue"
-        currentCount={displayedVenues.length}
-      />
 
       <div className="mb-4">
         <h2 className="organization-list-header text-center font-semibold text-gray-800">

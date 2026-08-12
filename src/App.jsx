@@ -5,6 +5,7 @@ import { fetchCurrentUser } from './slices/authSlice';
 import ProtectedRoute from './components/ProtectedRoute';
 import GuestRoute from './components/GuestRoute';
 import RoleHomeRedirect from './components/RoleHomeRedirect';
+import ManagerSubscriptionGate from './components/ManagerSubscriptionGate';
 import ManagementLayout from './layouts/ManagementLayout';
 import Login from './pages/auth/Login';
 import VerifyOtp from './pages/auth/VerifyOtp';
@@ -27,6 +28,7 @@ import OTAManagement from './pages/management/OTAManagement/page';
 import AdminDashboard from './pages/AdminDashboard/page';
 import NotFound from './pages/NotFound';
 import HomePage from './pages/home/Home';
+import SubscriptionLocked from './pages/auth/SubscriptionLocked';
 
 // Session restoration component
 function SessionRestoration({ children }) {
@@ -65,12 +67,24 @@ function App() {
           {/* Plans — guests and logged-in managers can both access */}
           <Route path="/select-plan" element={<SelectPlan />} />
 
+          {/* Sub-user lock when manager plan is not active (no sidebar shell) */}
+          <Route
+            path="/management/locked"
+            element={
+              <ProtectedRoute allowedRoles={['user']}>
+                <SubscriptionLocked />
+              </ProtectedRoute>
+            }
+          />
+
             {/* Protected Routes - Management (Manager & User) */}
             <Route
               path="/management"
               element={
                 <ProtectedRoute allowedRoles={['manager', 'user']}>
-                  <ManagementLayout />
+                  <ManagerSubscriptionGate>
+                    <ManagementLayout />
+                  </ManagerSubscriptionGate>
                 </ProtectedRoute>
               }
             >

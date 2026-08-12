@@ -368,10 +368,11 @@
 
 // export default Login;
 import { useState } from 'react';
-import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { loginUser, fetchCurrentUser } from '../../slices/authSlice';
+import { getHomePathForUser } from '../../utils/authRoutes';
 import api from '../../services/api';
 import Swal from 'sweetalert2';
 
@@ -387,9 +388,7 @@ const Login = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
   const dispatch = useDispatch();
-  const { pendingPlan, pendingCustomPlan } = useSelector((state) => state.subscription);
 
   const onChange = (e) => {
     const { name, value } = e.target;
@@ -417,13 +416,12 @@ const Login = () => {
 
     try {
       setLoading(true);
-      // Step 1: Login to get token
       const result = await dispatch(
         loginUser({ email: formData.email, password: formData.password })
       ).unwrap();
 
-      // Step 2: Fetch full user data from /auth/me (with populated venues)
-      await dispatch(fetchCurrentUser()).unwrap();
+      // Venues etc. load in the background — routing uses login payload (includes subscription)
+      dispatch(fetchCurrentUser());
 
       Swal.fire({
         icon: 'success',
@@ -433,27 +431,7 @@ const Login = () => {
         showConfirmButton: false,
       });
 
-      // Check if there's a pending plan or custom plan
-      if (pendingPlan || pendingCustomPlan) {
-        navigate('/select-plan');
-        return;
-      }
-
-      // Check if redirected from select-plan
-      const from = location.state?.from;
-      if (from === '/select-plan') {
-        navigate('/select-plan');
-        return;
-      }
-
-      // Role-based routing
-      if (result.user.role === 'admin') {
-        navigate('/admin/management');
-      } else if (result.user.role === 'manager') {
-        navigate('/management');
-      } else {
-        navigate('/management');
-      }
+      navigate(getHomePathForUser(result.user));
     } catch (error) {
       Swal.fire({
         icon: 'error',

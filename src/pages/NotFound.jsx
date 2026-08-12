@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { getDashboardPath } from "../utils/authRoutes";
+import { getHomePathForUser } from "../utils/authRoutes";
 
 export default function NotFound() {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
-  const homeTo = isAuthenticated ? getDashboardPath(user?.role) : "/login";
+  const homeTo = isAuthenticated ? getHomePathForUser(user) : "/login";
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F5F6FA] px-4">

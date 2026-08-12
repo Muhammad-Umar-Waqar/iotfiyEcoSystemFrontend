@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../slices/authSlice';
 import { persistor } from '../store/store';
 import {
@@ -46,7 +46,8 @@ const AdminSidebar = ({ activeTab, onTabChange }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const isMobile = useIsMobile();
-
+  const { user } = useSelector((state) => state.auth);
+  // console.log(user);
   // Management sub-items (these are tabs, not routes)
   const managementSubItems = [
     { key: 'managers', label: 'Managers', icon: Users },
@@ -241,8 +242,8 @@ const AdminSidebar = ({ activeTab, onTabChange }) => {
           SA
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: C.text }}>Super Admin</div>
-          <div style={{ fontSize: 10, color: C.textSoft }}>admin@iotify.io</div>
+          <div style={{ fontSize: 12, fontWeight: 600, color: C.text }}>{user?.name.charAt(0).toUpperCase() + user?.name.slice(1) || 'Super Admin'}</div>
+          <div style={{ fontSize: 10, color: C.textSoft }}>{user?.email}</div>
         </div>
         <button
           onClick={() => {

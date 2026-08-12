@@ -10,6 +10,20 @@ const api = axios.create({
   },
 });
 
+/** Soft-lock codes: keep session, redirect UI (no logout). */
+const SOFT_SUB_REDIRECT = {
+  MANAGER_SUBSCRIPTION_EXPIRED: '/management/locked',
+  MANAGER_SUBSCRIPTION_REQUIRED: '/management/locked',
+  SUBSCRIPTION_EXPIRED: '/management/subscription',
+  SUBSCRIPTION_REQUIRED: '/select-plan',
+};
+
+function alreadyOnTarget(path) {
+  const p = window.location.pathname.replace(/\/+$/, '') || '/';
+  const target = String(path).replace(/\/+$/, '') || '/';
+  return p === target || p.startsWith(`${target}/`);
+}
+
 // Request interceptor - Add token to requests
 api.interceptors.request.use(
   (config) => {
@@ -24,15 +38,28 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor - Handle token expiry
+// Response interceptor - auth expiry vs subscription soft-lock
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Token expired or invalid
+    const status = error.response?.status;
+    const code = error.response?.data?.code;
+    const redirectTo = error.response?.data?.redirectTo;
+
+    if (status === 401) {
       localStorage.removeItem('token');
       window.location.href = '/login';
+      return Promise.reject(error);
     }
+
+    if (status === 403 && code && SOFT_SUB_REDIRECT[code]) {
+      const dest = redirectTo || SOFT_SUB_REDIRECT[code];
+      if (!alreadyOnTarget(dest)) {
+        window.location.href = dest;
+      }
+      return Promise.reject(error);
+    }
+
     return Promise.reject(error);
   }
 );

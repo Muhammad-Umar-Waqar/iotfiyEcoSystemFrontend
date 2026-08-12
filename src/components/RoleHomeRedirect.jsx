@@ -1,6 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { getDashboardPath } from "../utils/authRoutes";
+import { getHomePathForUser } from "../utils/authRoutes";
 
 /** Send authenticated users to their dashboard; guests to login. */
 export default function RoleHomeRedirect({ fallback = "/login" }) {
@@ -10,5 +10,5 @@ export default function RoleHomeRedirect({ fallback = "/login" }) {
     return <Navigate to={fallback} replace />;
   }
 
-  return <Navigate to={getDashboardPath(user?.role)} replace />;
+  return <Navigate to={getHomePathForUser(user)} replace />;
 }
