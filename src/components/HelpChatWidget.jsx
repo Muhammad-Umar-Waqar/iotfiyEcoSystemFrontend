@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useDispatch, useStore } from "react-redux";
 import {
   Check,
   Mic,
@@ -11,6 +12,7 @@ import {
 } from "lucide-react";
 import HelpMarkdown from "./HelpMarkdown";
 import { startEcoLiveVoice } from "../hooks/useEcoLiveVoice";
+import { dispatchAgentDataRefresh } from "../utils/agentDataRefresh";
 import "./HelpChatWidget.css";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5054";
@@ -81,6 +83,8 @@ function loadFabPos() {
  * FAB is draggable; panel always opens fixed bottom-right (approach A).
  */
 export default function HelpChatWidget() {
+  const dispatch = useDispatch();
+  const store = useStore();
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
   const [input, setInput] = useState("");
@@ -154,6 +158,10 @@ export default function HelpChatWidget() {
     ]);
   };
 
+  const handleAgentRefresh = ({ scopes, hints } = {}) => {
+    dispatchAgentDataRefresh(dispatch, store.getState, { scopes, hints });
+  };
+
   const startAlwaysOnLiveVoice = async ({ fromUserGesture = false } = {}) => {
     if (liveSessionRef.current || liveStartingRef.current) return false;
     if (!localStorage.getItem("token")) {
@@ -178,6 +186,7 @@ export default function HelpChatWidget() {
         requireWakeWord: true,
         autoMode: true,
         onChatMessage: appendLiveChatMessage,
+        onDataRefresh: handleAgentRefresh,
         onStatus: (s) => setLiveStatus(s || ""),
         onPhase: (p) => {
           setLivePhase(p || "ready");
@@ -678,6 +687,11 @@ export default function HelpChatWidget() {
           if (event.type === "token" && event.text) {
             gotToken = true;
             appendBotToken(botId, event.text);
+          } else if (event.type === "refresh" && event.scopes?.length) {
+            handleAgentRefresh({
+              scopes: event.scopes,
+              hints: event.hints,
+            });
           } else if (event.type === "error") {
             throw new Error(SERVICE_UNAVAILABLE);
           }

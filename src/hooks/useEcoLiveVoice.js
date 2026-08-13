@@ -79,6 +79,14 @@ function parseToolArgs(raw) {
     return {};
   }
 }
+function notifyDataRefresh(opts, apiData) {
+  const scopes = apiData?.refreshScopes;
+  if (!scopes?.length) return;
+  opts.onDataRefresh?.({
+    scopes,
+    hints: apiData?.refreshHints,
+  });
+}
 function floatTo16BitPCM(float32Array) {
   const out = new Int16Array(float32Array.length);
   for (let i = 0; i < float32Array.length; i += 1) {
@@ -336,6 +344,7 @@ async function startGeminiLiveVoice(sessionData, opts) {
         });
         const data = await res.json().catch(() => ({}));
         const result = data.result ?? { error: data.message || "Tool failed" };
+        notifyDataRefresh(opts, data);
         responses.push({
           id: fc.id,
           name,
@@ -691,6 +700,7 @@ async function startOpenAILiveVoice(sessionData, opts) {
       });
       const data = await res.json().catch(() => ({}));
       const result = data.result ?? { error: data.message || "Tool failed" };
+      notifyDataRefresh(opts, data);
       sendEvent({
         type: "conversation.item.create",
         item: {

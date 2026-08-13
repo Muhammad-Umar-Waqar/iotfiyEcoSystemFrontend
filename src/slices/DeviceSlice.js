@@ -161,7 +161,10 @@ export const fetchDevicesByVenue = createAsyncThunk(
       const token = localStorage.getItem("token");
       if (!token) return rejectWithValue("No authentication token found");
 
-      const res = await fetch(`${BASE}/device/get-by-venue/${venueId}`, {
+      const id = String(venueId || "").trim();
+      if (!id) return rejectWithValue("Venue id is required");
+
+      const res = await fetch(`${BASE}/device/get-by-venue/${id}`, {
         method: "GET",
         credentials: "include",
         headers: {
@@ -170,11 +173,21 @@ export const fetchDevicesByVenue = createAsyncThunk(
         },
       });
 
-      const data = await res.json();
-      if (!res.ok) return rejectWithValue(data.message || "Failed to fetch devices");
+      const data = await res.json().catch(() => ({}));
 
-      // backend returns { devices: [...] }
-      return { venueId, devices: data.devices || [] };
+      // Treat empty-venue as success (legacy 404 + new 200 both OK)
+      if (
+        res.status === 404 &&
+        /no device/i.test(String(data.message || ""))
+      ) {
+        return { venueId: id, devices: [] };
+      }
+
+      if (!res.ok) {
+        return rejectWithValue(data.message || "Failed to fetch devices");
+      }
+
+      return { venueId: id, devices: data.devices || [] };
     } catch (err) {
       return rejectWithValue(err.message || "Network error");
     }
@@ -300,9 +313,12 @@ const DeviceSlice = createSlice({
       })
       .addCase(fetchDevicesByVenue.fulfilled, (state, action) => {
         state.isLoading = false;
+        state.error = null;
         const { venueId, devices } = action.payload || {};
         if (venueId) {
-          state.devicesByVenue[venueId] = Array.isArray(devices) ? devices : [];
+          state.devicesByVenue[String(venueId)] = Array.isArray(devices)
+            ? devices
+            : [];
         }
       })
       .addCase(fetchDevicesByVenue.rejected, (state, action) => {

@@ -152,7 +152,10 @@ export const fetchVenuesByOrganization = createAsyncThunk(
       const token = localStorage.getItem("token");
       if (!token) return rejectWithValue("No authentication token found");
 
-      const res = await fetch(`${BASE}/venue/get-by-org/${organizationId}`, {
+      const orgId = String(organizationId || "").trim();
+      if (!orgId) return rejectWithValue("Organization id is required");
+
+      const res = await fetch(`${BASE}/venue/get-by-org/${orgId}`, {
         method: "GET",
         credentials: "include",
         headers: {
@@ -161,11 +164,27 @@ export const fetchVenuesByOrganization = createAsyncThunk(
         },
       });
 
-      const data = await res.json();
-      if (!res.ok) return rejectWithValue(data.message || "Failed to fetch venues");
+      const data = await res.json().catch(() => ({}));
 
-      // backend returns array of venues or { venues: [...] }
-      return Array.isArray(data) ? data : data.venues || [];
+      // Treat empty-org as success (legacy 404 + new 200 both OK)
+      if (
+        res.status === 404 &&
+        /no venue/i.test(String(data.message || ""))
+      ) {
+        return { organizationId: orgId, venues: [] };
+      }
+
+      if (!res.ok) {
+        return rejectWithValue(data.message || "Failed to fetch venues");
+      }
+
+      const venues = Array.isArray(data)
+        ? data
+        : Array.isArray(data.venues)
+          ? data.venues
+          : [];
+
+      return { organizationId: orgId, venues };
     } catch (err) {
       return rejectWithValue(err.message || "Network error");
     }
@@ -318,18 +337,29 @@ const VenueSlice = createSlice({
       })
       .addCase(fetchVenuesByOrganization.fulfilled, (state, action) => {
         state.loading = false;
-        // we don't replace global Venues; instead cache per org
-        const payload = Array.isArray(action.payload) ? action.payload : [];
-        // NOTE: fetch action.meta.arg is organizationId
-        const orgId = action.meta?.arg;
+        state.error = null;
+        const payload = action.payload;
+        const orgId =
+          payload && typeof payload === "object" && !Array.isArray(payload)
+            ? payload.organizationId || action.meta?.arg
+            : action.meta?.arg;
+        const venues =
+          payload && typeof payload === "object" && !Array.isArray(payload)
+            ? Array.isArray(payload.venues)
+              ? payload.venues
+              : []
+            : Array.isArray(payload)
+              ? payload
+              : [];
         if (orgId) {
-          state.venuesByOrg[orgId] = payload;
+          state.venuesByOrg[String(orgId)] = venues;
         } else {
-          state.Venues = payload;
+          state.Venues = venues;
         }
       })
       .addCase(fetchVenuesByOrganization.rejected, (state, action) => {
         state.loading = false;
+        // Per-org fetch failure must not blank other orgs' lists in the UI
         state.error = action.payload || action.error?.message || "Failed to fetch venues";
       });
   },
