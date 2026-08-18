@@ -704,8 +704,8 @@ const SelectPlan = () => {
         boxShadow: '0 1px 8px rgba(0,0,0,0.05)',
       }}>
         <NavLink to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
-          <img src="/logo.png" alt="IoTify" style={{ height: 30 }} onError={e => e.target.style.display = 'none'} />
-          {/* <span className="select-plan-logo-text" style={{ fontWeight: 700, fontSize: 17, color: T.primary }}>IoTify</span> */}
+          <img src="/logo.png" alt="IOTFIY" style={{ height: 30 }} onError={e => e.target.style.display = 'none'} />
+          {/* <span className="select-plan-logo-text" style={{ fontWeight: 700, fontSize: 17, color: T.primary }}>IOTFIY</span> */}
         </NavLink>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <NavLink to="/" style={{

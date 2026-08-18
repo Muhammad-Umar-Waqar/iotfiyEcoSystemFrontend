@@ -41,6 +41,13 @@ function pickRecorderMime() {
 const SERVICE_UNAVAILABLE =
   "Currently the service is unavailable. Sorry for the inconvenience — please try again.";
 
+function clientTimezonePayload() {
+  return {
+    timezoneOffsetMinutes: new Date().getTimezoneOffset(),
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  };
+}
+
 const WELCOME =
   "Hi! I'm Eco — your ecoSystem assistant. Ask about your devices (live power, temperature), venues, team members, or how features work.";
 
@@ -648,7 +655,11 @@ export default function HelpChatWidget() {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         credentials: "include",
-        body: JSON.stringify({ message: text, history: historyPayload }),
+        body: JSON.stringify({
+          message: text,
+          history: historyPayload,
+          ...clientTimezonePayload(),
+        }),
       });
 
       if (!res.ok) {
@@ -694,6 +705,30 @@ export default function HelpChatWidget() {
             });
           } else if (event.type === "error") {
             throw new Error(SERVICE_UNAVAILABLE);
+          }
+        }
+      }
+
+      // Last SSE frame (refresh/done) can sit in the leftover buffer.
+      if (buffer.trim()) {
+        const line = buffer
+          .split("\n")
+          .map((l) => l.trim())
+          .find((l) => l.startsWith("data:"));
+        if (line) {
+          try {
+            const event = JSON.parse(line.slice(5).trim());
+            if (event.type === "token" && event.text) {
+              gotToken = true;
+              appendBotToken(botId, event.text);
+            } else if (event.type === "refresh" && event.scopes?.length) {
+              handleAgentRefresh({
+                scopes: event.scopes,
+                hints: event.hints,
+              });
+            }
+          } catch {
+            /* ignore incomplete frame */
           }
         }
       }

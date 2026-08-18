@@ -82,7 +82,7 @@ const Register = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
         <div className="mb-8 text-center">
-          <img src="/logo.png" alt="IoTify Logo" className="h-10 mx-auto mb-4" />
+          <img src="/logo.png" alt="IOTFIY Logo" className="h-10 mx-auto mb-4" />
           <h3 className="text-slate-900 text-2xl font-semibold">Create Account</h3>
           <p className="text-slate-500 text-sm mt-2">
             Register as a Manager to get started

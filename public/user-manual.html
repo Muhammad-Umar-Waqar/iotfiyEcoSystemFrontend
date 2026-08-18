@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EcoSystem User Manual — Manager &amp; User Guide</title>
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    :root {
+      --navy: #07518D;
+      --blue: #0D5CA4;
+      --tint: #e8f1f8;
+      --ink: #0f172a;
+      --muted: #475569;
+      --line: #dbe4ee;
+      --ok: #047857;
+      --warn: #b45309;
+      --paper: #f7f9fc;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", Calibri, Arial, sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+      line-height: 1.55;
+      font-size: 15px;
+    }
+    .toolbar {
+      position: sticky; top: 0; z-index: 20;
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 12px; padding: 10px 20px;
+      background: var(--navy); color: #fff;
+    }
+    .toolbar a { color: #fff; text-decoration: none; font-weight: 600; }
+    .toolbar button {
+      background: #fff; color: var(--navy); border: 0; border-radius: 8px;
+      padding: 8px 14px; font-weight: 700; cursor: pointer;
+    }
+    .page {
+      max-width: 860px; margin: 0 auto; padding: 28px 22px 80px;
+    }
+    .cover {
+      background: linear-gradient(160deg, var(--navy) 0%, var(--blue) 100%);
+      color: #fff; border-radius: 18px; padding: 48px 36px 40px;
+      margin-bottom: 28px;
+    }
+    .cover .kicker { letter-spacing: .18em; font-size: 11px; opacity: .85; text-transform: uppercase; }
+    .cover h1 { font-size: 34px; margin: 10px 0 8px; line-height: 1.15; }
+    .cover p { opacity: .92; max-width: 38rem; }
+    .badge {
+      display: inline-block; background: rgba(255,255,255,.16);
+      border: 1px solid rgba(255,255,255,.3); border-radius: 999px;
+      padding: 4px 12px; font-size: 12px; margin-top: 12px;
+    }
+    h2 {
+      color: var(--navy); font-size: 22px; margin: 36px 0 10px;
+      padding-bottom: 6px; border-bottom: 2px solid var(--tint);
+    }
+    h3 { color: var(--blue); font-size: 16.5px; margin: 22px 0 8px; }
+    p, li { color: var(--ink); }
+    .muted { color: var(--muted); }
+    ol.steps { padding-left: 1.25rem; }
+    ol.steps li { margin: 7px 0; }
+    .callout {
+      background: var(--tint); border-left: 4px solid var(--blue);
+      padding: 12px 14px; border-radius: 0 10px 10px 0; margin: 14px 0;
+    }
+    .warn {
+      background: #fff7ed; border-left: 4px solid var(--warn);
+      padding: 12px 14px; border-radius: 0 10px 10px 0; margin: 14px 0;
+    }
+    table {
+      width: 100%; border-collapse: collapse; font-size: 13.5px;
+      margin: 10px 0 18px; background: #fff;
+    }
+    th, td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+    th { background: var(--navy); color: #fff; font-weight: 600; }
+    tr:nth-child(even) td { background: #f8fbfe; }
+    .toc a { color: var(--blue); text-decoration: none; }
+    .toc li { margin: 5px 0; }
+    .role-yes { color: var(--ok); font-weight: 700; }
+    .role-no { color: #be123c; font-weight: 700; }
+    footer.manual-end {
+      margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line);
+      color: var(--muted); font-size: 13px;
+    }
+    code, .url {
+      font-family: ui-monospace, Consolas, monospace; font-size: 13px;
+      background: #eef4fa; padding: 1px 6px; border-radius: 4px;
+    }
+    @media print {
+      .toolbar { display: none !important; }
+      body { background: #fff; font-size: 12.5px; }
+      .page { max-width: none; padding: 0; }
+      .cover { break-after: page; border-radius: 0; }
+      h2 { break-after: avoid; }
+      table, .callout, .warn { break-inside: avoid; }
+      a { color: inherit; text-decoration: none; }
+    }
+    @page {
+      size: A4;
+      margin: 16mm;
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <a href="https://ecosystem.iotfiysolutions.com/">EcoSystem</a>
+    <button type="button" onclick="printManual()">Print / Save as PDF</button>
+  </div>
+
+  <article class="page">
+    <header class="cover">
+      <div class="kicker">IOTFIY · Product insert</div>
+      <h1>EcoSystem User Manual</h1>
+      <p>Manager &amp; team-user guide. How to open the cloud, pick a plan, build organizations and venues, add every device type, invite your team, and run the live dashboard.</p>
+      <div class="badge">For Managers and Users only</div>
+      <p style="margin-top:18px;font-size:14px">Web app: <strong>https://ecosystem.iotfiysolutions.com/</strong></p>
+    </header>
+
+    <nav class="toc">
+      <h2>Contents</h2>
+      <ol>
+        <li><a href="#start">Get started (website, account, plan)</a></li>
+        <li><a href="#home">Home screen &amp; sidebar</a></li>
+        <li><a href="#org">Create an organization</a></li>
+        <li><a href="#venue">Create a venue</a></li>
+        <li><a href="#devices">Add devices (all types)</a></li>
+        <li><a href="#pair">Connect the physical device (Wi-Fi / API key)</a></li>
+        <li><a href="#dashboard">Dashboard, alerts &amp; live cards</a></li>
+        <li><a href="#events">Schedules &amp; trigger events</a></li>
+        <li><a href="#users">Invite team members (Manager only)</a></li>
+        <li><a href="#invited">After a user is invited — how they sign in</a></li>
+        <li><a href="#permissions">What each person can do</a></li>
+        <li><a href="#eco">Eco assistant</a></li>
+        <li><a href="#account">Password, email &amp; subscription</a></li>
+        <li><a href="#tips">Quick checks</a></li>
+      </ol>
+    </nav>
+
+    <section id="start">
+      <h2>1. Get started</h2>
+      <p>Open a browser and go to:</p>
+      <p class="url">https://ecosystem.iotfiysolutions.com/</p>
+
+      <h3>Create the Manager account</h3>
+      <p>The person who owns the subscription registers as a <strong>Manager</strong>. Team members are invited later — they do not self-register.</p>
+      <ol class="steps">
+        <li>On the site, open <strong>Create Account</strong> / Register.</li>
+        <li>Enter full name, email, and a password (at least <strong>8 characters</strong>). Confirm the password.</li>
+        <li>Submit. EcoSystem emails a one-time code (OTP).</li>
+        <li>Open <strong>Verify OTP</strong> and enter the code from your inbox.</li>
+      </ol>
+
+      <h3>Select a plan</h3>
+      <ol class="steps">
+        <li>After verification you are taken to <strong>Select Plan</strong>.</li>
+        <li>Each plan shows limits: how many <strong>organizations</strong>, <strong>venues</strong>, <strong>devices</strong>, and <strong>users</strong> you may create, plus live dashboard, alerts, and schedule/trigger modes.</li>
+        <li>Choose the plan that matches your sites. Complete purchase if the screen asks for it.</li>
+        <li>If none of the listed plans fit, use <strong>Custom plan</strong> → <strong>Configure plan</strong>. Enter a name, price, duration, and your own limits (organizations, venues, devices, users), then submit. You can build the plan you actually need instead of picking a ready-made one.</li>
+        <li>When the subscription is active, you land on the Manager home / dashboard.</li>
+      </ol>
+      <div class="callout">
+        If you ever see a locked or “select a plan” screen, the Manager must renew or pick a plan before organizations and devices can be added. Invited users inherit the Manager’s subscription — they do not buy a second plan.
+      </div>
+    </section>
+
+    <section id="home">
+      <h2>2. Home screen &amp; sidebar</h2>
+      <p>After login, the left sidebar (or the mobile bar at the bottom) is your map:</p>
+      <table>
+        <thead>
+          <tr><th>Menu</th><th>Who sees it</th><th>What it is for</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Home</td><td>Manager &amp; User</td><td>Live dashboard: pick organization → venue → device cards, alerts</td></tr>
+          <tr><td>Organization Management</td><td>Manager &amp; User</td><td>Create, rename, or remove organizations</td></tr>
+          <tr><td>Venue Management</td><td>Manager &amp; User</td><td>Create, edit, or remove venues (sites / rooms)</td></tr>
+          <tr><td>Device Management</td><td>Manager &amp; User</td><td>Add, edit, or remove devices</td></tr>
+          <tr><td>Users Management</td><td><strong>Manager only</strong></td><td>Invite team members; set View or Manage; assign orgs and venues</td></tr>
+          <tr><td>Subscription Analytics</td><td><strong>Manager only</strong></td><td>See how much of the plan (orgs / venues / devices / users) is used</td></tr>
+        </tbody>
+      </table>
+      <p>View-only users still see Organization, Venue, and Device pages, but <strong>Add / Edit / Delete are disabled</strong>.</p>
+    </section>
+
+    <section id="org">
+      <h2>3. Create an organization</h2>
+      <p>An organization is the company or group that owns venues. Create this first.</p>
+      <ol class="steps">
+        <li>Open <strong>Organization Management</strong>.</li>
+        <li>On Add Organization, type a name (more than 3 characters), e.g. <em>Cold Store North</em>.</li>
+        <li>Save. The name must be unique for your account.</li>
+      </ol>
+      <p><strong>Edit:</strong> pencil → rename only. Moving an organization is not a separate action.<br />
+      <strong>Delete:</strong> removes the organization and its venues and devices — confirm first. Only the owner (normally the Manager) can delete it.</p>
+    </section>
+
+    <section id="venue">
+      <h2>4. Create a venue</h2>
+      <p>A venue is a physical place under an organization (warehouse, kitchen, floor, cold room).</p>
+      <ol class="steps">
+        <li>Open <strong>Venue Management</strong>.</li>
+        <li>Enter a venue name and select the <strong>organization</strong> it belongs to.</li>
+        <li>Save.</li>
+      </ol>
+      <p><strong>Edit:</strong> rename, and you may <strong>move the venue to another organization you own</strong>. Devices stay with the venue.<br />
+      <strong>Delete:</strong> removes the venue and its devices after confirmation.</p>
+      <div class="callout">Create at least one organization, then at least one venue, before you add devices. Devices always sit on a venue.</div>
+    </section>
+
+    <section id="devices">
+      <h2>5. Add devices</h2>
+      <p>Open <strong>Device Management</strong> → Add Device. Fill the form in this order:</p>
+      <ol class="steps">
+        <li><strong>Device name</strong> — as you want it on the card (e.g. Freezer A).</li>
+        <li><strong>Organization</strong> then <strong>Venue</strong>.</li>
+        <li><strong>Device type</strong> — see the table below.</li>
+        <li><strong>Category</strong> — Monitoring, Scheduling, or Trigger (Water Leakage is Monitoring only).</li>
+        <li>Complete extra fields that appear (conditions, AC brand, trigger alerts).</li>
+        <li>Save. The device appears in the list with a <strong>device ID</strong>. Use that ID if Eco or support asks for it.</li>
+      </ol>
+
+      <h3>Device types</h3>
+      <table>
+        <thead>
+          <tr><th>Type</th><th>Full name</th><th>What you must configure</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>THD</td><td>Temperature Humidity Device</td><td>Temperature and humidity alert conditions (operator + value)</td></tr>
+          <tr><td>OD</td><td>Odour Device</td><td>Temperature, humidity, and odour conditions</td></tr>
+          <tr><td>AQID</td><td>Air Quality Index Device</td><td>Temperature, humidity, and AQI conditions</td></tr>
+          <tr><td>SMD</td><td>Smoke Device</td><td>Smoke % condition (default often 60%)</td></tr>
+          <tr><td>WLD</td><td>Water Leakage Device</td><td>No conditions. Category is locked to <strong>Monitoring</strong></td></tr>
+          <tr><td>GLD</td><td>Gas Leakage Device</td><td>Temperature, humidity, and leakage (gas) conditions</td></tr>
+          <tr><td>ED</td><td>Energy Device</td><td><strong>Current (A) is required.</strong> Voltage defaults to 225 V if you leave it blank. Temp/humidity optional</td></tr>
+          <tr><td>AC</td><td>Air conditioner</td><td><strong>Brand</strong> from the list. No sensor conditions. Optional energy-monitoring flag on edit</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Categories (how the device behaves)</h3>
+      <table>
+        <thead>
+          <tr><th>Category</th><th>Meaning</th><th>On the dashboard you can</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Monitoring</td>
+            <td>Sensors and alerts only. No ON/OFF schedule.</td>
+            <td>Watch live readings, alerts, history download. Cannot add schedule events.</td>
+          </tr>
+          <tr>
+            <td>Scheduling</td>
+            <td>Timed ON/OFF windows (start + end + days). AC uses the same windows plus setpoint.</td>
+            <td>Add Event (start &amp; end), Enable/Disable, delete, manual ON/OFF, skip current window.</td>
+          </tr>
+          <tr>
+            <td>Trigger</td>
+            <td>Fires at a start time on chosen days (no end time). Pulse / trigger output.</td>
+            <td>Add Trigger Event (time + days), Enable/Disable, delete, manual trigger.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Conditions (thresholds)</h3>
+      <p>When you pick THD, OD, AQID, SMD, GLD, or ED, a <strong>Configure conditions</strong> dialog opens. For each required reading:</p>
+      <ul>
+        <li>Choose an operator: <strong>&gt;</strong>, <strong>&lt;</strong>, or <strong>=</strong>.</li>
+        <li>Enter the value (e.g. temperature &gt; 8 °C).</li>
+        <li>Voltage, current, and water-leak use <strong>=</strong> only.</li>
+      </ul>
+      <p>These thresholds drive alerts on the dashboard.</p>
+
+      <h3>Trigger alert access</h3>
+      <p>If category is <strong>Trigger</strong>, a second dialog lets you tick which alerts this device may raise (temperature, humidity, odour, AQI, smoke, gas, voltage, current — depending on type). Leave them off unless you want those alerts. Defaults are off.</p>
+
+      <h3>After the device exists</h3>
+      <ul>
+        <li><strong>Edit</strong> (pencil): rename, move to another venue, change type/category/conditions, AC brand, energy monitoring, trigger alert flags.</li>
+        <li>If you forgot to copy the <strong>API key</strong> when the device was created, open <strong>Edit Device</strong> again. The API key is shown there — click the copy icon to copy it.</li>
+        <li><strong>Delete</strong>: confirm; the device is removed.</li>
+        <li>On the live card, a <strong>QR code</strong> encodes the device API key (plain text) for pairing / support — scan with a camera; it does not need internet.</li>
+      </ul>
+      <div class="warn">Stay within your plan’s device limit. If create fails with a limit message, free a unused device or upgrade the plan (Manager → Subscription Analytics).</div>
+    </section>
+
+    <section id="pair">
+      <h2>6. Connect the physical device (Data Center / ESP Wi-Fi)</h2>
+      <p>The hardware (Data Center device) has a <strong>black button</strong> on the unit. Pressing it puts the device into Wi-Fi setup mode so your phone can talk to it. Do this <strong>after</strong> the device already exists in EcoSystem (organization + venue), because you will paste that device’s <strong>API key</strong> into the setup portal.</p>
+
+      <h3>Order of work</h3>
+      <ol class="steps">
+        <li>On the website, create the device first under the correct <strong>organization</strong> and <strong>venue</strong> (section 5).</li>
+        <li>Copy the <strong>API key</strong> from the create-success screen, or later from <strong>Edit Device</strong> (copy icon next to the API key). You can also scan the QR — it is the same key as plain text.</li>
+        <li>On the physical box, press the <strong>black button</strong>.</li>
+        <li>The <strong>Wi-Fi LED starts blinking</strong>. The device is now broadcasting its own Wi-Fi hotspot.</li>
+        <li>On your <strong>phone</strong>, open <strong>Wi-Fi / Wi-Fi Manager</strong>. The device hotspot will appear as one of these names:
+          <ul>
+            <li><strong>IOTFIY HUB</strong></li>
+            <li><strong>IOTFIY ACKIT</strong></li>
+          </ul>
+        </li>
+        <li>Connect to the matching network. Password for both: <strong>iotfiysolutions</strong></li>
+        <li>After you connect, a <strong>setup portal</strong> should open by itself (captive portal).</li>
+        <li>If the portal <strong>does not open</strong>, open the phone browser yourself and go to the default ESP address:<br />
+          <span class="url">http://192.168.4.1</span><br />
+          This is the usual default gateway for ESP8266 / ESP32 SoftAP devices (<code>192.168.4.1</code>).</li>
+        <li>In the portal, <strong>paste the API key</strong> you copied from EcoSystem.</li>
+        <li>On the portal, keep <strong>Wi-Fi Name</strong> and <strong>Password</strong> <strong>blank for now</strong> (leave those fields empty). Do not fill site Wi-Fi credentials until you are told to.</li>
+        <li>Save / submit on the portal. The device uses the API key to join EcoSystem. After a short wait, the dashboard card should go online.</li>
+      </ol>
+
+      <div class="callout">
+        <strong>Remember:</strong> website first (create device → copy API key), then black button → blinking Wi-Fi LED → phone joins <strong>IOTFIY HUB</strong> or <strong>IOTFIY ACKIT</strong> (password <strong>iotfiysolutions</strong>) → portal (or open <strong>192.168.4.1</strong>) → paste API key. On the portal, leave site Wi-Fi Name and Password blank for now unless your team tells you otherwise.
+      </div>
+      <div class="warn">
+        While your phone is connected to the device hotspot, it may not have internet. That is normal. After setup, disconnect from the device Wi-Fi and join your normal network again to use the EcoSystem website.
+      </div>
+    </section>
+
+    <section id="dashboard">
+      <h2>7. Dashboard, alerts &amp; live cards</h2>
+      <ol class="steps">
+        <li>Open <strong>Home</strong>.</li>
+        <li>Select an <strong>organization</strong>, then a <strong>venue</strong>.</li>
+        <li>Device cards for that venue appear with live readings.</li>
+      </ol>
+      <ul>
+        <li>The small LED / online state follows recent live data (about 90 seconds). If the card shows offline, treat that as offline even if an older status said online.</li>
+        <li><strong>Alerts</strong> on the home page list active threshold / trigger alerts for the selected context.</li>
+        <li>Open a device panel for more detail, history <strong>Download</strong> (optional interval buckets), QR / API key, and Events at the bottom (scheduling or trigger devices).</li>
+      </ul>
+    </section>
+
+    <section id="events">
+      <h2>8. Schedules &amp; trigger events</h2>
+      <p>Only <strong>scheduling</strong> and <strong>trigger</strong> devices have an Events section. Monitoring devices cannot have events.</p>
+      <div class="callout">
+        You do <strong>not</strong> need Device Management to create a schedule. On the <strong>dashboard (Home)</strong>, select organization and venue, then <strong>click the device card</strong>. The device panel opens — scroll to the <strong>Events</strong> section at the bottom and use <strong>Add Event</strong> there.
+      </div>
+
+      <h3>Scheduling / AC — Add Event (from dashboard)</h3>
+      <ol class="steps">
+        <li>Open <strong>Home</strong> → pick organization and venue → <strong>click the scheduling device</strong> on the dashboard.</li>
+        <li>In the device panel, find the <strong>Events</strong> section → click <strong>Add Event</strong>. (Do not open Device Management for this.)</li>
+        <li>Set <strong>start time</strong> and <strong>end time</strong> on your local clock (the app stores UTC).</li>
+        <li>Select repeat <strong>days</strong>, or leave empty for a one-time window today (scheduling).</li>
+        <li>For <strong>AC</strong>: command ON or OFF. If ON, enter <strong>set temperature (°C)</strong>.</li>
+        <li>Save. Overlapping events on the same device are blocked.</li>
+      </ol>
+      <p>On the event card: <strong>Enable / Disable</strong> (stored as Active / Inactive). Recurring schedules can be toggled; a one-time scheduling event may need to be deleted instead. Trash deletes the event after confirm.</p>
+
+      <h3>Trigger — New Trigger Event (from dashboard)</h3>
+      <ol class="steps">
+        <li>On <strong>Home</strong>, click the <strong>trigger device</strong> → <strong>Events</strong> section → <strong>Add Event</strong>.</li>
+        <li>Set <strong>trigger time</strong> and at least one <strong>repeat day</strong> (same as the form).</li>
+        <li>There is <strong>no end time</strong>.</li>
+        <li>Enable / Disable and delete work the same way on the card.</li>
+      </ol>
+    </section>
+
+    <section id="users">
+      <h2>9. Invite team members (Manager only)</h2>
+      <p>Only the <strong>Manager</strong> can open <strong>Users Management</strong>. Users with Manage permission still cannot invite other users.</p>
+      <ol class="steps">
+        <li>Go to <strong>Users Management</strong> → Add User.</li>
+        <li>Enter <strong>full name</strong> and <strong>email</strong> (they will receive a setup link).</li>
+        <li>Select one or more <strong>organizations</strong>.</li>
+        <li>Optionally select <strong>venues</strong>. Assign the sites they should see on the dashboard. If you skip venues, edit the user later and add them so Home can show the right places.</li>
+        <li>Choose <strong>Permission</strong>:
+          <ul>
+            <li><strong>View Only</strong> — look at data; cannot create, edit, or delete.</li>
+            <li><strong>Manage</strong> — can create/edit/delete organizations, venues, devices, and events they have access to. Cannot manage team users or the subscription.</li>
+          </ul>
+        </li>
+        <li>Save. You should see: setup link sent to the user’s email.</li>
+      </ol>
+      <p><strong>Edit User</strong> later: change permission, organizations, and venues. Display name and email are not changed from this screen (they change email themselves in Account Settings).</p>
+      <p><strong>Delete User</strong>: confirm; they can no longer log in.</p>
+      <div class="callout">User seats also count against the plan’s <strong>max users</strong> limit.</div>
+    </section>
+
+    <section id="invited">
+      <h2>10. After a user is invited — how they sign in</h2>
+      <ol class="steps">
+        <li>Open the email from EcoSystem / IOTFIY.</li>
+        <li>Click the <strong>setup link</strong> (it expires; ask the Manager to resend / recreate if it is old).</li>
+        <li>Set a password (minimum 8 characters) and confirm it.</li>
+        <li>Enter the <strong>OTP</strong> sent to the same email.</li>
+        <li>Go to <span class="url">https://ecosystem.iotfiysolutions.com/</span> → <strong>Log in</strong> with that email and password.</li>
+        <li>You land on Home. You only see organizations and venues the Manager assigned.</li>
+      </ol>
+      <p>There is no “Select Plan” step for invited users. They work under the Manager’s plan.</p>
+    </section>
+
+    <section id="permissions">
+      <h2>11. What each person can do</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Action</th>
+            <th>Manager</th>
+            <th>User · Manage</th>
+            <th>User · View</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Log in &amp; see assigned dashboard</td><td class="role-yes">Yes</td><td class="role-yes">Yes</td><td class="role-yes">Yes</td></tr>
+          <tr><td>Choose / renew subscription</td><td class="role-yes">Yes</td><td class="role-no">No</td><td class="role-no">No</td></tr>
+          <tr><td>Subscription Analytics</td><td class="role-yes">Yes</td><td class="role-no">No</td><td class="role-no">No</td></tr>
+          <tr><td>Create / rename / delete organizations*</td><td class="role-yes">Yes</td><td class="role-yes">Yes*</td><td class="role-no">No</td></tr>
+          <tr><td>Create venues; edit/delete (owner rules)*</td><td class="role-yes">Yes</td><td class="role-yes">Create yes; edit/delete usually owner</td><td class="role-no">No</td></tr>
+          <tr><td>Add / edit / delete devices</td><td class="role-yes">Yes</td><td class="role-yes">Yes</td><td class="role-no">No</td></tr>
+          <tr><td>Create / enable-disable / delete events</td><td class="role-yes">Yes</td><td class="role-yes">Yes</td><td class="role-no">No</td></tr>
+          <tr><td>Invite / edit / delete team users</td><td class="role-yes">Yes</td><td class="role-no">No</td><td class="role-no">No</td></tr>
+          <tr><td>Use Eco to do the same writes they are allowed</td><td class="role-yes">Yes</td><td class="role-yes">Yes</td><td class="role-no">Chat/view only</td></tr>
+          <tr><td>Change own email (Account Settings)</td><td class="role-yes">Yes</td><td class="role-yes">Yes</td><td class="role-yes">Yes</td></tr>
+          <tr><td>Change own password</td><td colspan="3">Everyone: Login → Forgot Password (there is no Change Password tab)</td></tr>
+        </tbody>
+      </table>
+      <p class="muted">* Delete/rename of an organization, and edit/move of a venue, generally require owning that organization — same as the website forms. A Manage user can still add venues and devices in orgs they are assigned to.</p>
+
+      <h3>View Only — in plain language</h3>
+      <p>They can watch live cards, alerts, and event lists. Forms show “View Only Mode”. They cannot add a site, change a device name, create a schedule, or invite colleagues.</p>
+
+      <h3>Manage — in plain language</h3>
+      <p>They operate the sites the Manager gave them: add organizations (within plan), venues, devices, and events. They cannot open Users Management or change the company plan. They cannot Active/Inactive anyone’s account.</p>
+    </section>
+
+    <section id="eco">
+      <h2>12. Eco assistant</h2>
+      <p>The Eco bubble on the dashboard is a helper. Managers and Manage users can ask Eco to create or change organizations, venues, devices, and events (same rules as the forms). View-only users can ask questions; Eco will not write for them.</p>
+      <ul>
+        <li>Type in the chat, or tap the mic / say <strong>Hey Eco</strong> after allowing the microphone.</li>
+        <li>Prefer the printed <strong>device ID</strong> when two devices share a name.</li>
+        <li>For times, speak as you would on the Add Event screen (your local clock). Eco stores UTC like the website.</li>
+      </ul>
+    </section>
+
+    <section id="account">
+      <h2>13. Password, email &amp; subscription</h2>
+      <h3>Forgot password</h3>
+      <ol class="steps">
+        <li>Login screen → <strong>Forgot Password</strong>.</li>
+        <li>Enter email → open the reset link (about 15 minutes).</li>
+        <li>Set a new password (8+ characters) and confirm.</li>
+      </ol>
+      <h3>Change email</h3>
+      <p>Account Settings (from the logout / account dialog) → <strong>Change Email</strong> → new address → verify OTP. Available to Manager and User.</p>
+      <h3>Plan usage</h3>
+      <p>Manager → <strong>Subscription Analytics</strong> to see counts vs plan limits before you hit a create error.</p>
+    </section>
+
+    <section id="tips">
+      <h2>14. Quick checks</h2>
+      <ul>
+        <li>No devices on Home? Select the correct organization and venue first.</li>
+        <li>Cannot Add Device? You are View Only, or the venue/org is missing, or the plan limit is full.</li>
+        <li>Cannot add a schedule? The device category is Monitoring (or WLD). Use Home → click device → Events section; you do not need Device Management.</li>
+        <li>Forgot the API key after creating a device? Device Management → Edit (pencil) → copy the API key.</li>
+        <li>Physical device not coming online? Create it on the website first, copy the API key, press the black button until the Wi-Fi LED blinks, join <strong>IOTFIY HUB</strong> or <strong>IOTFIY ACKIT</strong> on the phone (password <strong>iotfiysolutions</strong>), paste the key in the portal. If the portal does not open, browse to <strong>http://192.168.4.1</strong>.</li>
+        <li>Invited user cannot see a site? Manager → Users Management → Edit User → add that venue.</li>
+        <li>Setup email missing? Check spam, or have the Manager create the user again / confirm the email spelling.</li>
+        <li>Card offline? Confirm power, network, pairing (API key), and that live data is reaching EcoSystem.</li>
+      </ul>
+    </section>
+
+    <footer class="manual-end">
+      EcoSystem by IOTFIY · Manager &amp; User manual ·
+      <a href="https://ecosystem.iotfiysolutions.com/">ecosystem.iotfiysolutions.com</a>
+      · Print this page to keep a paper copy in the packaging.
+    </footer>
+  </article>
+  <script>
+    function printManual() {
+      var prev = document.title;
+      document.title = " ";
+      var restore = function () {
+        document.title = prev;
+        window.removeEventListener("afterprint", restore);
+      };
+      window.addEventListener("afterprint", restore);
+      window.print();
+    }
+  </script>
+</body>
+</html>

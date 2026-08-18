@@ -122,6 +122,25 @@ const EventsSection = ({
     fetchEvents();
   }, [selectedDevice?.deviceId, eventsRefreshMap?.[selectedDevice?.deviceId]]);
 
+  useEffect(() => {
+    const onAgentData = (e) => {
+      const scopes = e.detail?.scopes || [];
+      const hintId = e.detail?.hints?.deviceId;
+      const deletedId = e.detail?.hints?.deletedEventId;
+      if (!scopes.includes("events")) return;
+      if (hintId && String(hintId) !== String(selectedDevice?.deviceId || "")) {
+        return;
+      }
+      if (deletedId) {
+        setEvents((prev) =>
+          prev.filter((ev) => String(ev?._id || ev?.id) !== String(deletedId))
+        );
+      }
+    };
+    window.addEventListener("eco:agent-data-changed", onAgentData);
+    return () => window.removeEventListener("eco:agent-data-changed", onAgentData);
+  }, [selectedDevice?.deviceId]);
+
   const addEvent = async (newEvent) => {
     try {
       const deviceId = selectedDevice?.deviceId;

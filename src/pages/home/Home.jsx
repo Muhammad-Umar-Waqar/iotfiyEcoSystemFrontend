@@ -117,7 +117,7 @@ const Header = () => {
   {/* Mobile and small screens */}
   <img
     src="/logo-half.png"
-    alt="IoTify"
+    alt="IOTFIY"
     className="h-9 block md:hidden"
     onError={(e) => {
       e.target.style.display = "none";
@@ -127,7 +127,7 @@ const Header = () => {
   {/* Medium screens and above */}
   <img
     src="/logo.png"
-    alt="IoTify"
+    alt="IOTFIY"
     className="h-9 hidden md:block"
     onError={(e) => {
       e.target.style.display = "none";
@@ -258,7 +258,7 @@ const Hero = () => {
               fontSize: 18, color: T.slate500, lineHeight: 1.65,
               margin: '0 0 36px', maxWidth: 480,
             }}>
-              IoTify gives your team live sensor feeds, smart scheduling, trigger alerts,
+              IOTFIY gives your team live sensor feeds, smart scheduling, trigger alerts,
               and energy dashboards — all in one platform built for AQI, odour, temperature,
               humidity, and more.
             </p>
@@ -500,7 +500,7 @@ const HowItWorks = () => {
             Up and running in minutes
           </h2>
           <p style={{ fontSize: 17, color: T.slate500, maxWidth: 480, margin: '0 auto', lineHeight: 1.6 }}>
-            No hardware engineers needed. IoTify's guided setup gets your first device online fast.
+            No hardware engineers needed. IOTFIY's guided setup gets your first device online fast.
           </p>
         </div>
 
@@ -654,8 +654,8 @@ return(
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 32, marginBottom: 40 }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-            <img src="/logo.png" alt="IoTify" style={{ height: 28, filter: 'brightness(100)' }} onError={e => e.target.style.display='none'} />
-            {/* <span style={{ fontWeight: 700, fontSize: 18, color: '#fff' }}>IoTify</span> */}
+            <img src="/logo.png" alt="IOTFIY" style={{ height: 28, filter: 'brightness(100)' }} onError={e => e.target.style.display='none'} />
+            {/* <span style={{ fontWeight: 700, fontSize: 18, color: '#fff' }}>IOTFIY</span> */}
           </div>
           <p style={{ fontSize: 14, lineHeight: 1.6, maxWidth: 240 }}>
             Real-time IoT management for facilities, energy, air quality, and more.
@@ -722,7 +722,7 @@ return(
         </div>
       </div>
       <div style={{ borderTop: '1px solid #1e293b', paddingTop: 24, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-        <span style={{ fontSize: 13 }}>© {new Date().getFullYear()} IoTify. All rights reserved.</span>
+        <span style={{ fontSize: 13 }}>© {new Date().getFullYear()} IOTFIY. All rights reserved.</span>
         <span style={{ fontSize: 13 }}>Built for IoT facility managers.</span>
       </div>
     </div>

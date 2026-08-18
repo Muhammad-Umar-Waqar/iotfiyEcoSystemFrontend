@@ -1386,7 +1386,7 @@ const OTADeviceList = ({ selectedVersion, onVersionSelect }) => {
         <>
           {/* Mobile header */}
           <div className="flex items-center justify-between mb-4 px-2">
-            <img src="/logo-half.png" className="h-[30px]" alt="IOTIFY" />
+            <img src="/logo-half.png" className="h-[30px]" alt="IOTFIY" />
             <h1 className="text-base font-semibold text-slate-900">OTA Management</h1>
             <IconButton size="small" onClick={() => setDrawerOpen(true)}>
               <Menu size={20} />

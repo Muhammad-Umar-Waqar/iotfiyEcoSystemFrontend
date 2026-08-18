@@ -12,6 +12,7 @@ import TriggerEventModal from "./TriggerEventModal";
 import { Plus, CalendarClock } from "lucide-react";
 import Swal from "sweetalert2";
 import axios from "axios";
+import { useScheduler } from "../../contexts/SchedulerContext";
 
 const TriggerEventsSection = ({
   selectedDevice,
@@ -24,6 +25,7 @@ const TriggerEventsSection = ({
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [working, setWorking] = useState(false);
+  const { eventsRefreshMap = {} } = useScheduler() ?? {};
 
   const isModalOpen = openModal || externalOpen;
 
@@ -31,6 +33,8 @@ const TriggerEventsSection = ({
     setOpenModal(false);
     onExternalClose?.();
   };
+
+  const eventKey = (event) => String(event?._id ?? event?.id ?? "");
 
   const fetchEvents = async () => {
     try {
@@ -45,28 +49,49 @@ const TriggerEventsSection = ({
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
+          validateStatus: (status) =>
+            (status >= 200 && status < 300) || status === 404,
         }
       );
 
-      console.log(`✅ [TriggerEventsSection] Events fetched for ${deviceId}:`, res.data);
       const fetchedEvents =
-        res.data?.schedules ||
-        res.data?.events ||
-        (Array.isArray(res.data) ? res.data : []) ||
-        [];
+        res.status === 404
+          ? []
+          : res.data?.schedules ||
+            res.data?.events ||
+            (Array.isArray(res.data) ? res.data : []) ||
+            [];
       console.log(`📋 [TriggerEventsSection] Fetched ${fetchedEvents.length} trigger events`);
       setEvents(fetchedEvents);
     } catch (err) {
       console.error("Failed to fetch trigger events:", err);
-      // Don't show error if no events found (404)
-      if (err.response?.status !== 404) {
-        console.error("Unexpected error fetching trigger events:", err);
+      if (err.response?.status === 404) {
+        setEvents([]);
       }
     }
   };
 
   useEffect(() => {
     fetchEvents();
+  }, [selectedDevice?.deviceId, eventsRefreshMap?.[selectedDevice?.deviceId]]);
+
+  useEffect(() => {
+    const onAgentData = (e) => {
+      const scopes = e.detail?.scopes || [];
+      const hintId = e.detail?.hints?.deviceId;
+      const deletedId = e.detail?.hints?.deletedEventId;
+      if (!scopes.includes("events")) return;
+      if (hintId && String(hintId) !== String(selectedDevice?.deviceId || "")) {
+        return;
+      }
+      if (deletedId) {
+        setEvents((prev) =>
+          prev.filter((ev) => eventKey(ev) !== String(deletedId))
+        );
+      }
+    };
+    window.addEventListener("eco:agent-data-changed", onAgentData);
+    return () => window.removeEventListener("eco:agent-data-changed", onAgentData);
   }, [selectedDevice?.deviceId]);
 
   const addEvent = async (newEvent) => {
@@ -109,8 +134,6 @@ const TriggerEventsSection = ({
       });
     }
   };
-
-  const eventKey = (event) => String(event?._id ?? event?.id ?? "");
 
   const handleDeleteClick = (id) => {
     setDeleteTarget(id);

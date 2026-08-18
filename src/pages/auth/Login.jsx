@@ -158,7 +158,7 @@
 //         <div className="p-12 w-full">
 //           <form className="space-y-3 lg:p-3" onSubmit={onSubmit}>
 //             <div className="mb-8 text-center md:text-left">
-//               <img src="/logo.png" alt="IoTify Logo" className="h-10 mx-auto md:mx-0 mb-4" />
+//               <img src="/logo.png" alt="IOTFIY Logo" className="h-10 mx-auto md:mx-0 mb-4" />
 //               <h3 className="text-slate-900 text-2xl font-semibold">
 //                 {isRegisterMode ? 'Create Account' : 'Log in to your Account'}
 //               </h3>
@@ -525,7 +525,7 @@ const Login = () => {
 
           <form className="space-y-3 lg:p-3" onSubmit={onSubmit}>
             <div className="mb-8 text-center md:text-left">
-              <img src="/logo.png" alt="IoTify Logo" className="h-10 mx-auto md:mx-0 mb-4" />
+              <img src="/logo.png" alt="IOTFIY Logo" className="h-10 mx-auto md:mx-0 mb-4" />
               <h3 className="text-slate-900 text-2xl font-semibold">
                 {isRegisterMode ? 'Create Account' : 'Log in to your Account'}
               </h3>

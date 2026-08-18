@@ -70,6 +70,12 @@ function authHeaders() {
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 }
+function clientTimezonePayload() {
+  return {
+    timezoneOffsetMinutes: new Date().getTimezoneOffset(),
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  };
+}
 function parseToolArgs(raw) {
   if (!raw) return {};
   if (typeof raw === "object") return raw;
@@ -340,7 +346,11 @@ async function startGeminiLiveVoice(sessionData, opts) {
           method: "POST",
           headers: authHeaders(),
           credentials: "include",
-          body: JSON.stringify({ name, arguments: args }),
+          body: JSON.stringify({
+            name,
+            arguments: args,
+            ...clientTimezonePayload(),
+          }),
         });
         const data = await res.json().catch(() => ({}));
         const result = data.result ?? { error: data.message || "Tool failed" };
@@ -696,6 +706,7 @@ async function startOpenAILiveVoice(sessionData, opts) {
         body: JSON.stringify({
           name,
           arguments: parseToolArgs(argsJson),
+          ...clientTimezonePayload(),
         }),
       });
       const data = await res.json().catch(() => ({}));

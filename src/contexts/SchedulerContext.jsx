@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from "react";
+import { createContext, useContext, useState, useCallback, useEffect } from "react";
 import Swal from "sweetalert2";
 const SchedulerContext = createContext(null);
 const TOKEN = localStorage.getItem("token");
@@ -22,6 +22,65 @@ export function SchedulerProvider({ children }) {
       [deviceId]: (prev[deviceId] ?? 0) + 1,
     }));
   }, []);
+
+  const refreshEventsForDevice = useCallback(async (deviceId, extra = {}) => {
+    const id = String(deviceId || "").trim();
+    if (!id) return;
+
+    const deletedEventId = extra.deletedEventId
+      ? String(extra.deletedEventId)
+      : null;
+    if (deletedEventId) {
+      setEventsMap((prev) => ({
+        ...prev,
+        [id]: (prev[id] || []).filter(
+          (e) => String(e?._id || e?.id) !== deletedEventId
+        ),
+      }));
+    }
+
+    // Always bump so EventsSection / TriggerEventsSection refetch even if
+    // this device is a trigger (scheduling GET can be empty).
+    bumpEventsRefresh(id);
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/event/get/${id}`,
+        {
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        }
+      );
+      const data = await res.json().catch(() => ({}));
+      const events =
+        res.ok || res.status === 404 ? data.events || [] : null;
+      if (events) {
+        const next = deletedEventId
+          ? events.filter((e) => String(e?._id || e?.id) !== deletedEventId)
+          : events;
+        setEvents(id, next);
+      }
+    } catch (err) {
+      console.warn("[Scheduler] agent events refresh failed", err);
+    }
+  }, [setEvents, bumpEventsRefresh]);
+
+  useEffect(() => {
+    const onAgentData = (e) => {
+      const scopes = e.detail?.scopes || [];
+      const deviceId = e.detail?.hints?.deviceId;
+      if (!scopes.includes("events") || !deviceId) return;
+      refreshEventsForDevice(deviceId, {
+        deletedEventId: e.detail?.hints?.deletedEventId,
+      });
+    };
+    window.addEventListener("eco:agent-data-changed", onAgentData);
+    return () => window.removeEventListener("eco:agent-data-changed", onAgentData);
+  }, [refreshEventsForDevice]);
 
   const setToggle = useCallback((deviceId, val) =>
     setToggleMap(prev => ({
