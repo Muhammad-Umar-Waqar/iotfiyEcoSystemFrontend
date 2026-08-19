@@ -10,6 +10,7 @@ import {
   fetchOrganizationsByUser,
 } from "../../../slices/OrganizationSlice";
 import OrganizationDeleteModal from "../../../components/Modals/OrganizationManagement/DeleteModal";
+import BrandMark from "../../../branding/BrandMark";
 import OrganizationEditModal from "../../../components/Modals/OrganizationManagement/EditModal";
 import { canManage } from "../../../utils/permissions";
 
@@ -258,7 +259,7 @@ const OrganizationList = ({ onOrganizationSelect, selectedOrganization }) => {
         <>
           <div className="flex items-center justify-between mb-4">
 
-            <img src="/logo-half.png" className="w-auto h-[30px]"/>
+            <BrandMark variant="half" className="w-auto h-[30px]" />
             <h1 className="organization-list-title font-semibold eco-mgmt-title">Organization Management</h1>
 
             <div>

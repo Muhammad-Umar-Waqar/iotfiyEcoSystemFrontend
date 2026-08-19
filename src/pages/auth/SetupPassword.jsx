@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import BrandMark from "../../branding/BrandMark";
 
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:5050";
 
@@ -91,7 +92,7 @@ export default function SetupPassword() {
         <div className="p-12 w-full">
           <form className="space-y-3 lg:p-3" onSubmit={handleSubmit}>
             <div className="mb-8 text-center md:text-left">
-              <img src="/logo.png" alt="Logo" className="h-10 mx-auto md:mx-0 mb-4" />
+              <BrandMark className="h-10 mx-auto md:mx-0 mb-4" />
               <h3 className="text-slate-900 text-2xl font-semibold">Set Your Password</h3>
               <p className="text-slate-500 text-sm mt-2">
                 Create a secure password with minimum 8 characters

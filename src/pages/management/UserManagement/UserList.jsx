@@ -264,6 +264,7 @@ import Swal from "sweetalert2";
 import EditUserModal from "../../../components/Modals/UserManagement/EditUserModal";
 import { Drawer, IconButton, useMediaQuery, Chip, Tooltip } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
+import BrandMark from "../../../branding/BrandMark";
 import TableSkeleton from "../../../components/skeletons/TableSkeleton";
 import { managementDrawerUserPaperProps, ManagementDrawerBody } from "../../../utils/managementDrawer";
 
@@ -483,7 +484,7 @@ const UserList = ({ onUserSelect, selectedUser }) => {
       ) : (
         <>
           <div className="flex items-center justify-between mb-4 px-1">
-            <img src="/logo-half.png" className="h-7 w-auto" alt="logo" />
+            <BrandMark variant="half" className="h-7 w-auto" />
             <h1 className="text-base font-semibold text-gray-800">User Management</h1>
             <IconButton
               aria-label="Open users"

@@ -10,6 +10,7 @@ import {
 } from '../../slices/subscriptionSlice';
 import { fetchCurrentUser } from '../../slices/authSlice';
 import { getHomePathForUser } from '../../utils/authRoutes';
+import BrandMark from '../../branding/BrandMark';
 
 // ─── design tokens (aligned with dashboard / home) ─────────────────────────────
 const T = {
@@ -704,7 +705,7 @@ const SelectPlan = () => {
         boxShadow: '0 1px 8px rgba(0,0,0,0.05)',
       }}>
         <NavLink to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
-          <img src="/logo.png" alt="IOTFIY" style={{ height: 30 }} onError={e => e.target.style.display = 'none'} />
+          <BrandMark style={{ height: 30 }} />
           {/* <span className="select-plan-logo-text" style={{ fontWeight: 700, fontSize: 17, color: T.primary }}>IOTFIY</span> */}
         </NavLink>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

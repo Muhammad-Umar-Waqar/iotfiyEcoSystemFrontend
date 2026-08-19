@@ -9,6 +9,7 @@ import Tooltip from "@mui/material/Tooltip";
 import LogoutDialog from "./Modals/LogoutDialog"
 import { useMediaQuery, Skeleton } from "@mui/material"
 import { useIsMobileforDashboardAndRightPanel } from "../hooks/responsiveQuery"
+import BrandMark from "../branding/BrandMark"
 
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:5050"
 
@@ -188,7 +189,7 @@ const SidebarRebuilt = () => {
       {!isMobile && (
         <div className={`sidebar${isMainDashboard ? " sidebar--dashboard" : ""}`}>
           <div className="sidebar-top">
-            <img src="/logo-half.png" alt="logo" width={48} height={48} />
+            <BrandMark variant="half" alt="logo" width={48} height={48} />
           </div>
 
           <nav className="sidebar-nav">

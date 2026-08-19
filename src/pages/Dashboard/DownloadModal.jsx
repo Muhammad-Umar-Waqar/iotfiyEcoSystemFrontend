@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import BrandMark from "../../branding/BrandMark";
 import {
   Dialog,
   DialogTitle,
@@ -423,9 +424,8 @@ export default function DownloadModal({
             View & download sensor history.
           </Typography>
         </DialogTitle>
-        <img
-          src="/logo-half.png"
-          alt="IOTFIY Logo"
+        <BrandMark
+          variant="half"
           className="h-[3rem] md:h-[4rem] w-[5rem] md:w-[6rem] pr-5 opacity-90"
         />
       </div>

@@ -7,6 +7,7 @@ import { fetchOrganizationsByOwner, fetchOrganizationsByUser } from "../../../sl
 import { fetchVenuesByOrganization } from "../../../slices/VenueSlice";
 import { canManage } from "../../../utils/permissions";
 import { useDeviceManagement } from "../../../contexts/DeviceManagementContext";
+import BrandMark from "../../../branding/BrandMark";
 import Swal from "sweetalert2";
 import EditDeviceModal from "../../../components/Modals/DeviceManagement/EditDeviceModal";
 import "../../../styles/pages/management-pages.css";
@@ -441,7 +442,7 @@ const DeviceList = ({ onDeviceSelect, selectedDevice }) => {
       ) : (
         <>
           <div className="flex items-center justify-between mb-4">
-            <img src="/logo-half.png" className="w-auto h-[30px]" alt="Logo" />
+            <BrandMark variant="half" className="w-auto h-[30px]" />
             <h1 className="organization-list-title font-semibold text-gray-800">Device Management</h1>
             <div>
               <IconButton aria-label="Open devices" size="small" onClick={() => setDrawerOpen(true)}>

@@ -29,6 +29,7 @@ import AdminDashboard from './pages/AdminDashboard/page';
 import NotFound from './pages/NotFound';
 import HomePage from './pages/home/Home';
 import SubscriptionLocked from './pages/auth/SubscriptionLocked';
+import { applyDocumentBrand } from './branding/brandConfig';
 
 // Session restoration component
 function SessionRestoration({ children }) {
@@ -46,6 +47,10 @@ function SessionRestoration({ children }) {
 }
 
 function App() {
+  useEffect(() => {
+    applyDocumentBrand();
+  }, []);
+
   return (
     <SessionRestoration>
        <OrgVenueProvider>

@@ -11,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 import HelpMarkdown from "./HelpMarkdown";
+import BrandMark from "../branding/BrandMark";
 import { startEcoLiveVoice } from "../hooks/useEcoLiveVoice";
 import { dispatchAgentDataRefresh } from "../utils/agentDataRefresh";
 import "./HelpChatWidget.css";
@@ -788,11 +789,7 @@ export default function HelpChatWidget() {
           <header className="eco-help-header">
             <div className="eco-help-header-left">
               <span className="eco-help-title">Eco Assistant</span>
-              <img
-                src="/logo-half.png"
-                alt=""
-                className="eco-help-header-logo"
-              />
+              <BrandMark variant="half" alt="" className="eco-help-header-logo" />
             </div>
             <div className="eco-help-header-actions">
               <button
@@ -873,8 +870,8 @@ export default function HelpChatWidget() {
             {messages.map((m) =>
               m.role === "bot" ? (
                 <div key={m.id} className="eco-help-row eco-help-row--bot">
-                  <img
-                    src="/logo-half.png"
+                  <BrandMark
+                    variant="half"
                     alt=""
                     className="eco-help-avatar"
                   />
@@ -1065,11 +1062,10 @@ export default function HelpChatWidget() {
           <span className="eco-help-fab-spinner" aria-hidden />
           <span className="eco-help-fab-ring" />
           <span className="eco-help-fab-inner">
-            <img
-              src="/logo-half.png"
+            <BrandMark
+              variant="half"
               alt="ecoSystem"
               className="eco-help-fab-logo"
-              draggable={false}
             />
           </span>
         </button>

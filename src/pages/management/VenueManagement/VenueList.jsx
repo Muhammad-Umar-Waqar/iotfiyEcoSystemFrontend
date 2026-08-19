@@ -501,6 +501,7 @@ import {
   InputLabel,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import BrandMark from "../../../branding/BrandMark";
 import { managementDrawerPaperProps, ManagementDrawerBody } from "../../../utils/managementDrawer";
 
 const VenueList = ({ onVenueSelect, selectedVenue }) => {
@@ -865,7 +866,7 @@ const VenueList = ({ onVenueSelect, selectedVenue }) => {
       ) : (
         <>
           <div className="flex items-center justify-between mb-4">
-            <img src="/logo-half.png" className="w-auto h-[30px]" />
+            <BrandMark variant="half" className="w-auto h-[30px]" />
             <h1 className="organization-list-title font-semibold text-gray-800">
               Venue Management
             </h1>

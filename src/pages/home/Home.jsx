@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import BrandMark from '../../branding/BrandMark';
+import { getBrand } from '../../branding/brandConfig';
 
 // ─── tiny hook: scroll position ───────────────────────────────────────────────
 const useScrollY = () => {
@@ -114,25 +116,8 @@ const Header = () => {
   to="/"
   className="flex items-center gap-2.5 no-underline"
 >
-  {/* Mobile and small screens */}
-  <img
-    src="/logo-half.png"
-    alt="IOTFIY"
-    className="h-9 block md:hidden"
-    onError={(e) => {
-      e.target.style.display = "none";
-    }}
-  />
-
-  {/* Medium screens and above */}
-  <img
-    src="/logo.png"
-    alt="IOTFIY"
-    className="h-9 hidden md:block"
-    onError={(e) => {
-      e.target.style.display = "none";
-    }}
-  />
+  <BrandMark variant="half" className="h-9 block md:hidden" />
+  <BrandMark className="h-9 hidden md:block" />
 </NavLink>
 
         {/* Desktop nav */}
@@ -258,7 +243,7 @@ const Hero = () => {
               fontSize: 18, color: T.slate500, lineHeight: 1.65,
               margin: '0 0 36px', maxWidth: 480,
             }}>
-              IOTFIY gives your team live sensor feeds, smart scheduling, trigger alerts,
+              {getBrand().name} gives your team live sensor feeds, smart scheduling, trigger alerts,
               and energy dashboards — all in one platform built for AQI, odour, temperature,
               humidity, and more.
             </p>
@@ -500,7 +485,7 @@ const HowItWorks = () => {
             Up and running in minutes
           </h2>
           <p style={{ fontSize: 17, color: T.slate500, maxWidth: 480, margin: '0 auto', lineHeight: 1.6 }}>
-            No hardware engineers needed. IOTFIY's guided setup gets your first device online fast.
+            No hardware engineers needed. {getBrand().name}'s guided setup gets your first device online fast.
           </p>
         </div>
 
@@ -654,7 +639,7 @@ return(
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 32, marginBottom: 40 }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-            <img src="/logo.png" alt="IOTFIY" style={{ height: 28, filter: 'brightness(100)' }} onError={e => e.target.style.display='none'} />
+            <BrandMark style={{ height: 28, filter: 'brightness(100)' }} />
             {/* <span style={{ fontWeight: 700, fontSize: 18, color: '#fff' }}>IOTFIY</span> */}
           </div>
           <p style={{ fontSize: 14, lineHeight: 1.6, maxWidth: 240 }}>
@@ -722,7 +707,7 @@ return(
         </div>
       </div>
       <div style={{ borderTop: '1px solid #1e293b', paddingTop: 24, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-        <span style={{ fontSize: 13 }}>© {new Date().getFullYear()} IOTFIY. All rights reserved.</span>
+        <span style={{ fontSize: 13 }}>© {new Date().getFullYear()} {getBrand().legalName}. All rights reserved.</span>
         <span style={{ fontSize: 13 }}>Built for IoT facility managers.</span>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import AlertsChart from "./AlertsChart";
+import BrandMark from "../../branding/BrandMark";
 import { useDispatch, useSelector } from "react-redux";
 import { useMemo, useEffect, useState, useRef } from "react";
 import QRCode from "./QrCode";
@@ -1045,7 +1046,7 @@ export default function VenueDetailsPanel({
         >
       {closeIcon && (
         <div className="flex justify-between items-center shrink-0">
-          <img src="/iotfiy_logo_rpanel.svg" alt="IOTFIY LOGO" className="h-[30px] w-auto" />
+          <BrandMark variant="panel" className="h-[30px] w-auto" />
           <IconButton onClick={() => typeof onClose === "function" && onClose()} edge="start" aria-label="close-details" size="small">
             <CloseIcon />
           </IconButton>

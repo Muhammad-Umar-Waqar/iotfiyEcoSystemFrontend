@@ -10,6 +10,7 @@ import {
 import { Box, Drawer, useMediaQuery } from '@mui/material';
 import LogoutDialog from './Modals/LogoutDialog';
 import { useIsMobile } from '../hooks/responsiveQuery';
+import { getBrand } from '../branding/brandConfig';
 
 /* ============================================================
    DESIGN TOKENS
@@ -302,7 +303,7 @@ const AdminSidebar = ({ activeTab, onTabChange }) => {
                 <Activity size={18} color="#fff" />
               </div>
               <div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: C.text, letterSpacing: '-0.02em' }}>IOTFIY</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: C.text, letterSpacing: '-0.02em' }}>{getBrand().name}</div>
                 <div style={{ fontSize: 10, color: C.textSoft, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Admin console</div>
               </div>
             </div>
@@ -340,7 +341,7 @@ const AdminSidebar = ({ activeTab, onTabChange }) => {
               <Activity size={18} color="#fff" />
             </div>
             <div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: C.text, letterSpacing: '-0.02em' }}>IOTFIY</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: C.text, letterSpacing: '-0.02em' }}>{getBrand().name}</div>
               <div style={{ fontSize: 10, color: C.textSoft, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Admin console</div>
             </div>
           </div>
@@ -398,7 +399,7 @@ const AdminSidebar = ({ activeTab, onTabChange }) => {
                 <Activity size={18} color="#fff" />
               </div>
               <div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: C.text, letterSpacing: '-0.02em' }}>IOTFIY</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: C.text, letterSpacing: '-0.02em' }}>{getBrand().name}</div>
                 <div style={{ fontSize: 10, color: C.textSoft, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Admin console</div>
               </div>
             </div>

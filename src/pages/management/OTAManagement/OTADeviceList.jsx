@@ -812,6 +812,7 @@ import VersionsDropdown from "./VersionDropDown";
 import { Drawer, IconButton, useMediaQuery } from "@mui/material";
 import { Menu, Wifi, WifiOff, ChevronRight, Zap, CheckCircle2, AlertCircle, Loader2, X } from "lucide-react";
 import CloseIcon from "@mui/icons-material/Close";
+import BrandMark from "../../../branding/BrandMark";
 import { useDeviceWebSocket } from "../../../hooks/useDeviceWebSocket";
 import { managementDrawerPaperProps, ManagementDrawerBody } from "../../../utils/managementDrawer";
 import { io } from "socket.io-client";
@@ -1386,7 +1387,7 @@ const OTADeviceList = ({ selectedVersion, onVersionSelect }) => {
         <>
           {/* Mobile header */}
           <div className="flex items-center justify-between mb-4 px-2">
-            <img src="/logo-half.png" className="h-[30px]" alt="IOTFIY" />
+            <BrandMark variant="half" className="h-[30px]" />
             <h1 className="text-base font-semibold text-slate-900">OTA Management</h1>
             <IconButton size="small" onClick={() => setDrawerOpen(true)}>
               <Menu size={20} />

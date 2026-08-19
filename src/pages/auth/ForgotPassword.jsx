@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import api from '../../services/api';
+import BrandMark from '../../branding/BrandMark';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -65,7 +66,7 @@ const ForgotPassword = () => {
         <div className="p-12 w-full">
           <form className="space-y-3 lg:p-3" onSubmit={handleSubmit}>
             <div className="mb-8 text-center md:text-left">
-              <img src="/logo.png" alt="Logo" className="h-10 mx-auto md:mx-0 mb-4" />
+              <BrandMark className="h-10 mx-auto md:mx-0 mb-4" />
               <h3 className="text-slate-900 text-2xl font-semibold">Forgot Password</h3>
               <p className="text-slate-500 text-sm mt-2">
                 Enter your email address and we'll send you a password reset link

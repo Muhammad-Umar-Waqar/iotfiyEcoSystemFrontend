@@ -7,6 +7,7 @@ import AlertsPanel from "./AlertsPanel";
 import "../../styles/pages/Dashboard/dashboard-styles.css";
 import "../../styles/pages/Dashboard/freezer-cards-responsive.css";
 import { useLocation, useNavigate } from "react-router-dom";
+import BrandMark from "../../branding/BrandMark";
 import VenueDetailsPanel from "./VenueDetailsPanel";
 import { Drawer, useMediaQuery } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
@@ -409,7 +410,7 @@ export default function Dashboard() {
         {/* Header row: logo · org selector · venue selector */}
         <div className="flex justify-between items-center shrink-0">
           {!isDesktopForIcon && (
-            <img src="/logo-half.png" alt="Logo" className="w-auto h-[40px]" />
+            <BrandMark variant="half" className="w-auto h-[40px]" />
           )}
 
           <div className="sm:w-[25rem] md:w-[13rem] lg:w-[20rem] xl:w-[25rem]">

@@ -375,6 +375,7 @@ import { loginUser, fetchCurrentUser } from '../../slices/authSlice';
 import { getHomePathForUser } from '../../utils/authRoutes';
 import api from '../../services/api';
 import Swal from 'sweetalert2';
+import BrandMark from '../../branding/BrandMark';
 
 const Login = () => {
   const [isRegisterMode, setIsRegisterMode] = useState(false);
@@ -525,7 +526,7 @@ const Login = () => {
 
           <form className="space-y-3 lg:p-3" onSubmit={onSubmit}>
             <div className="mb-8 text-center md:text-left">
-              <img src="/logo.png" alt="IOTFIY Logo" className="h-10 mx-auto md:mx-0 mb-4" />
+              <BrandMark className="h-10 mx-auto md:mx-0 mb-4" />
               <h3 className="text-slate-900 text-2xl font-semibold">
                 {isRegisterMode ? 'Create Account' : 'Log in to your Account'}
               </h3>
