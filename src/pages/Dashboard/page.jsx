@@ -63,6 +63,7 @@ export default function Dashboard() {
   // ── Auth from Redux (no useStore) ─────────────────────────────────────────
   const user  = useSelector((state) => state.auth.user);
   const token = useSelector((state) => state.auth.token);
+  const { Organizations = [] } = useSelector((state) => state.Organization || {});
 
   // ── Shared org / venue context ────────────────────────────────────────────
   const {
@@ -85,6 +86,30 @@ export default function Dashboard() {
   const [isContextChanging,        setIsContextChanging]        = useState(false);
   const [drawerOpen,               setDrawerOpen]               = useState(false);
   const [pendingCreateEvent,       setPendingCreateEvent]       = useState(false);
+
+  // Keep cached org/venue labels in sync after manager renames
+  useEffect(() => {
+    if (!ctxOrg?.id || !Organizations.length) return;
+    const live = Organizations.find(
+      (o) => String(o._id ?? o.id) === String(ctxOrg.id)
+    );
+    const liveName = live?.name ?? live?.organization_name;
+    if (liveName && liveName !== ctxOrg.name) {
+      setOrganization({ id: ctxOrg.id, name: liveName });
+      setOrgNameForTop(liveName);
+    }
+  }, [Organizations, ctxOrg?.id, ctxOrg?.name, setOrganization]);
+
+  useEffect(() => {
+    if (!ctxVenue?.id || !user?.venues?.length) return;
+    const live = user.venues.find(
+      (v) => String(v.venueId?._id ?? v.venueId) === String(ctxVenue.id)
+    );
+    const liveName = live?.venueName;
+    if (liveName && liveName !== ctxVenue.name) {
+      setVenue({ id: ctxVenue.id, name: liveName });
+    }
+  }, [user?.venues, ctxVenue?.id, ctxVenue?.name, setVenue]);
 
   // const isDesktop        = useMediaQuery("(min-width:768px)");
   const isDesktopForIcon = useMediaQuery("(min-width:760px)");
