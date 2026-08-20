@@ -25,7 +25,7 @@ const INARA_BRAND = {
   documentTitle: "EcoSystem | Inara",
   logo: "/brands/inara/logo.png",
   logoHalf: "/brands/inara/logo-half.png",
-  logoPanel: "/brands/inara/logo-panel.svg",
+  logoPanel: "/brands/inara/logo-panel.png",
   favicon: "/brands/inara/favicon_inara.svg",
 };
 
