@@ -369,14 +369,15 @@ const EditUserModal = ({ open, onClose, userId }) => {
     }}
   >
     {isLoading ? (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="250px"
+      <div
+        // display="flex"
+        // justifyContent="center"
+        // alignItems="center"
+        // minHeight="250px"
+      className="flex items-center justify-center min-h-[250px]"
       >
         <CircularProgress />
-      </Box>
+      </div>
     ) : (
       <form onSubmit={handleSubmit} className="space-y-5">
 
