@@ -538,11 +538,11 @@ const AddDevice = () => {
   return (
     <div className="min-h-[60vh] flex items-center justify-center eco-mgmt-add rounded-xl shadow-sm w-full md:flex flex-col justify-center">
       <div className="AddingPage device-add-container w-full">
-      <div className="hidden md:flex justify-center mb-4" aria-hidden="true">
+      <div className="flex justify-center mb-4" aria-hidden="true">
         <img
           src="/device-add-hero.svg"
           alt=""
-          className="h-[120px] w-auto select-none pointer-events-none"
+          className="w-auto select-none pointer-events-none md:h-[120px] h-[80px]"
         />
       </div>
       <h2 className="device-add-title font-semibold mb-1 text-center eco-mgmt-title">Add Device</h2>

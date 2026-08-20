@@ -547,11 +547,11 @@ const AddUser = ({ selectedUser }) => {
 
   return (
     <div className="rounded-xl shadow-sm w-full h-full  flex flex-col items-center justify-center eco-mgmt-add p-4 sm:p-5">
-      <div className="hidden md:flex justify-center mb-4" aria-hidden="true">
+      <div className="flex justify-center mb-4" aria-hidden="true">
         <img
           src="/user-add-hero.svg"
           alt=""
-          className="h-[120px] w-auto select-none pointer-events-none"
+          className="w-auto select-none pointer-events-none md:h-[120px] h-[80px]"
         />
       </div>
       <h2 className="user-add-title text-lg sm:text-xl font-semibold eco-mgmt-title mb-1 text-center">

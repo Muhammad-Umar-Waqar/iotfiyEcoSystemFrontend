@@ -96,11 +96,11 @@ const AddOrganization = () => {
       
     <div className="  AddingPage organization-add-container w-full">
       {/* Desktop only (≥768px) — theme illustration above title */}
-      <div className="hidden md:flex justify-center mb-4" aria-hidden="true">
+      <div className="flex justify-center mb-4" aria-hidden="true">
         <img
           src="/organization-add-hero.svg"
           alt=""
-          className="h-[120px] w-auto select-none pointer-events-none"
+          className="w-auto select-none pointer-events-none md:h-[120px] h-[80px]"
         />
       </div>
 
