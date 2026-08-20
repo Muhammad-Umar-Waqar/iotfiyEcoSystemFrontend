@@ -3,16 +3,18 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { fetchCurrentUser, loginWithQr } from "../../slices/authSlice";
 import { getHomePathForUser } from "../../utils/authRoutes";
+import { useOrgVenue } from "../../contexts/OrgVenueContext";
 import BrandMark from "../../branding/BrandMark";
 
 /**
  * Public QR entry: /q/:token
- * Calls qr-login, stores JWT, redirects to the user's dashboard.
+ * Clears prior session storage, calls qr-login, redirects to dashboard.
  */
 export default function QrLogin() {
   const { token } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { clearOrganization } = useOrgVenue();
   const started = useRef(false);
   const [status, setStatus] = useState("loading"); // loading | error
   const [message, setMessage] = useState("Signing you in…");
@@ -30,6 +32,9 @@ export default function QrLogin() {
       }
 
       try {
+        // Clear in-memory org/venue so selects don't keep the previous user
+        clearOrganization();
+
         const result = await dispatch(loginWithQr(qrToken)).unwrap();
         dispatch(fetchCurrentUser());
         navigate(getHomePathForUser(result.user), { replace: true });
@@ -40,7 +45,7 @@ export default function QrLogin() {
     };
 
     run();
-  }, [token, dispatch, navigate]);
+  }, [token, dispatch, navigate, clearOrganization]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-5">

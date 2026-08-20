@@ -22,6 +22,14 @@ export const loginWithQr = createAsyncThunk(
   'auth/loginWithQr',
   async (token, { rejectWithValue }) => {
     try {
+      // Drop previous session completely (org/venue picks, old JWT, persist keys)
+      try {
+        localStorage.clear();
+        sessionStorage.removeItem('iotifiy:org-venue');
+      } catch {
+        /* ignore storage errors */
+      }
+
       const data = await authService.loginWithQr(token);
       if (data.token) {
         localStorage.setItem('token', data.token);
@@ -107,6 +115,10 @@ const authSlice = createSlice({
       .addCase(loginWithQr.pending, (state) => {
         state.loading = true;
         state.error = null;
+        // Drop previous user from memory while QR login runs
+        state.user = null;
+        state.token = null;
+        state.isAuthenticated = false;
       })
       .addCase(loginWithQr.fulfilled, (state, action) => {
         state.loading = false;
