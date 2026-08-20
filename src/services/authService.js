@@ -19,6 +19,12 @@ export const authService = {
     return response.data;
   },
 
+  // Permanent QR login (sub-users)
+  loginWithQr: async (token) => {
+    const response = await api.post('/auth/qr-login', { token });
+    return response.data;
+  },
+
   // Logout
   logout: async () => {
     const response = await api.delete('/auth/logout');

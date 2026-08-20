@@ -340,8 +340,15 @@ import {
   ListItemText,
   Chip,
   Box,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  IconButton,
 } from "@mui/material";
-import { User, Mail, Building2, MapPin, Shield } from "lucide-react";
+import { User, Mail, Building2, MapPin, Shield, Copy, Download, X } from "lucide-react";
+import UserLoginQr, { downloadQrPng } from "../../../components/UserLoginQr";
 
 const PERMISSION_OPTIONS = [
   { value: "view", label: "View Only" },
@@ -394,6 +401,8 @@ const AddUser = ({ selectedUser }) => {
   });
 
   const [formLoading, setFormLoading] = useState(false);
+  const [qrDialog, setQrDialog] = useState(null); // { name, email, qrUrl } | null
+  const qrCanvasId = "add-user-login-qr";
 
   // Fetch organizations on mount
   useEffect(() => {
@@ -465,7 +474,7 @@ const AddUser = ({ selectedUser }) => {
 
     setFormLoading(true);
     try {
-      await dispatch(
+      const result = await dispatch(
         createSubUser({
           name: formData.name.trim(),
           email: formData.email.toLowerCase().trim(),
@@ -476,11 +485,9 @@ const AddUser = ({ selectedUser }) => {
         })
       ).unwrap();
 
-      Swal.fire({
-        icon: "success",
-        title: "User Created",
-        text: "Setup link has been sent to the user's email.",
-      });
+      const createdName = result?.user?.name || formData.name.trim();
+      const createdEmail = result?.user?.email || formData.email.toLowerCase().trim();
+      const qrUrl = result?.qrUrl || null;
 
       // Reset form
       setFormData({
@@ -495,6 +502,16 @@ const AddUser = ({ selectedUser }) => {
       if (user?.id) {
         dispatch(fetchSubUsers(user.id));
       }
+
+      if (qrUrl) {
+        setQrDialog({ name: createdName, email: createdEmail, qrUrl });
+      } else {
+        Swal.fire({
+          icon: "success",
+          title: "User Created",
+          text: "Setup link has been sent to the user's email.",
+        });
+      }
     } catch (err) {
       console.error("Create user error:", err);
       const text = err?.message || String(err) || "Failed to create user";
@@ -502,6 +519,30 @@ const AddUser = ({ selectedUser }) => {
     } finally {
       setFormLoading(false);
     }
+  };
+
+  const handleCopyQrLink = async () => {
+    if (!qrDialog?.qrUrl) return;
+    try {
+      await navigator.clipboard.writeText(qrDialog.qrUrl);
+      Swal.fire({
+        icon: "success",
+        title: "Link copied",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+    } catch {
+      Swal.fire({
+        icon: "info",
+        title: "Copy manually",
+        text: qrDialog.qrUrl,
+      });
+    }
+  };
+
+  const handleDownloadQr = () => {
+    const safeName = (qrDialog?.name || "user").replace(/[^\w.-]+/g, "_");
+    downloadQrPng(qrCanvasId, `${safeName}-login-qr.png`);
   };
 
   return (
@@ -733,6 +774,60 @@ const AddUser = ({ selectedUser }) => {
           {formLoading ? "Creating User..." : "Create User"}
         </button>
       </form>
+
+      <Dialog
+        open={Boolean(qrDialog)}
+        onClose={() => setQrDialog(null)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ pr: 6, fontWeight: 700 }}>
+          User created
+          <IconButton
+            aria-label="Close"
+            onClick={() => setQrDialog(null)}
+            sx={{ position: "absolute", right: 8, top: 8 }}
+          >
+            <X size={18} />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          <p className="text-sm text-slate-600 mb-1">
+            <span className="font-semibold text-slate-900">{qrDialog?.name}</span>
+            {qrDialog?.email ? (
+              <span className="text-slate-500"> · {qrDialog.email}</span>
+            ) : null}
+          </p>
+          <p className="text-sm text-slate-500 mb-4">
+            Setup email sent. Share this QR so they can open the dashboard anytime.
+          </p>
+          <div className="flex justify-center mb-4">
+            {qrDialog?.qrUrl ? (
+              <UserLoginQr url={qrDialog.qrUrl} size={200} canvasId={qrCanvasId} />
+            ) : null}
+          </div>
+          <p className="text-xs text-slate-400 break-all text-center mb-2">{qrDialog?.qrUrl}</p>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5, gap: 1, flexWrap: "wrap" }}>
+          <Button
+            variant="outlined"
+            startIcon={<Copy size={16} />}
+            onClick={handleCopyQrLink}
+          >
+            Copy link
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<Download size={16} />}
+            onClick={handleDownloadQr}
+          >
+            Download QR
+          </Button>
+          <Button variant="contained" onClick={() => setQrDialog(null)}>
+            Done
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

@@ -116,8 +116,8 @@ const Header = () => {
   to="/"
   className="flex items-center gap-2.5 no-underline"
 >
-  <BrandMark variant="half" className="h-9 block md:hidden" />
-  <BrandMark className="h-9 hidden md:block" />
+  {/* <BrandMark variant="half" className="h-9 block md:hidden" /> */}
+  <BrandMark className="h-9 " />
 </NavLink>
 
         {/* Desktop nav */}
@@ -133,6 +133,10 @@ const Header = () => {
           </NavLink>
         </nav>
 
+
+
+        {/* ok ab ek cheez add karni ha jo specifically ye ha keh hamen 3 users banane hen jinko direct       QR se scan */}
+
         {/* CTA area */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {isAuthenticated ? (
@@ -141,10 +145,10 @@ const Header = () => {
             </button>
           ) : (
             <>
-              <NavLink to="/login" style={{ ...btn.ghost, fontSize: 14 }}>Sign in</NavLink>
-              <NavLink to="/login" state={{ register: true }} style={{ ...btn.primary, fontSize: 14, padding: '9px 20px' }}>
+              <NavLink to="/login"  style={{ ...btn.primary, fontSize: 12, padding: '8px 14px' }}>Sign in</NavLink>
+              {/* <NavLink to="/login" state={{ register: true }} style={{ ...btn.primary, fontSize: 12, padding: '8px 14px' }}>
                 Get started
-              </NavLink>
+              </NavLink> */}
             </>
           )}
           {/* Hamburger */}

@@ -13,6 +13,7 @@ import SelectPlan from './pages/auth/SelectPlan';
 import SetupPassword from './pages/auth/SetupPassword';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
+import QrLogin from './pages/auth/QrLogin';
 import Dashboard from './pages/Dashboard/page';
 import OrganizationManagement from './pages/management/OrganizationManagement/page';
 import VenueManagement from './pages/management/VenueManagement/page';
@@ -65,9 +66,10 @@ function App() {
           <Route path="/verify-otp" element={<GuestRoute><VerifyOtp /></GuestRoute>} />
           <Route path="/verify-otp/:token" element={<GuestRoute><VerifyOtp /></GuestRoute>} />
 
-          {/* Token flows — allow without session (email links) */}
+          {/* Token flows — allow without session (email / QR links) */}
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/setup-password/:token" element={<SetupPassword />} />
+          <Route path="/q/:token" element={<QrLogin />} />
 
           {/* Plans — guests and logged-in managers can both access */}
           <Route path="/select-plan" element={<SelectPlan />} />

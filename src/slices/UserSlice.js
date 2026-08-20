@@ -79,6 +79,34 @@ export const deleteSubUser = createAsyncThunk(
   }
 );
 
+export const fetchSubUserQrLogin = createAsyncThunk(
+  "user/fetchSubUserQrLogin",
+  async (userId, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/user/${userId}/qr-login`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || error.message || "Failed to load QR"
+      );
+    }
+  }
+);
+
+export const regenerateSubUserQrLogin = createAsyncThunk(
+  "user/regenerateSubUserQrLogin",
+  async (userId, { rejectWithValue }) => {
+    try {
+      const response = await api.post(`/user/${userId}/qr-login/regenerate`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || error.message || "Failed to regenerate QR"
+      );
+    }
+  }
+);
+
 const userSlice = createSlice({
   name: "user",
   initialState: {

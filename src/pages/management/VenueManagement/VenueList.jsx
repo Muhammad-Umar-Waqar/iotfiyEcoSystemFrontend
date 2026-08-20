@@ -499,6 +499,7 @@ import {
   Select,
   FormControl,
   InputLabel,
+  Tooltip,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import BrandMark from "../../../branding/BrandMark";
@@ -776,13 +777,13 @@ const VenueList = ({ onVenueSelect, selectedVenue }) => {
       </div>
 
       <div className="organization-table-scroll overflow-y-auto flex-1 min-h-0 pr-1 overscroll-contain">
-        <table className="w-full table-auto text-left">
+        <table className="w-full table-fixed text-left">
           <thead className="sticky top-0 z-10">
             <tr className="eco-mgmt-thead">
-              <th className="text-lg py-5 px-4 font-semibold text-gray-800">
+              <th className="text-lg py-5 px-4 font-semibold text-gray-800 w-auto">
                 Venue Name
               </th>
-              <th className="text-lg font-semibold py-5 px-4 text-center text-gray-800" >
+              <th className="text-lg font-semibold py-5 px-4 text-center text-gray-800 w-[7rem] sm:w-[8.5rem]">
                 Actions
               </th>
             </tr>
@@ -810,10 +811,14 @@ const VenueList = ({ onVenueSelect, selectedVenue }) => {
                     }`}
                     onClick={(e) => handleRowClick(venue, e)}
                   >
-                    <td className="organization-table-cell py-2 sm:py-3 px-2 sm:px-4">
-                      {index + 1}. {displayName}
+                    <td className="organization-table-cell py-2 sm:py-3 px-2 sm:px-4 max-w-0">
+                      <Tooltip title={displayName} arrow enterTouchDelay={0} placement="top">
+                        <span className="block truncate text-sm sm:text-base text-gray-800">
+                          {index + 1}. {displayName}
+                        </span>
+                      </Tooltip>
                     </td>
-                    <td className="organization-table-cell py-2 sm:py-3 px-2 sm:px-4">
+                    <td className="organization-table-cell py-2 sm:py-3 px-2 sm:px-4 w-[7rem] sm:w-[8.5rem]">
                       <div
                         className="flex justify-center gap-2 sm:gap-3"
                         onClick={(e) => e.stopPropagation()}

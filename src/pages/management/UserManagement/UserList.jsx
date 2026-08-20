@@ -256,13 +256,30 @@
 
 // src/pages/management/UserManagement/UserList.jsx
 import { useEffect, useState } from "react";
-import { Pencil, Trash, Menu } from "lucide-react";
+import { Pencil, Trash, Menu, QrCode, Copy, Download, RefreshCw, X } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchSubUsers, deleteSubUser } from "../../../slices/UserSlice";
+import {
+  fetchSubUsers,
+  deleteSubUser,
+  fetchSubUserQrLogin,
+  regenerateSubUserQrLogin,
+} from "../../../slices/UserSlice";
 import { canManage } from "../../../utils/permissions";
 import Swal from "sweetalert2";
 import EditUserModal from "../../../components/Modals/UserManagement/EditUserModal";
-import { Drawer, IconButton, useMediaQuery, Chip, Tooltip } from "@mui/material";
+import UserLoginQr, { downloadQrPng } from "../../../components/UserLoginQr";
+import {
+  Drawer,
+  IconButton,
+  useMediaQuery,
+  Chip,
+  Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+} from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 import BrandMark from "../../../branding/BrandMark";
 import TableSkeleton from "../../../components/skeletons/TableSkeleton";
@@ -281,6 +298,10 @@ const UserList = ({ onUserSelect, selectedUser }) => {
   // Edit modal state
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingUserId, setEditingUserId] = useState(null);
+
+  const [qrDialog, setQrDialog] = useState(null); // { id, name, email, qrUrl }
+  const [qrLoading, setQrLoading] = useState(false);
+  const qrCanvasId = "user-list-login-qr";
 
   // Only managers can access user management
   const isManager = user?.role === "manager";
@@ -309,6 +330,88 @@ const UserList = ({ onUserSelect, selectedUser }) => {
   const handleEditModalClose = () => {
     setEditModalOpen(false);
     setEditingUserId(null);
+  };
+
+  const handleShowQr = async (userItem, e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    if (!hasManagePermission) return;
+
+    setQrLoading(true);
+    try {
+      const data = await dispatch(fetchSubUserQrLogin(userItem._id)).unwrap();
+      setQrDialog({
+        id: data.user?.id || userItem._id,
+        name: data.user?.name || userItem.name,
+        email: data.user?.email || userItem.email,
+        qrUrl: data.qrUrl,
+      });
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "QR unavailable",
+        text: err?.message || String(err) || "Failed to load QR",
+      });
+    } finally {
+      setQrLoading(false);
+    }
+  };
+
+  const handleRegenerateQr = async () => {
+    if (!qrDialog?.id) return;
+    const confirm = await Swal.fire({
+      title: "Regenerate QR?",
+      text: "The old QR will stop working immediately.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, regenerate",
+      cancelButtonText: "Cancel",
+    });
+    if (!confirm.isConfirmed) return;
+
+    setQrLoading(true);
+    try {
+      const data = await dispatch(regenerateSubUserQrLogin(qrDialog.id)).unwrap();
+      setQrDialog({
+        id: data.user?.id || qrDialog.id,
+        name: data.user?.name || qrDialog.name,
+        email: data.user?.email || qrDialog.email,
+        qrUrl: data.qrUrl,
+      });
+      Swal.fire({
+        icon: "success",
+        title: "QR updated",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Regenerate failed",
+        text: err?.message || String(err) || "Failed to regenerate QR",
+      });
+    } finally {
+      setQrLoading(false);
+    }
+  };
+
+  const handleCopyQrLink = async () => {
+    if (!qrDialog?.qrUrl) return;
+    try {
+      await navigator.clipboard.writeText(qrDialog.qrUrl);
+      Swal.fire({
+        icon: "success",
+        title: "Link copied",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+    } catch {
+      Swal.fire({ icon: "info", title: "Copy manually", text: qrDialog.qrUrl });
+    }
+  };
+
+  const handleDownloadQr = () => {
+    const safeName = (qrDialog?.name || "user").replace(/[^\w.-]+/g, "_");
+    downloadQrPng(qrCanvasId, `${safeName}-login-qr.png`);
   };
 
   const handleDelete = async (userToDelete, e) => {
@@ -446,6 +549,16 @@ const UserList = ({ onUserSelect, selectedUser }) => {
                     <td className="py-2.5 px-2 sm:px-4 align-middle">
                       <div className="flex justify-center gap-2" onClick={(e) => e.stopPropagation()}>
                         <button
+                          onClick={(e) => handleShowQr(userItem, e)}
+                          disabled={!hasManagePermission || working || qrLoading}
+                          className={`rounded-full border border-blue-500/50 bg-white flex items-center justify-center hover:bg-blue-50 p-1.5 sm:p-2 ${
+                            !hasManagePermission || working || qrLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                          }`}
+                          title="Login QR"
+                        >
+                          <QrCode className="text-blue-600" size={15} />
+                        </button>
+                        <button
                           onClick={(e) => handleEdit(userItem, e)}
                           disabled={!hasManagePermission || working}
                           className={`rounded-full border border-green-500/50 bg-white flex items-center justify-center hover:bg-green-50 p-1.5 sm:p-2 ${
@@ -517,6 +630,71 @@ const UserList = ({ onUserSelect, selectedUser }) => {
           userId={editingUserId}
         />
       )}
+
+      <Dialog
+        open={Boolean(qrDialog)}
+        onClose={() => setQrDialog(null)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ pr: 6, fontWeight: 700 }}>
+          Login QR
+          <IconButton
+            aria-label="Close"
+            onClick={() => setQrDialog(null)}
+            sx={{ position: "absolute", right: 8, top: 8 }}
+          >
+            <X size={18} />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          <p className="text-sm text-slate-600 mb-1">
+            <span className="font-semibold text-slate-900">{qrDialog?.name}</span>
+            {qrDialog?.email ? (
+              <span className="text-slate-500"> · {qrDialog.email}</span>
+            ) : null}
+          </p>
+          <p className="text-sm text-slate-500 mb-4">
+            User can scan this anytime to open their dashboard.
+          </p>
+          <div className="flex justify-center mb-4">
+            {qrDialog?.qrUrl ? (
+              <UserLoginQr url={qrDialog.qrUrl} size={200} canvasId={qrCanvasId} />
+            ) : null}
+          </div>
+          <p className="text-xs text-slate-400 break-all text-center mb-2">{qrDialog?.qrUrl}</p>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5, gap: 1, flexWrap: "wrap" }}>
+          <Button
+            variant="outlined"
+            startIcon={<Copy size={16} />}
+            onClick={handleCopyQrLink}
+            disabled={qrLoading}
+          >
+            Copy link
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<Download size={16} />}
+            onClick={handleDownloadQr}
+            disabled={qrLoading}
+          >
+            Download
+          </Button>
+          <Button
+            variant="outlined"
+            color="warning"
+            startIcon={<RefreshCw size={16} />}
+            onClick={handleRegenerateQr}
+            disabled={qrLoading}
+          >
+            Regenerate
+          </Button>
+          <Button variant="contained" onClick={() => setQrDialog(null)}>
+            Done
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };

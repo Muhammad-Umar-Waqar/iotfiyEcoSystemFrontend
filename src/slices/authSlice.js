@@ -18,6 +18,21 @@ export const loginUser = createAsyncThunk(
   }
 );
 
+export const loginWithQr = createAsyncThunk(
+  'auth/loginWithQr',
+  async (token, { rejectWithValue }) => {
+    try {
+      const data = await authService.loginWithQr(token);
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+      }
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || { message: 'QR login failed' });
+    }
+  }
+);
+
 export const fetchCurrentUser = createAsyncThunk(
   'auth/fetchCurrentUser',
   async (_, { rejectWithValue }) => {
@@ -87,6 +102,21 @@ const authSlice = createSlice({
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload?.message || 'Login failed';
+      })
+      // QR login (same session shape as password login)
+      .addCase(loginWithQr.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(loginWithQr.fulfilled, (state, action) => {
+        state.loading = false;
+        state.isAuthenticated = true;
+        state.user = action.payload.user;
+        state.token = action.payload.token;
+      })
+      .addCase(loginWithQr.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message || 'QR login failed';
       })
       // Fetch current user (session restore — separate from login button state)
       .addCase(fetchCurrentUser.pending, (state) => {
