@@ -426,7 +426,7 @@ export default function DownloadModal({
         </DialogTitle>
         <BrandMark
           variant="half"
-          className="h-[3rem] md:h-[4rem] w-[5rem] md:w-[6rem] pr-5 opacity-90"
+          className="h-[2.5rem] md:h-[3rem] w-[4rem] md:w-[4.5rem] pr-5 opacity-90"
         />
       </div>
 
