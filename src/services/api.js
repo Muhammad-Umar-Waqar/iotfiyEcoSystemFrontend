@@ -47,6 +47,11 @@ api.interceptors.response.use(
     const redirectTo = error.response?.data?.redirectTo;
 
     if (status === 401) {
+      // Don't kick QR bootstrap off to /login mid-flight
+      const path = window.location.pathname || '';
+      if (path.startsWith('/q/')) {
+        return Promise.reject(error);
+      }
       localStorage.removeItem('token');
       window.location.href = '/login';
       return Promise.reject(error);

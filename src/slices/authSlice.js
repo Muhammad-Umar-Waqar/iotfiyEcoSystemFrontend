@@ -2,6 +2,23 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { REHYDRATE } from 'redux-persist';
 import { authService } from '../services/authService';
 
+const ORG_VENUE_KEY = 'iotifiy:org-venue';
+
+/** Clear previous session data without racing mid-login token writes. */
+function clearPriorSessionStorage() {
+  try {
+    localStorage.removeItem('token');
+    localStorage.removeItem(ORG_VENUE_KEY);
+    sessionStorage.removeItem(ORG_VENUE_KEY);
+    // redux-persist keys (auth / root) so old user is not restored over QR login
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith('persist:')) localStorage.removeItem(key);
+    });
+  } catch {
+    /* ignore */
+  }
+}
+
 // Async thunks
 export const loginUser = createAsyncThunk(
   'auth/login',
@@ -22,13 +39,7 @@ export const loginWithQr = createAsyncThunk(
   'auth/loginWithQr',
   async (token, { rejectWithValue }) => {
     try {
-      // Drop previous session completely (org/venue picks, old JWT, persist keys)
-      try {
-        localStorage.clear();
-        sessionStorage.removeItem('iotifiy:org-venue');
-      } catch {
-        /* ignore storage errors */
-      }
+      clearPriorSessionStorage();
 
       const data = await authService.loginWithQr(token);
       if (data.token) {
@@ -48,7 +59,10 @@ export const fetchCurrentUser = createAsyncThunk(
       const data = await authService.getMe();
       return data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || { message: 'Failed to fetch user' });
+      return rejectWithValue({
+        ...(error.response?.data || { message: 'Failed to fetch user' }),
+        status: error.response?.status,
+      });
     }
   }
 );
@@ -58,11 +72,9 @@ export const logoutUser = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       await authService.logout();
-      // Clear all localStorage data
       localStorage.clear();
       return null;
     } catch (error) {
-      // Even if API fails, clear localStorage
       localStorage.clear();
       return rejectWithValue(error.response?.data || { message: 'Logout failed' });
     }
@@ -76,6 +88,8 @@ const authSlice = createSlice({
     token: localStorage.getItem('token') || null,
     isAuthenticated: false,
     loading: false,
+    /** True while QR (or similar) bootstrap is in progress — blocks /login kick */
+    bootstrapping: false,
     error: null,
   },
   reducers: {
@@ -93,10 +107,9 @@ const authSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(REHYDRATE, (state) => {
-        // Never restore a stuck loading flag from persisted storage
         state.loading = false;
+        state.bootstrapping = false;
       })
-      // Login
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -111,52 +124,75 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload?.message || 'Login failed';
       })
-      // QR login (same session shape as password login)
       .addCase(loginWithQr.pending, (state) => {
         state.loading = true;
+        state.bootstrapping = true;
         state.error = null;
-        // Drop previous user from memory while QR login runs
         state.user = null;
         state.token = null;
         state.isAuthenticated = false;
       })
       .addCase(loginWithQr.fulfilled, (state, action) => {
         state.loading = false;
+        state.bootstrapping = false;
         state.isAuthenticated = true;
         state.user = action.payload.user;
         state.token = action.payload.token;
+        state.error = null;
       })
       .addCase(loginWithQr.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'QR login failed';
-      })
-      // Fetch current user (session restore — separate from login button state)
-      .addCase(fetchCurrentUser.pending, (state) => {
-        // Intentionally do not set loading — avoids disabling Login on page refresh
-      })
-      .addCase(fetchCurrentUser.fulfilled, (state, action) => {
-        state.loading = false;
-        state.user = action.payload.user;
-        state.isAuthenticated = true;
-      })
-      .addCase(fetchCurrentUser.rejected, (state) => {
-        state.loading = false;
+        state.bootstrapping = false;
         state.isAuthenticated = false;
         state.user = null;
         state.token = null;
+        state.error = action.payload?.message || 'QR login failed';
       })
-      // Logout
+      .addCase(fetchCurrentUser.pending, () => {
+        // do not set loading — avoids Login button flicker
+      })
+      .addCase(fetchCurrentUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.bootstrapping = false;
+        state.user = action.payload.user;
+        state.isAuthenticated = true;
+      })
+      .addCase(fetchCurrentUser.rejected, (state, action) => {
+        state.loading = false;
+        // Keep a just-established login if /me failed transiently but JWT is still present
+        const lsToken = typeof localStorage !== 'undefined' ? localStorage.getItem('token') : null;
+        const status = action.payload?.status;
+        if (lsToken && state.user && status !== 401) {
+          state.isAuthenticated = true;
+          state.token = lsToken;
+          return;
+        }
+        if (lsToken && state.token && status !== 401) {
+          state.isAuthenticated = true;
+          return;
+        }
+        state.isAuthenticated = false;
+        state.user = null;
+        state.token = null;
+        try {
+          localStorage.removeItem('token');
+        } catch {
+          /* ignore */
+        }
+      })
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
         state.token = null;
         state.isAuthenticated = false;
         state.loading = false;
+        state.bootstrapping = false;
       })
       .addCase(logoutUser.rejected, (state) => {
         state.user = null;
         state.token = null;
         state.isAuthenticated = false;
         state.loading = false;
+        state.bootstrapping = false;
       });
   },
 });

@@ -78,7 +78,7 @@ const storage = {
 const authPersistConfig = {
   key: 'auth',
   storage,
-  blacklist: ['loading', 'error'],
+  blacklist: ['loading', 'error', 'bootstrapping'],
 };
 
 const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);

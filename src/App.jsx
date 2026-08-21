@@ -35,14 +35,14 @@ import { applyDocumentBrand } from './branding/brandConfig';
 // Session restoration component
 function SessionRestoration({ children }) {
   const dispatch = useDispatch();
-  const { token, isAuthenticated } = useSelector((state) => state.auth);
+  const { token, isAuthenticated, bootstrapping } = useSelector((state) => state.auth);
 
-    useEffect(() => {
-    if (token) {
+  useEffect(() => {
+    if (bootstrapping) return;
+    if (token && !isAuthenticated) {
       dispatch(fetchCurrentUser());
     }
-  }, [token, dispatch]);
-
+  }, [token, isAuthenticated, bootstrapping, dispatch]);
 
   return children;
 }

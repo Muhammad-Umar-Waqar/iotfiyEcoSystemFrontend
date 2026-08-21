@@ -6,9 +6,12 @@ import { getHomePathForUser } from "../../utils/authRoutes";
 import { useOrgVenue } from "../../contexts/OrgVenueContext";
 import BrandMark from "../../branding/BrandMark";
 
+/** Survives React Strict Mode remount — prevents double clear/login. */
+const qrLoginLocks = new Set();
+
 /**
  * Public QR entry: /q/:token
- * Clears prior session storage, calls qr-login, redirects to dashboard.
+ * Clears prior session, calls qr-login, waits for session, then redirects.
  */
 export default function QrLogin() {
   const { token } = useParams();
@@ -20,25 +23,34 @@ export default function QrLogin() {
   const [message, setMessage] = useState("Signing you in…");
 
   useEffect(() => {
-    if (started.current) return;
+    const qrToken = typeof token === "string" ? token.trim() : "";
+    if (!qrToken) {
+      setStatus("error");
+      setMessage("This QR link is missing a token.");
+      return;
+    }
+
+    if (started.current || qrLoginLocks.has(qrToken)) return;
     started.current = true;
+    qrLoginLocks.add(qrToken);
 
     const run = async () => {
-      const qrToken = typeof token === "string" ? token.trim() : "";
-      if (!qrToken) {
-        setStatus("error");
-        setMessage("This QR link is missing a token.");
-        return;
-      }
-
       try {
-        // Clear in-memory org/venue so selects don't keep the previous user
         clearOrganization();
 
         const result = await dispatch(loginWithQr(qrToken)).unwrap();
-        dispatch(fetchCurrentUser());
+
+        // Hydrate full user before entering protected routes (avoid /login bounce)
+        try {
+          await dispatch(fetchCurrentUser()).unwrap();
+        } catch {
+          // Login JWT is enough to enter; /me can retry via SessionRestoration
+        }
+
         navigate(getHomePathForUser(result.user), { replace: true });
       } catch (err) {
+        qrLoginLocks.delete(qrToken);
+        started.current = false;
         setStatus("error");
         setMessage(err?.message || "Could not sign in with this QR code.");
       }
