@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import Swal from "sweetalert2";
 import { createVenue, fetchAllVenues, fetchVenuesByOrganization } from "../../../slices/VenueSlice";
 import { fetchOrganizationsByOwner, fetchOrganizationsByUser } from "../../../slices/OrganizationSlice";
+import { fetchCurrentUser } from "../../../slices/authSlice";
 import { canManage } from "../../../utils/permissions";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
@@ -84,6 +85,11 @@ const AddVenue = () => {
 
       Swal.fire({ icon: "success", title: "Created", text: `Venue "${created.name}" created.` });
       setForm({ name: "", organization: "" });
+
+      // Sub-user list filters by auth user.venues — refresh session after auto-assign
+      if (user?.role === "user") {
+        await dispatch(fetchCurrentUser()).catch(() => {});
+      }
 
       await dispatch(fetchAllVenues());
 
