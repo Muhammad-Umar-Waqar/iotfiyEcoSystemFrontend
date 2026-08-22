@@ -65,7 +65,9 @@ export default function AcClimateDial({
 
   const ac = deviceId ? getAc(deviceId) : null;
   const settingsLoading = busyMap[deviceId] === "settings";
+  const isAcOff = String(ac?.state || "OFF").toLowerCase() !== "on";
   const disabled = !isOnline || settingsLoading || !ac;
+  const climateDisabled = disabled || isAcOff;
 
   const temp = Number(ac?.setTemperature ?? 26);
   const locked = !!ac?.acLocked;
@@ -181,7 +183,7 @@ export default function AcClimateDial({
           <div className="mt-3 flex items-center gap-3">
             <button
               type="button"
-              disabled={disabled || temp <= TEMP_MIN}
+              disabled={climateDisabled || temp <= TEMP_MIN}
               onClick={() => stepTemperature(deviceId, -1, { isOnline })}
               className="w-9 h-9 rounded-full border border-gray-200 bg-white flex items-center justify-center shadow-sm disabled:opacity-40 hover:bg-gray-50"
               aria-label="Decrease temperature"
@@ -190,7 +192,7 @@ export default function AcClimateDial({
             </button>
             <button
               type="button"
-              disabled={disabled || temp >= TEMP_MAX}
+              disabled={climateDisabled || temp >= TEMP_MAX}
               onClick={() => stepTemperature(deviceId, 1, { isOnline })}
               className="w-9 h-9 rounded-full border border-gray-200 bg-white flex items-center justify-center shadow-sm disabled:opacity-40 hover:bg-gray-50"
               aria-label="Increase temperature"
@@ -202,7 +204,7 @@ export default function AcClimateDial({
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        <FormControl size="small" fullWidth disabled={disabled}>
+        <FormControl size="small" fullWidth disabled={climateDisabled}>
           <InputLabel id={`ac-mode-${deviceId}`}>Mode</InputLabel>
           <Select
             labelId={`ac-mode-${deviceId}`}
@@ -226,7 +228,7 @@ export default function AcClimateDial({
             ))}
           </Select>
         </FormControl>
-        <FormControl size="small" fullWidth disabled={disabled}>
+        <FormControl size="small" fullWidth disabled={climateDisabled}>
           <InputLabel id={`ac-fan-${deviceId}`}>Fan</InputLabel>
           <Select
             labelId={`ac-fan-${deviceId}`}

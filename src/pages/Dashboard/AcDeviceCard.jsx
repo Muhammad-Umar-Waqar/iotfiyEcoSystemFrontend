@@ -122,6 +122,7 @@ const AcDeviceCard = ({
   const powerLoading = busy === "power";
 
   const displayState = String(ac.state || "OFF").toLowerCase() === "on" ? "on" : "off";
+  const settingsDisabled = !isOnline || settingsLoading || displayState === "off";
   const effectiveSchedule = scheduleData || apiScheduleData;
   const hasCurrentEvent =
     effectiveSchedule?.type === "CURRENT" && !!effectiveSchedule?.event;
@@ -313,7 +314,7 @@ const AcDeviceCard = ({
               value={ac.setTemperature}
               onDecrement={(e) => handleTempStep(e, -1)}
               onIncrement={(e) => handleTempStep(e, 1)}
-              disabled={!isOnline || settingsLoading}
+              disabled={settingsDisabled}
               disabledMinus={ac.setTemperature <= TEMP_MIN}
               disabledPlus={ac.setTemperature >= TEMP_MAX}
             />
