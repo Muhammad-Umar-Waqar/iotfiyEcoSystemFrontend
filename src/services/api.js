@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { clearPriorSessionStorage } from '../utils/sessionClear';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5050/api';
 
@@ -52,7 +53,8 @@ api.interceptors.response.use(
       if (path.startsWith('/q/')) {
         return Promise.reject(error);
       }
-      localStorage.removeItem('token');
+      // Token expired / invalid — same wipe as logout (org/venue + persist)
+      clearPriorSessionStorage();
       window.location.href = '/login';
       return Promise.reject(error);
     }

@@ -1,29 +1,23 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { REHYDRATE } from 'redux-persist';
 import { authService } from '../services/authService';
+import {
+  clearPriorSessionStorage,
+  SESSION_CLEARED_EVENT,
+} from '../utils/sessionClear';
 
 const ORG_VENUE_KEY = 'iotifiy:org-venue';
 
-/** Clear previous session data without racing mid-login token writes. */
-function clearPriorSessionStorage() {
-  try {
-    localStorage.removeItem('token');
-    localStorage.removeItem(ORG_VENUE_KEY);
-    sessionStorage.removeItem(ORG_VENUE_KEY);
-    // redux-persist keys (auth / root) so old user is not restored over QR login
-    Object.keys(localStorage).forEach((key) => {
-      if (key.startsWith('persist:')) localStorage.removeItem(key);
-    });
-  } catch {
-    /* ignore */
-  }
-}
+// Re-export for any older imports from authSlice
+export { clearPriorSessionStorage, SESSION_CLEARED_EVENT };
 
 // Async thunks
 export const loginUser = createAsyncThunk(
   'auth/login',
   async ({ email, password }, { rejectWithValue }) => {
     try {
+      // Logout / 401 already clear session. No wipe here — avoids clearing
+      // mid-login if somehow reached with a fresh empty session.
       const data = await authService.login(email, password);
       if (data.token) {
         localStorage.setItem('token', data.token);
@@ -39,6 +33,7 @@ export const loginWithQr = createAsyncThunk(
   'auth/loginWithQr',
   async (token, { rejectWithValue }) => {
     try {
+      // QR can open while another user is still logged in — must wipe first
       clearPriorSessionStorage();
 
       const data = await authService.loginWithQr(token);
@@ -72,10 +67,32 @@ export const logoutUser = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       await authService.logout();
-      localStorage.clear();
+      clearPriorSessionStorage();
+      try {
+        localStorage.clear();
+        sessionStorage.removeItem(ORG_VENUE_KEY);
+      } catch {
+        /* ignore */
+      }
+      try {
+        window.dispatchEvent(new Event(SESSION_CLEARED_EVENT));
+      } catch {
+        /* ignore */
+      }
       return null;
     } catch (error) {
-      localStorage.clear();
+      clearPriorSessionStorage();
+      try {
+        localStorage.clear();
+        sessionStorage.removeItem(ORG_VENUE_KEY);
+      } catch {
+        /* ignore */
+      }
+      try {
+        window.dispatchEvent(new Event(SESSION_CLEARED_EVENT));
+      } catch {
+        /* ignore */
+      }
       return rejectWithValue(error.response?.data || { message: 'Logout failed' });
     }
   }
@@ -119,6 +136,7 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.user = action.payload.user;
         state.token = action.payload.token;
+        state.error = null;
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;

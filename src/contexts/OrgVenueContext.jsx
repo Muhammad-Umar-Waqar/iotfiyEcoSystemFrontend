@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { SESSION_CLEARED_EVENT } from "../utils/sessionClear";
 
 const STORAGE_KEY = "iotifiy:org-venue";
 
@@ -42,7 +43,12 @@ export function OrgVenueProvider({ children }) {
   // persist to localStorage whenever state changes
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      if (!state.organization && !state.venue) {
+        localStorage.removeItem(STORAGE_KEY);
+        sessionStorage.removeItem(STORAGE_KEY);
+      } else {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      }
     } catch (err) {
       console.warn("OrgVenueContext: failed to write localStorage", err);
     }
@@ -59,6 +65,22 @@ export function OrgVenueProvider({ children }) {
     };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  // Logout / QR / email login clear storage, but this provider stays mounted —
+  // reset in-memory selection so the next user does not see the previous one.
+  useEffect(() => {
+    const onSessionCleared = () => {
+      setState({ organization: null, venue: null });
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+        sessionStorage.removeItem(STORAGE_KEY);
+      } catch {
+        /* ignore */
+      }
+    };
+    window.addEventListener(SESSION_CLEARED_EVENT, onSessionCleared);
+    return () => window.removeEventListener(SESSION_CLEARED_EVENT, onSessionCleared);
   }, []);
 
   // helpers to normalise id/name shapes
