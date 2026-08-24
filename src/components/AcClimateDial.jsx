@@ -53,6 +53,7 @@ export default function AcClimateDial({
   deviceId,
   isOnline = true,
   healthAlert = false,
+  healthMonitoringIncluded = false,
 }) {
   const {
     getAc,
@@ -73,7 +74,9 @@ export default function AcClimateDial({
   const locked = !!ac?.acLocked;
   const mode = ac?.acMode || "Cool";
   const fan = ac?.fanSpeed || "Low";
-  const showHealth = !!(ac?.acHealthAlert || healthAlert);
+  const showHealth =
+    !!(healthMonitoringIncluded || ac?.acHealthMonitoringIncluded) &&
+    !!(ac?.acHealthAlert || healthAlert);
 
   const pct = useMemo(() => {
     const span = TEMP_MAX - TEMP_MIN || 1;

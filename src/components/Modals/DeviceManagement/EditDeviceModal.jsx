@@ -153,6 +153,7 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
     category: "",
     interval: "",
     energyMonitoringIncluded: false,
+    acHealthMonitoringIncluded: false,
     brandName: "",
   });
 
@@ -209,6 +210,7 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
         category: device.category || "",
         interval: device.interval !== undefined ? String(device.interval) : "",
         energyMonitoringIncluded: !!device.energyMonitoringIncluded,
+        acHealthMonitoringIncluded: !!device.acHealthMonitoringIncluded,
         brandName: device.brandName || "",
       });
 
@@ -262,6 +264,8 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
         deviceType: value,
         ...(value === "WLD" ? { category: "monitoring" } : {}),
         energyMonitoringIncluded: value === "AC" ? prev.energyMonitoringIncluded : false,
+        acHealthMonitoringIncluded:
+          value === "AC" ? prev.acHealthMonitoringIncluded : false,
         brandName: value === "AC" ? prev.brandName : "",
       }));
       // Update conditions when device type changes
@@ -480,6 +484,7 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
 
     if (isAc) {
       payload.energyMonitoringIncluded = !!formData.energyMonitoringIncluded;
+      payload.acHealthMonitoringIncluded = !!formData.acHealthMonitoringIncluded;
       payload.brandName = formData.brandName;
     }
 
@@ -650,7 +655,7 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
                     )}
                   </FormControl>
 
-                  <div className="p-3 rounded-md border border-gray-200 bg-gray-50">
+                  <div className="p-3 rounded-md border border-gray-200 bg-gray-50 space-y-1">
                     <FormControlLabel
                       control={
                         <Checkbox
@@ -669,6 +674,28 @@ const EditDeviceModal = ({ open, onClose, deviceId, currentVenueId }) => {
                       }
                       label="Energy Monitoring Sensor Included"
                     />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={!!formData.acHealthMonitoringIncluded}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              acHealthMonitoringIncluded: e.target.checked,
+                            }))
+                          }
+                          sx={{
+                            color: "var(--eco-primary)",
+                            "&.Mui-checked": { color: "var(--eco-primary)" },
+                          }}
+                        />
+                      }
+                      label="AC Health Alert Monitoring Included"
+                    />
+                    <p className="text-xs text-gray-500 pl-8">
+                      When enabled, health alerts are shown. When disabled, live ESP
+                      room temperature is shown instead.
+                    </p>
                   </div>
                 </>
               )}

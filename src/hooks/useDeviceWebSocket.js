@@ -135,8 +135,12 @@ export const useDeviceWebSocket = (devices = []) => {
               fanSpeed: data.fanSpeed ?? previous.fanSpeed,
               acLocked: data.acLocked ?? previous.acLocked,
               acHealthAlert: data.acHealthAlert ?? previous.acHealthAlert,
+              acHealthMonitoringIncluded:
+                data.acHealthMonitoringIncluded ?? previous.acHealthMonitoringIncluded,
               energyMonitoringIncluded:
                 data.energyMonitoringIncluded ?? previous.energyMonitoringIncluded,
+              espTemperature:
+                data.espTemperature ?? previous.espTemperature,
               espCurrent: data.espCurrent ?? data.current ?? previous.espCurrent,
               espVoltage: data.espVoltage ?? previous.espVoltage,
               espPower: data.espPower ?? previous.espPower,

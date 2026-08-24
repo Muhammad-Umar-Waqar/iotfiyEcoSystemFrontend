@@ -36,7 +36,9 @@ const defaultAcState = (overrides = {}) => ({
   fanSpeed: "Low",
   acLocked: false,
   acHealthAlert: false,
+  acHealthMonitoringIncluded: false,
   energyMonitoringIncluded: false,
+  espTemperature: null,
   espPower: null,
   espEnergy: null,
   espCurrent: null,
@@ -68,9 +70,13 @@ export function AcControlProvider({ children }) {
       if (partial.fanSpeed) next.fanSpeed = partial.fanSpeed;
       if (typeof partial.acLocked === "boolean") next.acLocked = partial.acLocked;
       if (typeof partial.acHealthAlert === "boolean") next.acHealthAlert = partial.acHealthAlert;
+      if (typeof partial.acHealthMonitoringIncluded === "boolean") {
+        next.acHealthMonitoringIncluded = partial.acHealthMonitoringIncluded;
+      }
       if (typeof partial.energyMonitoringIncluded === "boolean") {
         next.energyMonitoringIncluded = partial.energyMonitoringIncluded;
       }
+      if (partial.espTemperature !== undefined) next.espTemperature = partial.espTemperature;
       if (partial.espPower !== undefined) next.espPower = partial.espPower;
       if (partial.espEnergy !== undefined) next.espEnergy = partial.espEnergy;
       if (partial.espCurrent !== undefined) next.espCurrent = partial.espCurrent;
@@ -144,7 +150,9 @@ export function AcControlProvider({ children }) {
             fanSpeed: data.device.fanSpeed,
             acLocked: data.device.acLocked,
             acHealthAlert: data.device.acHealthAlert,
+            acHealthMonitoringIncluded: data.device.acHealthMonitoringIncluded,
             energyMonitoringIncluded: data.device.energyMonitoringIncluded,
+            espTemperature: data.device.espTemperature,
           });
         }
         return data;

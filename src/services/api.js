@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { clearPriorSessionStorage } from '../utils/sessionClear';
+import { handleUnauthorizedSession } from '../utils/sessionClear';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5050/api';
 
@@ -48,14 +48,8 @@ api.interceptors.response.use(
     const redirectTo = error.response?.data?.redirectTo;
 
     if (status === 401) {
-      // Don't kick QR bootstrap off to /login mid-flight
-      const path = window.location.pathname || '';
-      if (path.startsWith('/q/')) {
-        return Promise.reject(error);
-      }
-      // Token expired / invalid — same wipe as logout (org/venue + persist)
-      clearPriorSessionStorage();
-      window.location.href = '/login';
+      const reqUrl = error.config?.url || error.config?.baseURL || '';
+      handleUnauthorizedSession(reqUrl);
       return Promise.reject(error);
     }
 

@@ -179,8 +179,10 @@ export default function VenueDetailsPanel({
   fanSpeed = "Low",
   acLocked = false,
   acHealthAlert = false,
+  acHealthMonitoringIncluded = false,
   energyMonitoringIncluded = false,
   espEnergy = null,
+  espTemperature = null,
   onScheduleRefresh,
 }) {
 
@@ -212,7 +214,9 @@ export default function VenueDetailsPanel({
       fanSpeed,
       acLocked,
       acHealthAlert,
+      acHealthMonitoringIncluded,
       energyMonitoringIncluded,
+      espTemperature,
       espPower,
       espEnergy,
       espCurrent,
@@ -226,7 +230,9 @@ export default function VenueDetailsPanel({
     fanSpeed,
     acLocked,
     acHealthAlert,
+    acHealthMonitoringIncluded,
     energyMonitoringIncluded,
+    espTemperature,
     espPower,
     espEnergy,
     espCurrent,
@@ -744,37 +750,58 @@ export default function VenueDetailsPanel({
         humMetric,
       ];
     }
-    // AC: optional power/units only (setpoint is controlled below — not in top metrics)
+    // AC: optional room temp (when health monitoring off) + power/units (when energy on)
     if (isAc) {
       const powerVal = ac?.espPower ?? espPower;
       const energyVal = ac?.espEnergy ?? espEnergy;
       const energyOn = ac?.energyMonitoringIncluded ?? energyMonitoringIncluded;
-      if (!energyOn) return [];
-      return [
-        {
-          key: "power",
-          label: "Power",
-          unit: "",
+      const healthOn =
+        ac?.acHealthMonitoringIncluded ?? acHealthMonitoringIncluded;
+      const roomTemp = ac?.espTemperature ?? espTemperature;
+      const metrics = [];
+      if (!healthOn) {
+        metrics.push({
+          key: "temperature",
+          label: "Temperature",
+          unit: "°C",
           value:
-            powerVal != null && Number.isFinite(Number(powerVal))
-              ? `${Math.round(Number(powerVal))} W`
+            roomTemp != null && Number.isFinite(Number(roomTemp))
+              ? Number(roomTemp).toFixed(1)
               : "--",
           img: null,
-          lucideIcon: <MetricIcon Icon={BoltIcon} tone="amber" />,
+          lucideIcon: <MetricIcon Icon={DeviceThermostatIcon} tone="blue" />,
           alertFlag: false,
-          color: "green",
-        },
-        {
-          key: "units",
-          label: "Units",
-          unit: "",
-          value: formatEnergyKwh(energyVal),
-          img: null,
-          lucideIcon: <MetricIcon Icon={SpeedIcon} tone="blue" />,
-          alertFlag: false,
-          color: "green",
-        },
-      ];
+          color: "blue",
+        });
+      }
+      if (energyOn) {
+        metrics.push(
+          {
+            key: "power",
+            label: "Power",
+            unit: "",
+            value:
+              powerVal != null && Number.isFinite(Number(powerVal))
+                ? `${Math.round(Number(powerVal))} W`
+                : "--",
+            img: null,
+            lucideIcon: <MetricIcon Icon={BoltIcon} tone="amber" />,
+            alertFlag: false,
+            color: "green",
+          },
+          {
+            key: "units",
+            label: "Units",
+            unit: "",
+            value: formatEnergyKwh(energyVal),
+            img: null,
+            lucideIcon: <MetricIcon Icon={SpeedIcon} tone="blue" />,
+            alertFlag: false,
+            color: "green",
+          }
+        );
+      }
+      return metrics;
     }
     return [tempMetric, humMetric];
   })();
@@ -876,6 +903,12 @@ export default function VenueDetailsPanel({
     if (!deviceId) return;
     const snapshot = {};
     if (displayTemp !== null && displayTemp !== undefined) snapshot.temperature = Number(displayTemp);
+    if (isAc) {
+      const roomTemp = ac?.espTemperature ?? espTemperature;
+      if (roomTemp != null && Number.isFinite(Number(roomTemp))) {
+        snapshot.temperature = Number(roomTemp);
+      }
+    }
     if (displayHumidity !== null && displayHumidity !== undefined) snapshot.humidity = Number(displayHumidity);
     if (displayOdour !== null && displayOdour !== undefined) snapshot.odour = Number(displayOdour);
     if (displayAQI !== null && displayAQI !== undefined) snapshot.aqi = Number(displayAQI);
@@ -937,6 +970,8 @@ export default function VenueDetailsPanel({
     isAc,
     ac?.espPower,
     ac?.espEnergy,
+    ac?.espTemperature,
+    espTemperature,
   ]);
 
   const liveMetrics = isED ? emdExtraMetrics : topMetrics;
@@ -1218,6 +1253,9 @@ export default function VenueDetailsPanel({
           deviceId={deviceId}
           isOnline={isOnline}
           healthAlert={acHealthAlert}
+          healthMonitoringIncluded={
+            ac?.acHealthMonitoringIncluded ?? acHealthMonitoringIncluded
+          }
         />
       )}
 

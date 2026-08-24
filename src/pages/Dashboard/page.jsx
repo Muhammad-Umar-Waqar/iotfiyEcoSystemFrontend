@@ -588,10 +588,18 @@ export default function Dashboard() {
                         acHealthAlert={
                           liveData.acHealthAlert ?? device?.acHealthAlert ?? false
                         }
+                        acHealthMonitoringIncluded={
+                          liveData.acHealthMonitoringIncluded ??
+                          device?.acHealthMonitoringIncluded ??
+                          false
+                        }
                         energyMonitoringIncluded={
                           liveData.energyMonitoringIncluded ??
                           device?.energyMonitoringIncluded ??
                           false
+                        }
+                        espTemperature={
+                          liveData.espTemperature ?? device?.espTemperature
                         }
                         espPower={liveData.espPower ?? device?.espPower}
                         espEnergy={liveData.espEnergy ?? device?.espEnergy}
@@ -871,10 +879,16 @@ export default function Dashboard() {
           fanSpeed: liveData.fanSpeed ?? selectedDevice?.fanSpeed ?? "Low",
           acLocked: liveData.acLocked ?? selectedDevice?.acLocked ?? false,
           acHealthAlert: liveData.acHealthAlert ?? selectedDevice?.acHealthAlert ?? false,
+          acHealthMonitoringIncluded:
+            liveData.acHealthMonitoringIncluded ??
+            selectedDevice?.acHealthMonitoringIncluded ??
+            false,
           energyMonitoringIncluded:
             liveData.energyMonitoringIncluded ??
             selectedDevice?.energyMonitoringIncluded ??
             false,
+          espTemperature:
+            liveData.espTemperature ?? selectedDevice?.espTemperature ?? null,
           onScheduleRefresh: refreshDeviceSchedule,
         };
 

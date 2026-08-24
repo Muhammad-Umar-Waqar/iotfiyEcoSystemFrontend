@@ -161,6 +161,7 @@ const AddDevice = () => {
     deviceType: "",
     category: "",
     energyMonitoringIncluded: false,
+    acHealthMonitoringIncluded: false,
     brandName: "",
   });
 
@@ -249,6 +250,7 @@ const AddDevice = () => {
         setFormData((prev) => ({
           ...prev,
           energyMonitoringIncluded: false,
+          acHealthMonitoringIncluded: false,
           brandName: "",
         }));
       }
@@ -450,6 +452,7 @@ const AddDevice = () => {
 
     if (isAc) {
       payload.energyMonitoringIncluded = false;
+      payload.acHealthMonitoringIncluded = false;
       payload.brandName = formData.brandName;
     }
 
@@ -491,6 +494,7 @@ const AddDevice = () => {
         deviceType: "",
         category: "",
         energyMonitoringIncluded: false,
+        acHealthMonitoringIncluded: false,
         brandName: "",
       });
       setConditions([]);

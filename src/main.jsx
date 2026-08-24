@@ -3,9 +3,12 @@ import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { store, persistor } from './store/store';
+import { installGlobalFetch401Handler } from './utils/sessionClear';
 import App from './App.jsx';
 import './index.css';
 import './styles/global/index.css'; // scrollbars, swal z-index, etc.
+
+installGlobalFetch401Handler();
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

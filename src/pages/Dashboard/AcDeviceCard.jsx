@@ -6,6 +6,7 @@ import {
   CirclePlus,
   Lock,
   PowerIcon,
+  Thermometer,
   TimerIcon,
   Unlock,
 } from "lucide-react";
@@ -50,7 +51,9 @@ const AcDeviceCard = ({
   fanSpeed: fanProp = "Low",
   acLocked: lockedProp = false,
   acHealthAlert: healthProp = false,
+  acHealthMonitoringIncluded: healthMonProp = false,
   energyMonitoringIncluded: energyProp = false,
+  espTemperature: tempProp = null,
   espPower: powerProp = null,
   espEnergy: energyKwhProp = null,
   espCurrent: currentProp = null,
@@ -82,7 +85,9 @@ const AcDeviceCard = ({
       fanSpeed: fanProp,
       acLocked: lockedProp,
       acHealthAlert: healthProp,
+      acHealthMonitoringIncluded: healthMonProp,
       energyMonitoringIncluded: energyProp,
+      espTemperature: tempProp,
       espPower: powerProp,
       espEnergy: energyKwhProp,
       espCurrent: currentProp,
@@ -95,7 +100,9 @@ const AcDeviceCard = ({
     fanProp,
     lockedProp,
     healthProp,
+    healthMonProp,
     energyProp,
+    tempProp,
     powerProp,
     energyKwhProp,
     currentProp,
@@ -164,9 +171,18 @@ const AcDeviceCard = ({
     }
   );
 
+  const healthMonitoringOn = !!ac.acHealthMonitoringIncluded;
   const healthAlert =
-    ac.acHealthAlert ||
-    (Array.isArray(alerts) && alerts.some((a) => a.type === "acHealth"));
+    healthMonitoringOn &&
+    (ac.acHealthAlert ||
+      (Array.isArray(alerts) && alerts.some((a) => a.type === "acHealth")));
+  const energyMonitoringOn = !!ac.energyMonitoringIncluded;
+  const liveRoomTemp =
+    !healthMonitoringOn &&
+      ac.espTemperature != null &&
+      Number.isFinite(Number(ac.espTemperature))
+      ? Number(ac.espTemperature)
+      : null;
 
   const handleTempStep = (e, delta) => {
     e.stopPropagation();
@@ -242,30 +258,31 @@ const AcDeviceCard = ({
       onClick={onCardSelect}
       className={`freezer-card-container rounded-4xl bg-white ${cardSelectedClass}  cursor-pointer transition hover:shadow-md px-4 py-3 flex flex-col gap-2`}
     >
-<div className="flex flex-col justify-between  h-full">
-      {/* AC ID to On/Off */}
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span
-              className={`inline-block h-2 w-2 rounded-full ${isOnline ? "bg-green-400" : "bg-gray-300"
-                }`}
-            />
-            <span className="text-xs text-gray-500">AC · {deviceId}</span>
-          </div>
-          <TruncatedText
-            text={deviceName}
-            className="text-lg font-bold text-gray-900"
-            maxLines={1}
-          />
-
-          {healthAlert && (
-            <div className="max-w-fit text-xs font-semibold text-rose-600 bg-rose-50 rounded-md px-2 py-1 mt-2">
-              AC health alert
+      <div className="flex flex-col justify-between  h-full">
+        {/* AC ID to On/Off */}
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <span
+                className={`inline-block h-2 w-2 rounded-full ${isOnline ? "bg-green-400" : "bg-gray-300"
+                  }`}
+              />
+              <span className="text-xs text-gray-500">AC · {deviceId}</span>
             </div>
-          )}
+            <TruncatedText
+              text={deviceName}
+              className="text-lg font-bold text-gray-900"
+              maxLines={1}
+            />
 
-          {/* <div
+            {healthAlert && (
+              <div className="max-w-fit text-xs font-semibold text-rose-600 bg-rose-50 rounded-md px-2 py-1 mt-2">
+                AC health alert
+              </div>
+            )}
+
+
+            {/* <div
         className="grid grid-cols-2 gap-2"
         onClick={(e) => e.stopPropagation()}
       >
@@ -301,111 +318,127 @@ const AcDeviceCard = ({
                 {s}
               </option>
             ))}
-          </select>12|ecoSystemServer  | (node:3388165) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
+          </select>
         </label>
       </div> */}
 
-        </div>
+          </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <div className="flex flex-col items-end gap-3">
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex flex-col items-end gap-3">
 
-            <TemperatureStepper
-              value={ac.setTemperature}
-              onDecrement={(e) => handleTempStep(e, -1)}
-              onIncrement={(e) => handleTempStep(e, 1)}
-              disabled={settingsDisabled}
-              disabledMinus={ac.setTemperature <= TEMP_MIN}
-              disabledPlus={ac.setTemperature >= TEMP_MAX}
-            />
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                title={ac.acLocked ? "Unlock" : "Lock"}
-                disabled={!isOnline || settingsLoading}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  updateAcSettings(deviceId, { acLocked: !ac.acLocked }, { isOnline });
-                }}
-                className={`p-1.5 rounded-full border ${ac.acLocked
+              <TemperatureStepper
+                value={ac.setTemperature}
+                onDecrement={(e) => handleTempStep(e, -1)}
+                onIncrement={(e) => handleTempStep(e, 1)}
+                disabled={settingsDisabled}
+                disabledMinus={ac.setTemperature <= TEMP_MIN}
+                disabledPlus={ac.setTemperature >= TEMP_MAX}
+              />
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  title={ac.acLocked ? "Unlock" : "Lock"}
+                  disabled={!isOnline || settingsLoading}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    updateAcSettings(deviceId, { acLocked: !ac.acLocked }, { isOnline });
+                  }}
+                  className={`p-1.5 rounded-full border ${ac.acLocked
                     ? "border-amber-400 text-amber-600 bg-amber-50"
                     : "border-gray-200 text-gray-500"
-                  }`}
-              >
-                {ac.acLocked ? <Lock size={16} /> : <Unlock size={16} />}
-              </button>
-              <PowerToggle
-                displayState={displayState}
-                isLocked={powerLocked}
-                loading={powerLoading}
-                onClick={handlePowerToggle}
-              />
-            </div>
+                    }`}
+                >
+                  {ac.acLocked ? <Lock size={16} /> : <Unlock size={16} />}
+                </button>
+                <PowerToggle
+                  displayState={displayState}
+                  isLocked={powerLocked}
+                  loading={powerLoading}
+                  onClick={handlePowerToggle}
+                />
+              </div>
 
+            </div>
           </div>
         </div>
-      </div>
 
-{/* Current and Power */}
-      <div className="flex items-center gap-2">
-        <div className="flex items-center gap-1">
-          <ActivityIcon className="w-4 h-4 text-gray-500" />
-          {/* <strong>
-            {ac.espCurrent != null
-              ? `${Number(ac.espCurrent).toFixed(2)} A`
-              : "--"}
-          </strong> */}
-<FormattedValue
-  value={
-    ac.espCurrent != null
-      ? Number(ac.espCurrent).toFixed(2)
-      : "--"
-  }
-  unit="A"
-/>
+        {/* Current and Power — only when energy monitoring is enabled */}
+        <div className="flex items-center gap-2">
+        {energyMonitoringOn && (
+          <>
+            <div className="flex items-center gap-1">
+              <ActivityIcon className="w-6 h-6 text-sky-600" />
+              <FormattedValue
+                value={
+                  ac.espCurrent != null
+                    ? Number(ac.espCurrent).toFixed(2)
+                    : "--"
+                }
+                unit="A"
+              />
+            </div>
+            <span className="text-gray-500">|</span>
+            <div className="flex items-center gap-1">
+              <PowerIcon className="w-6 h-6 text-sky-600" />
+              <FormattedValue
+                value={powerDisplay.value}
+                unit={powerDisplay.unit}
+              />
+            </div>
+<span className="text-gray-500">|</span>
+            </>
+        )}
+<>  
+         {!healthMonitoringOn && (
+<div className="flex items-center gap-1">
+  <Thermometer className="w-6 h-6 text-blue-600" />
+  <FormattedValue
+    value={liveRoomTemp != null ? liveRoomTemp.toFixed(1) : "--"}
+    unit="°C"
+  />
+</div>
+)}
+</>
+
         </div>
-        <span className="text-gray-500">|</span>
-        <div className="flex items-center gap-1">
-          <PowerIcon className="w-4 h-4 text-gray-500" />
-          <FormattedValue
-            value={powerDisplay.value}
-            unit={powerDisplay.unit}
-          />
-        </div>
-      </div>
+
+       
 
 
-{/* Schedule Event — same layout as Odour scheduling footer (+ end time for AC) */}
-      <div className="pt-2 border-t border-gray-200">
-        {hasScheduleEvent ? (
-          <div className="flex justify-between items-start gap-1">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <CalendarDays className="w-5 h-5 text-gray-600 flex-shrink-0" />
-              <div className="flex flex-col min-w-0">
-                <p className="text-xs text-gray-500 font-semibold">Start</p>
-                <div className="text-xs font-bold text-[#178D8F] truncate">
-                  {displayStart}
+
+
+        {/* Schedule Event — same layout as Odour scheduling footer (+ end time for AC) */}
+        <div className="pt-2 border-t border-gray-200">
+          {hasScheduleEvent ? (
+            <div className="flex justify-between items-start gap-1">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <CalendarDays className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                <div className="flex flex-col min-w-0">
+                  <p className="text-xs text-gray-500 font-semibold">Start</p>
+                  <div className="text-xs font-bold text-[#178D8F] truncate">
+                    {displayStart}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="flex flex-col min-w-0">
-              <p className="text-xs text-gray-500 font-semibold">End</p>
-              <div className="text-xs font-bold text-[#178D8F] truncate">
-                {displayEnd}
+              <div className="flex flex-col min-w-0">
+                <p className="text-xs text-gray-500 font-semibold">End</p>
+                <div className="text-xs font-bold text-[#178D8F] truncate">
+                  {displayEnd}
+                </div>
               </div>
-            </div>
 
-            <div className="flex flex-col min-w-0">
-              <div className="flex items-center gap-1 text-xs text-gray-500 font-semibold">
-                <TimerIcon className="w-3 h-3" /> Duration
+              <div className="flex flex-col min-w-0">
+                <div className="flex items-center gap-1 text-xs text-gray-500 font-semibold">
+                  <TimerIcon className="w-3 h-3" /> Duration
+                </div>
+                <div className="text-xs font-bold text-[#178D8F] truncate">
+                  {displayDuration}
+                </div>
               </div>
-              <div className="text-xs font-bold text-[#178D8F] truncate">
-                {displayDuration}
-              </div>
-            </div>
 
-            {/* <div className="flex flex-col items-end min-w-0">
+              {/* <div className="flex flex-col items-end min-w-0">
               <p className="text-xs text-gray-500 font-semibold">Event</p>
               <div
                 className={`text-xs font-bold ${
@@ -422,34 +455,34 @@ const AcDeviceCard = ({
                 </div>
               ) : null}
             </div> */}
-          </div>
-        ) : (
-          <div className="flex justify-center items-center gap-3">
-            <CalendarClock size={24} className="text-gray-600 flex-shrink-0" />
-            <div className="flex items-center gap-2">
-              <div className="flex flex-col">
-                <p className="text-xs font-normal">No Event Found!</p>
-                <p className="text-xs font-thin text-gray-500">
-                  Schedule your upcoming event
-                </p>
-              </div>
-              {onCreateEventClick && (
-                <CirclePlus
-                  size={24}
-                  className="text-gray-600 cursor-pointer hover:rotate-180 transition-transform duration-500 ease-in-out"
-                  onClick={(e) =>
-                    handleCreateEventPlusClick(
-                      e,
-                      onCardSelect,
-                      onCreateEventClick
-                    )
-                  }
-                />
-              )}
             </div>
-          </div>
-        )}
-      </div>
+          ) : (
+            <div className="flex justify-center items-center gap-3">
+              <CalendarClock size={24} className="text-gray-600 flex-shrink-0" />
+              <div className="flex items-center gap-2">
+                <div className="flex flex-col">
+                  <p className="text-xs font-normal">No Event Found!</p>
+                  <p className="text-xs font-thin text-gray-500">
+                    Schedule your upcoming event
+                  </p>
+                </div>
+                {onCreateEventClick && (
+                  <CirclePlus
+                    size={24}
+                    className="text-gray-600 cursor-pointer hover:rotate-180 transition-transform duration-500 ease-in-out"
+                    onClick={(e) =>
+                      handleCreateEventPlusClick(
+                        e,
+                        onCardSelect,
+                        onCreateEventClick
+                      )
+                    }
+                  />
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
