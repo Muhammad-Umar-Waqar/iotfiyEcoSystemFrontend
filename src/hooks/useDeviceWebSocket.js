@@ -140,7 +140,10 @@ export const useDeviceWebSocket = (devices = []) => {
               energyMonitoringIncluded:
                 data.energyMonitoringIncluded ?? previous.energyMonitoringIncluded,
               espTemperature:
-                data.espTemperature ?? previous.espTemperature,
+                data.espTemperature ??
+                data.ventTemperature ??
+                sensorPayload.ventTemperature ??
+                previous.espTemperature,
               espCurrent: data.espCurrent ?? data.current ?? previous.espCurrent,
               espVoltage: data.espVoltage ?? previous.espVoltage,
               espPower: data.espPower ?? previous.espPower,

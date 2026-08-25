@@ -599,7 +599,9 @@ export default function Dashboard() {
                           false
                         }
                         espTemperature={
-                          liveData.espTemperature ?? device?.espTemperature
+                          liveData.espTemperature ??
+                          liveData.ventTemperature ??
+                          device?.espTemperature
                         }
                         espPower={liveData.espPower ?? device?.espPower}
                         espEnergy={liveData.espEnergy ?? device?.espEnergy}
@@ -888,7 +890,10 @@ export default function Dashboard() {
             selectedDevice?.energyMonitoringIncluded ??
             false,
           espTemperature:
-            liveData.espTemperature ?? selectedDevice?.espTemperature ?? null,
+            liveData.espTemperature ??
+            liveData.ventTemperature ??
+            selectedDevice?.espTemperature ??
+            null,
           onScheduleRefresh: refreshDeviceSchedule,
         };
 
