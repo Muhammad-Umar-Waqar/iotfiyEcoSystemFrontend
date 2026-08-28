@@ -223,6 +223,12 @@ const AcDeviceCard = ({
     "--";
   const displayEventType =
     scheduleType && scheduleType !== "NO_EVENT" ? scheduleType : "--";
+  const scheduleStartDelivered =
+    scheduleType === "CURRENT" &&
+    effectiveSchedule?.scheduleStartDelivered === true;
+  const calendarIconClass = scheduleStartDelivered
+    ? "text-emerald-600"
+    : "text-gray-600";
   const scheduleCmdLabel = [
     scheduleEvent?.command || "ON",
     scheduleEvent?.setTemperature != null
@@ -413,7 +419,9 @@ const AcDeviceCard = ({
           {hasScheduleEvent ? (
             <div className="flex justify-between items-start gap-1">
               <div className="flex items-center gap-1.5 min-w-0">
-                <CalendarDays className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                <CalendarDays
+                  className={`w-5 h-5 flex-shrink-0 ${calendarIconClass}`}
+                />
                 <div className="flex flex-col min-w-0">
                   <p className="text-xs text-gray-500 font-semibold">Start</p>
                   <div className="text-xs font-bold text-[#178D8F] truncate">
