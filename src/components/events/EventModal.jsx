@@ -557,6 +557,13 @@ const EventModal = ({ open, onClose, onSave, deviceType = null }) => {
                     <p className="text-[11px] text-slate-400 mt-1">Range 16–30°C</p>
                   </div>
                 )}
+
+                {command === "OFF" && (
+                  <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+                    Off events turn AC off and apply <strong>remote lock</strong> at start.
+                    You can change lock during the event; at end we unlock only if it is still locked.
+                  </p>
+                )}
               </div>
             )}
 
