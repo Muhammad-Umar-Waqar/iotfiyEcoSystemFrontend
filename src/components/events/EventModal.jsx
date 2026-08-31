@@ -224,6 +224,7 @@ const EventModal = ({ open, onClose, onSave, deviceType = null }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [command, setCommand] = useState("ON");
   const [setTemperature, setSetTemperature] = useState(26);
+  const [applyLock, setApplyLock] = useState(false);
 
   const isAc = deviceType === "AC";
 
@@ -394,6 +395,7 @@ const EventModal = ({ open, onClose, onSave, deviceType = null }) => {
         ? {
             command,
             setTemperature: command === "ON" ? Number(setTemperature) : undefined,
+            applyLock: command === "ON" ? applyLock === true : false,
           }
         : {}),
     });
@@ -526,7 +528,10 @@ const EventModal = ({ open, onClose, onSave, deviceType = null }) => {
                       <button
                         key={cmd}
                         type="button"
-                        onClick={() => setCommand(cmd)}
+                        onClick={() => {
+                          setCommand(cmd);
+                          if (cmd === "OFF") setApplyLock(false);
+                        }}
                         className={`px-6 py-2 text-sm font-semibold transition-all ${
                           command === cmd
                             ? cmd === "ON"
@@ -542,19 +547,34 @@ const EventModal = ({ open, onClose, onSave, deviceType = null }) => {
                 </div>
 
                 {command === "ON" && (
-                  <div>
-                    <label className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2 block">
-                      Set Temperature (°C)
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2 block">
+                        Set Temperature (°C)
+                      </label>
+                      <input
+                        type="number"
+                        min={16}
+                        max={30}
+                        value={setTemperature}
+                        onChange={(e) => setSetTemperature(Number(e.target.value))}
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm"
+                      />
+                      <p className="text-[11px] text-slate-400 mt-1">Range 16–30°C</p>
+                    </div>
+
+                    <label className="flex items-start gap-2.5 cursor-pointer rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
+                      <input
+                        type="checkbox"
+                        checked={applyLock}
+                        onChange={(e) => setApplyLock(e.target.checked)}
+                        className="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-500 focus:ring-blue-400"
+                      />
+                      <span className="text-[11px] text-slate-600 leading-relaxed">
+                        Apply <strong>remote lock</strong> during this event (optional).
+                        You can lock/unlock manually anytime; at event end we unlock only if still locked.
+                      </span>
                     </label>
-                    <input
-                      type="number"
-                      min={16}
-                      max={30}
-                      value={setTemperature}
-                      onChange={(e) => setSetTemperature(Number(e.target.value))}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm"
-                    />
-                    <p className="text-[11px] text-slate-400 mt-1">Range 16–30°C</p>
                   </div>
                 )}
 

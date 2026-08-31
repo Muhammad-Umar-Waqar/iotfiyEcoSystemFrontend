@@ -157,6 +157,7 @@ const EventsSection = ({
             ? {
                 command: newEvent.command || "ON",
                 setTemperature: newEvent.setTemperature,
+                applyLock: newEvent.applyLock === true,
               }
             : {}),
         },
