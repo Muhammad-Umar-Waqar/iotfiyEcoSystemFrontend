@@ -130,7 +130,49 @@ const AcDeviceCard = ({
 
   const displayState = String(ac.state || "OFF").toLowerCase() === "on" ? "on" : "off";
   const settingsDisabled = !isOnline || settingsLoading || displayState === "off";
-  const effectiveSchedule = scheduleData || apiScheduleData;
+  const effectiveSchedule = useMemo(() => {
+    const ws = scheduleData;
+    const api = apiScheduleData;
+    if (!ws) return api;
+    if (!api) return ws;
+    // WebSocket preferred; API fills gaps only (e.g. poll caught delivery before WS)
+    return {
+      ...api,
+      ...ws,
+      event: ws.event || api.event,
+      type: ws.type || api.type,
+      scheduleStartDelivered:
+        ws.scheduleStartDelivered === true || api.scheduleStartDelivered === true,
+      scheduleStartPending:
+        (ws.scheduleStartPending === true || api.scheduleStartPending === true) &&
+        ws.scheduleStartDelivered !== true &&
+        api.scheduleStartDelivered !== true,
+    };
+  }, [scheduleData, apiScheduleData]);
+
+  useEffect(() => {
+    if (!deviceId) return;
+    if (effectiveSchedule?.type !== "CURRENT") return;
+    if (effectiveSchedule?.scheduleStartDelivered === true) return;
+
+    let cancelled = false;
+    const poll = async () => {
+      const data = await fetchCurrentOrNextSchedule(deviceId);
+      if (!cancelled && data) setApiScheduleData(data);
+    };
+    poll();
+    const interval = setInterval(poll, 4000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [
+    deviceId,
+    effectiveSchedule?.type,
+    effectiveSchedule?.scheduleStartDelivered,
+    effectiveSchedule?.event?._id,
+  ]);
+
   const hasCurrentEvent =
     effectiveSchedule?.type === "CURRENT" && !!effectiveSchedule?.event;
   const powerLocked = !isOnline || hasCurrentEvent;

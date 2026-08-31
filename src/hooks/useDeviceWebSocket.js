@@ -197,14 +197,18 @@ export const useDeviceWebSocket = (devices = []) => {
         setDeviceScheduleMap(prev => {
           const next = {
             ...prev,
-            [deviceId]: scheduleData,
+            [deviceId]: {
+              ...(prev[deviceId] || {}),
+              ...scheduleData,
+            },
           };
           console.log(
             `%c[SCHEDULE-WS] MAP KEYS`,
             "color:#0369a1",
             Object.keys(next),
             `| ${deviceId} =>`,
-            next[deviceId]?.type
+            next[deviceId]?.type,
+            `delivered=${next[deviceId]?.scheduleStartDelivered === true}`
           );
           return next;
         });
@@ -235,14 +239,16 @@ export const useDeviceWebSocket = (devices = []) => {
         );
         if (!scheduleData) return;
         setDeviceScheduleMap((prev) => {
-          // Socket already filled this device — keep websocket as source of truth
-          if (prev[deviceId]) {
+          // WebSocket is source of truth — API only seeds when socket has not emitted yet
+          if (prev[deviceId]?.type) {
             console.log(
-              `[SCHEDULE-DEBUG][API-FALLBACK] skip ${deviceId} — WS already has:`,
-              prev[deviceId]?.type
+              `[SCHEDULE-DEBUG][API-FALLBACK] skip ${deviceId} — WS schedule already present`
             );
             return prev;
           }
+          console.log(
+            `[SCHEDULE-DEBUG][API-FALLBACK] seed ${deviceId} delivered=${scheduleData?.scheduleStartDelivered === true}`
+          );
           return { ...prev, [deviceId]: scheduleData };
         });
       });
