@@ -6,6 +6,27 @@ import { fetchCurrentOrNextSchedule } from '../utils/fetchCurrentOrNextSchedule'
 
 const SOCKET_URL = import.meta.env.VITE_WS_URL || 'http://localhost:5054';
 
+/** One-time only — must match backend isRecurring === false guard. */
+function isOneTimeSchedulingEvent(event) {
+  if (!event) return false;
+  return event.isRecurring === false;
+}
+
+function dispatchEventDeleted(deviceId, eventId) {
+  const id = eventId != null ? String(eventId) : "";
+  if (!deviceId || !id) return;
+  console.log(
+    `%c[SCHEDULE-WS] one-time ended → remove from UI`,
+    "color:#16a34a;font-weight:bold",
+    { deviceId, eventId: id }
+  );
+  window.dispatchEvent(
+    new CustomEvent("eco:event-deleted", {
+      detail: { deviceId, eventId: id },
+    })
+  );
+}
+
 export const useDeviceWebSocket = (devices = []) => {
   const socketRef = useRef(null);
   const [deviceDataMap, setDeviceDataMap] = useState({});
@@ -195,23 +216,28 @@ export const useDeviceWebSocket = (devices = []) => {
         );
 
         setDeviceScheduleMap(prev => {
+          const previous = prev[deviceId];
+          const prevEvent = previous?.event;
+
+          // Worker cleanup may not emit deletedEventId (no socket in worker process).
+          // When one-time window ends → NO_EVENT, drop it from Events list immediately.
+          if (scheduleData?.deletedEventId) {
+            dispatchEventDeleted(deviceId, scheduleData.deletedEventId);
+          } else if (
+            scheduleData?.type === "NO_EVENT" &&
+            previous?.type === "CURRENT" &&
+            isOneTimeSchedulingEvent(prevEvent)
+          ) {
+            dispatchEventDeleted(deviceId, prevEvent._id || prevEvent.id);
+          }
+
           const next = {
             ...prev,
             [deviceId]: {
-              ...(prev[deviceId] || {}),
+              ...(previous || {}),
               ...scheduleData,
             },
           };
-          if (scheduleData?.deletedEventId) {
-            window.dispatchEvent(
-              new CustomEvent("eco:event-deleted", {
-                detail: {
-                  deviceId,
-                  eventId: scheduleData.deletedEventId,
-                },
-              })
-            );
-          }
           console.log(
             `%c[SCHEDULE-WS] MAP KEYS`,
             "color:#0369a1",
