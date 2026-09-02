@@ -137,9 +137,29 @@ const EventsSection = ({
         );
       }
     };
+    const onEventDeleted = (e) => {
+      const { deviceId, eventId } = e.detail || {};
+      if (
+        !eventId ||
+        String(deviceId) !== String(selectedDevice?.deviceId || "")
+      ) {
+        return;
+      }
+      setEvents((prev) => {
+        const next = prev.filter(
+          (ev) => String(ev?._id || ev?.id) !== String(eventId)
+        );
+        setContextEvents(deviceId, next);
+        return next;
+      });
+    };
     window.addEventListener("eco:agent-data-changed", onAgentData);
-    return () => window.removeEventListener("eco:agent-data-changed", onAgentData);
-  }, [selectedDevice?.deviceId]);
+    window.addEventListener("eco:event-deleted", onEventDeleted);
+    return () => {
+      window.removeEventListener("eco:agent-data-changed", onAgentData);
+      window.removeEventListener("eco:event-deleted", onEventDeleted);
+    };
+  }, [selectedDevice?.deviceId, setContextEvents]);
 
   const addEvent = async (newEvent) => {
     try {

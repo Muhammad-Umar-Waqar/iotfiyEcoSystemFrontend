@@ -236,11 +236,12 @@ const EventModal = ({ open, onClose, onSave, deviceType = null }) => {
     );
   };
 
+  const isOneTime = days.length === 0;
+
   const isSaveDisabled =
     isLoading ||
     !start ||
     !end ||
-    days.length === 0 ||
     (isAc && command === "ON" && !Number.isFinite(Number(setTemperature)));
 
   // const handleSave = () => {
@@ -455,7 +456,7 @@ const EventModal = ({ open, onClose, onSave, deviceType = null }) => {
                 New Schedule Event
               </h2>
               <p className="text-xs text-slate-400 mt-0.5">
-                Set a time range and repeat days
+                Set a time range; repeat days are optional
               </p>
             </div>
             <button
@@ -497,9 +498,18 @@ const EventModal = ({ open, onClose, onSave, deviceType = null }) => {
 
             {/* Days */}
             <div>
-              <label className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2 block">
-                Repeat Days
-              </label>
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  Repeat Days
+                </label>
+                <span
+                  className={`text-[11px] font-medium ${
+                    isOneTime ? "text-amber-600" : "text-slate-400"
+                  }`}
+                >
+                  {isOneTime ? "One-time · today only" : "Recurring weekly"}
+                </span>
+              </div>
               <div className="flex flex-wrap gap-2">
                 {daysList.map((d) => (
                   <button

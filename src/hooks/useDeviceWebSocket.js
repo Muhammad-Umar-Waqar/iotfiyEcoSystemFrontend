@@ -202,6 +202,16 @@ export const useDeviceWebSocket = (devices = []) => {
               ...scheduleData,
             },
           };
+          if (scheduleData?.deletedEventId) {
+            window.dispatchEvent(
+              new CustomEvent("eco:event-deleted", {
+                detail: {
+                  deviceId,
+                  eventId: scheduleData.deletedEventId,
+                },
+              })
+            );
+          }
           console.log(
             `%c[SCHEDULE-WS] MAP KEYS`,
             "color:#0369a1",
